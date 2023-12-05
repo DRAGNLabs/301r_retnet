@@ -1,51 +1,102 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 from argparse import ArgumentParser
 from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
 
-def get_retnet_model(
-        embed_dim: int,
-        retention_heads: int,
-        ffn_dim: int,
-        layers: int,
-        dropout: float,
-        activation_dropout: float,
-        vocab_size: int,
-        checkpoint_activations: bool,
-        fsdp: bool) -> RetNetDecoder:
-    """ Use parameters to create corresponding RetNet model
-    Args:
-        embed_dim (int): Dimension size of each embedded token.
-        retention_heads (int): Number of retention heads in MSR module.
-        ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
-        layers (int): Number of retention network layers.
-        dropout (float): Probability of an element to be zeroed during dropout.
-        activation_dropout (float): Probability of an element to be zeroed
-            during dropout after activation between FFN layers.
-        vocab_size (int): Maximum vocabulary size (number of unique tokens in
-            vocabulary.
-        checkpoint_activations (bool): Whether to perform checkpointing or not
-            (done with the FairScale library).
-        fsdp (bool): Whether to shard Module parameters across data parallel
-            workers or not (with the FairScale library).
+class RetNetModel(nn.Module):
+    def __init__(
+            self,
+            embed_dim: int,
+            value_embed_dim: int,
+            retention_heads: int,
+            ffn_dim: int,
+            layers: int,
+            dropout: float,
+            activation_dropout: float,
+            vocab_size: int,
+            checkpoint_activations: bool,
+            fsdp: bool,
+            max_seq_len: int):
+        """ Use parameters to create corresponding RetNet model
+        Args:
+            embed_dim (int): Dimension size of each embedded token.
+            value_embed_dim (int): Value embed dimension size.
+            retention_heads (int): Number of retention heads in MSR module.
+            ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
+            layers (int): Number of retention network layers.
+            dropout (float): Probability of an element to be zeroed during dropout.
+            activation_dropout (float): Probability of an element to be zeroed
+                during dropout after activation between FFN layers.
+            vocab_size (int): Maximum vocabulary size (number of unique tokens in
+                vocabulary.
+            checkpoint_activations (bool): Whether to perform checkpointing or not
+                (done with the FairScale library).
+            fsdp (bool): Whether to shard Module parameters across data parallel
+                workers or not (with the FairScale library).
+            max_seq_len (int): Size of context window.
 
-    Returns:
-        Created RetNetDecoder with given configuration.
-    """
-    config = RetNetConfig(
-            decoder_embed_dim=embed_dim,
-            decoder_retention_heads=retention_heads,
-            decoder_ffn_embed_dim=ffn_dim,
-            decoder_layers=layers,
-            dropout=dropout,
-            activation_dropout=activation_dropout,
-            vocab_size=vocab_size,
-            checkpoint_activations=checkpoint_activations,
-            fsdp=fsdp)
+        Returns:
+            Created RetNetModel with given configuration.
+        """
+        super().__init__()
 
-    return RetNetDecoder(config)
+        config = RetNetConfig(
+                decoder_embed_dim=embed_dim,
+                decoder_value_embed_dim=value_embed_dim,
+                decoder_retention_heads=retention_heads,
+                decoder_ffn_embed_dim=ffn_dim,
+                decoder_layers=layers,
+                dropout=dropout,
+                activation_dropout=activation_dropout,
+                vocab_size=vocab_size,
+                checkpoint_activations=checkpoint_activations,
+                fsdp=fsdp)
+
+        # Save max_seq_len for padding later
+        self.max_seq_len = max_seq_len
+
+        # Save vocab_size for final dimensions later
+        self.vocab_size = vocab_size
+
+        # Create embeddings with index 0 representing padding
+        self.text_embeddings = nn.Embedding(
+                num_embeddings=vocab_size,
+                embedding_dim=embed_dim,
+                padding_idx=0)
+
+        self.decoder_stack = RetNetDecoder(config, embed_tokens=self.text_embeddings)
+
+        # FFN after the final decoder
+        self.final_ffn = nn.Linear(
+                in_features=max_seq_len * embed_dim,
+                out_features=max_seq_len * vocab_size,
+                bias=True)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Add padding as needed to reach max_seq_len. Note that x comes with the
+        # shape: (batch_size, seq_len)
+        x = F.pad(
+                input=x,
+                pad=(0, self.max_seq_len - x.shape[-1]),
+                mode="constant",
+                value=0)
+
+        # Last decoder results are in the shape:
+        # (batch_size, max_seq_len, embed_dim)
+        last_decoder_results = self.decoder_stack(x)[1]["inner_states"][-1]
+
+        # Transform last decoder results to shape:
+        # (batch_size, max_seq_len, vocab_size)
+        token_logits = self.final_ffn(
+                torch.flatten(last_decoder_results, start_dim=1))\
+                .reshape(-1, self.max_seq_len, self.vocab_size)
+
+        # Return token predictions after Softmax activation
+        return F.softmax(token_logits, dim=-1)
 
 
 def get_transformer_model(
@@ -119,6 +170,10 @@ if __name__ == "__main__":
             help="Name of model architecture to train.")
     parser.add_argument("-n", "--heads", type=int, default=3,
             help="Number of heads. Head architecture changes based on model.")
+    parser.add_argument("-s", "--seq-len", type=int, default=512,
+            help="Sequence length (context window size).")
+    parser.add_argument("--value-embed-dim", type=int, default=1280,
+            help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
             help="Maximum number of unique tokens in vocabulary.")
 
@@ -126,8 +181,9 @@ if __name__ == "__main__":
     
     # Create requested model
     if args.model == "retnet":
-        model = get_retnet_model(
+        model = RetNetModel(
                 embed_dim=args.embed_dim,
+                value_embed_dim=args.value_embed_dim,
                 retention_heads=args.heads,
                 ffn_dim=args.ffn_dim,
                 layers=args.layers,
@@ -135,7 +191,8 @@ if __name__ == "__main__":
                 activation_dropout=args.activation_dropout,
                 vocab_size=args.vocab_size,
                 checkpoint_activations=args.checkpoint_activations,
-                fsdp=args.fsdp)
+                fsdp=args.fsdp,
+                max_seq_len=args.seq_len)
     elif args.model == "transformer":
         model = get_transformer_model(
                 embed_dim=args.embed_dim,
