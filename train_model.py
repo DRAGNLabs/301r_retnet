@@ -276,8 +276,6 @@ if __name__ == "__main__":
                 checkpoint_activations=args.checkpoint_activations,
                 fsdp=args.fsdp,
                 max_seq_len=args.seq_len)
-    else:
-        raise ValueError("Model name not recognized.")
     
     # Print model info
     model_summary(model, input_data=torch.ones(1, args.seq_len).long())
