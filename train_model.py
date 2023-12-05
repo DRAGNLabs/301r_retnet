@@ -1,11 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import Tensor
 
 from argparse import ArgumentParser
 from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
+
+from torchtext.datasets import WikiText2
+from torchtext.data.utils import get_tokenizer
+from torchtext.vocab import build_vocab_from_iterator
+from torch.utils.data import dataset
 
 class RetNetModel(nn.Module):
     def __init__(
@@ -195,6 +201,66 @@ class TransformerModel(nn.Module):
         # Return token predictions after Softmax activation
         return F.softmax(token_logits, dim=-1)
 
+def load_dataset():
+    #! This function is dogwater, plz use a real tokenizer, this is just for testing
+    #! taken from this webpage: https://pytorch.org/tutorials/beginner/transformer_tutorial.html
+    # TODO: Use sentencepiece as a tokenizer instead (or something else that is also good)
+    train_iter = WikiText2(split='train')
+    tokenizer = get_tokenizer('basic_english')
+    vocab = build_vocab_from_iterator(map(tokenizer, train_iter), specials=['<unk>'])
+    vocab.set_default_index(vocab['<unk>'])
+    
+    def data_process(raw_text_iter: dataset.IterableDataset) -> Tensor:
+        """Converts raw text into a flat Tensor."""
+        data = [torch.tensor(vocab(tokenizer(item)), dtype=torch.long) for item in raw_text_iter]
+        return torch.cat(tuple(filter(lambda t: t.numel() > 0, data)))
+    
+    # ``train_iter`` was "consumed" by the process of building the vocab,
+    # so we have to create it again
+    train_iter, val_iter, test_iter = WikiText2()
+    train_data = data_process(train_iter)
+    val_data = data_process(val_iter)
+    test_data = data_process(test_iter)
+    
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    def batchify(data: Tensor, bsz: int) -> Tensor:
+        """Divides the data into ``bsz`` separate sequences, removing extra elements
+        that wouldn't cleanly fit.
+    
+        Arguments:
+            data: Tensor, shape ``[N]``
+            bsz: int, batch size
+    
+        Returns:
+            Tensor of shape ``[N // bsz, bsz]``
+        """
+        seq_len = data.size(0) // bsz
+        data = data[:seq_len * bsz]
+        data = data.view(bsz, seq_len).t().contiguous()
+        return data.to(device)
+    
+    batch_size = 20
+    eval_batch_size = 10
+    train_data = batchify(train_data, batch_size)  # shape ``[seq_len, batch_size]``
+    val_data = batchify(val_data, eval_batch_size)
+    test_data = batchify(test_data, eval_batch_size)
+
+    return batch_size, eval_batch_size, train_data, val_data, test_data
+
+def model_info(model):
+    # Print model summary
+    print(model)
+
+    # Print out model size
+    num_params = sum(p.numel() for p in model.parameters())
+    print("Model size: {:.2f} million parameters".format(num_params / 1_000_000))
+
+
+    # Print out memory usage of model
+    memory_usage = sum(p.numel() * p.element_size() for p in model.parameters())
+    memory_usage_gb = memory_usage / (1024 ** 3)  # Convert to gigabytes
+    print("Memory usage: {:.2f} GB".format(memory_usage_gb))
 
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
@@ -263,16 +329,11 @@ if __name__ == "__main__":
     else:
         raise ValueError("Model name not recognized.")
     
-    # Print model summary
-    print(model)
+    # Print model info
+    print(model_info(model))
 
-    # Print out model size
-    num_params = sum(p.numel() for p in model.parameters())
-    print("Model size: {:.2f} million parameters".format(num_params / 1_000_000))
+    # Load the dataset
+    batch_size, eval_batch_size, train_data, val_data, test_data  = load_dataset()
 
-
-    # Print out memory usage of model
-    memory_usage = sum(p.numel() * p.element_size() for p in model.parameters())
-    memory_usage_gb = memory_usage / (1024 ** 3)  # Convert to gigabytes
-    print("Memory usage: {:.2f} GB".format(memory_usage_gb))
-
+    # Train the model
+    print('test')

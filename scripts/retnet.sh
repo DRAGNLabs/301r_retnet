@@ -1,3 +1,5 @@
+# This is very small on purpose so you can get code working
+
 python3 ../train_model.py \
     --activation-dropout 0.1 \
     --checkpoint-activations False \
