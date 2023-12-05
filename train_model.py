@@ -68,9 +68,11 @@ class RetNetModel(nn.Module):
                 embedding_dim=embed_dim,
                 padding_idx=0)
 
+        #TODO: Check that we are masking correctly
         self.decoder_stack = RetNetDecoder(config, embed_tokens=self.text_embeddings)
 
         # FFN after the final decoder
+        #TODO: Double check we need this linear layer
         self.final_ffn = nn.Linear(
                 in_features=max_seq_len * embed_dim,
                 out_features=max_seq_len * vocab_size,
@@ -87,15 +89,18 @@ class RetNetModel(nn.Module):
 
         # Last decoder results are in the shape:
         # (batch_size, max_seq_len, embed_dim)
+        # TODO: Double check this is the output
         last_decoder_results = self.decoder_stack(x)[1]["inner_states"][-1]
 
         # Transform last decoder results to shape:
         # (batch_size, max_seq_len, vocab_size)
+        # TODO: Double check if we need bias
         token_logits = self.final_ffn(
                 torch.flatten(last_decoder_results, start_dim=1))\
                 .reshape(-1, self.max_seq_len, self.vocab_size)
 
         # Return token predictions after Softmax activation
+        # TODO: Check that they use softmax at the end for decoding
         return F.softmax(token_logits, dim=-1)
 
 
@@ -255,3 +260,19 @@ if __name__ == "__main__":
                 checkpoint_activations=args.checkpoint_activations,
                 fsdp=args.fsdp,
                 max_seq_len=args.seq_len)
+    else:
+        raise ValueError("Model name not recognized.")
+    
+    # Print model summary
+    print(model)
+
+    # Print out model size
+    num_params = sum(p.numel() for p in model.parameters())
+    print("Model size: {:.2f} million parameters".format(num_params / 1_000_000))
+
+
+    # Print out memory usage of model
+    memory_usage = sum(p.numel() * p.element_size() for p in model.parameters())
+    memory_usage_gb = memory_usage / (1024 ** 3)  # Convert to gigabytes
+    print("Memory usage: {:.2f} GB".format(memory_usage_gb))
+
