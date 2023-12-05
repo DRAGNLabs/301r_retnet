@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch import Tensor
+from torch.utils.data import dataset
 
 from argparse import ArgumentParser
 from torchscale.architecture.config import DecoderConfig, RetNetConfig
@@ -11,7 +11,8 @@ from torchscale.architecture.retnet import RetNetDecoder
 from torchtext.datasets import WikiText2
 from torchtext.data.utils import get_tokenizer
 from torchtext.vocab import build_vocab_from_iterator
-from torch.utils.data import dataset
+
+from torchinfo import summary as model_summary
 
 class RetNetModel(nn.Module):
     def __init__(
@@ -210,19 +211,6 @@ def load_dataset():
 
     return None, None, None, None, None
 
-def model_info(model):
-    # Print model summary
-    print(model)
-
-    # Print out model size
-    num_params = sum(p.numel() for p in model.parameters())
-    print("Model size: {:.2f} million parameters".format(num_params / 1_000_000))
-
-
-    # Print out memory usage of model
-    memory_usage = sum(p.numel() * p.element_size() for p in model.parameters())
-    memory_usage_gb = memory_usage / (1024 ** 3)  # Convert to gigabytes
-    print("Memory usage: {:.2f} GB".format(memory_usage_gb))
 
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
@@ -292,7 +280,7 @@ if __name__ == "__main__":
         raise ValueError("Model name not recognized.")
     
     # Print model info
-    print(model_info(model))
+    model_summary(model, input_data=torch.ones(1, args.seq_len).long())
 
     # Load the dataset
     batch_size, eval_batch_size, train_data, val_data, test_data  = load_dataset()

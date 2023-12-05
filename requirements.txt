@@ -3,3 +3,4 @@ numpy==1.26.2
 fairscale==0.4.13
 timm==0.9.12
 torchtext==0.16.1
+torchinfo==1.8.0
