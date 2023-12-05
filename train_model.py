@@ -202,12 +202,12 @@ class TransformerModel(nn.Module):
         # Return token predictions after Softmax activation
         return F.softmax(token_logits, dim=-1)
 
+
 def load_dataset():
     # This webpage shows a way to read torchtext into a Dataloader
     # use their tokenizer for now to get training going
     # : https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html
     # TODO: Use sentencepice tokenizer in the future
-    
 
     return None, None, None, None, None
 
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     model_summary(model, input_data=torch.ones(1, args.seq_len).long())
 
     # Load the dataset
-    batch_size, eval_batch_size, train_data, val_data, test_data  = load_dataset()
+    batch_size, eval_batch_size, train_data, val_data, test_data = load_dataset()
 
     # Train the model
     print('test')
