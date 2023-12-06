@@ -249,6 +249,18 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
+    # Test that the head dimension will be an even, whole number
+    assert args.embed_dim % (args.heads * 2) == 0, \
+            "Head Dimension must be even to perform Rotary Position " + \
+            f"Embedding ({args.embed_dim} / {args.heads} = " + \
+            f"{args.embed_dim / args.heads} -- not an even, whole number)! " + \
+            "Try changing the Embedding Dimension or number of heads."
+
+    # Test that the value embedding dimension is divisible by number of heads
+    assert args.value_embed_dim % args.heads == 0, \
+            "Value Embed Dimension not divisible by number of heads " + \
+            f"({args.value_embed_dim} % {args.heads} != 0)!"
+
     # Create requested model
     if args.model == "retnet":
         model = RetNetModel(
