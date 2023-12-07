@@ -14,6 +14,8 @@ from torchtext.vocab import build_vocab_from_iterator
 
 from torchinfo import summary as model_summary
 
+from datasets import load_wikitext2
+
 class RetNetModel(nn.Module):
     def __init__(
             self,
@@ -201,16 +203,7 @@ class TransformerModel(nn.Module):
 
         # Return token predictions after Softmax activation
         return F.softmax(token_logits, dim=-1)
-
-
-def load_dataset():
-    # This webpage shows a way to read torchtext into a Dataloader
-    # use their tokenizer for now to get training going
-    # : https://pytorch.org/tutorials/beginner/text_sentiment_ngrams_tutorial.html
-    # TODO: Use sentencepice tokenizer in the future
-
-    return None, None, None, None, None
-
+    
 
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
@@ -246,6 +239,8 @@ if __name__ == "__main__":
             help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
             help="Maximum number of unique tokens in vocabulary.")
+    parser.add_argument("--batch-size", type=int, default=32,
+            help="Batch size.")
 
     args = parser.parse_args()
     
@@ -293,7 +288,9 @@ if __name__ == "__main__":
     model_summary(model, input_data=torch.ones(1, args.seq_len).long())
 
     # Load the dataset
-    batch_size, eval_batch_size, train_data, val_data, test_data = load_dataset()
+    train_loader, valid_loader, test_loader = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size)
 
     # Train the model
-    print('test')
+    for inputs, targets in train_loader:
+        print(inputs.shape, targets.shape)
+        break
