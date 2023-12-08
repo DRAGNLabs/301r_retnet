@@ -8,10 +8,6 @@ from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
 
-from torchtext.datasets import WikiText2
-from torchtext.data.utils import get_tokenizer
-from torchtext.vocab import build_vocab_from_iterator
-
 from torchinfo import summary as model_summary
 
 from datasets import load_wikitext2
@@ -54,6 +50,20 @@ class RetNetModel(nn.Module):
         """
         super().__init__()
 
+        self.model_params = {
+                "embed_dim": embed_dim,
+                "value_embed_dim": value_embed_dim,
+                "retention_heads": retention_heads,
+                "ffn_dim": ffn_dim,
+                "layers": layers,
+                "dropout": dropout,
+                "activation_dropout": activation_dropout,
+                "vocab_size": vocab_size,
+                "checkpoint_activations": checkpoint_activations,
+                "fsdp": fsdp,
+                "max_seq_len": max_seq_len
+                }
+
         config = RetNetConfig(
                 decoder_embed_dim=embed_dim,
                 decoder_value_embed_dim=value_embed_dim,
@@ -86,12 +96,13 @@ class RetNetModel(nn.Module):
         result = F.softmax(logits, dim=-1)
         return result
 
-    def generate_text(self, model, tokenizer, start_string, generation_length=100, device='cuda'):
+    def generate_text(self, start_string, generation_length=100, device='cuda'):
         # Evaluation mode
-        model.eval()
+        self.decoder_stack.eval()
+        self.decoder_stack.to(device)
 
         # Convert start string to numbers
-        input_eval = tokenizer.stoi(start_string)
+        input_eval = self.tokenizer.stoi(start_string)
         print(input_eval)
         input_eval = torch.tensor(input_eval).unsqueeze(0).to(device)
 
@@ -101,7 +112,7 @@ class RetNetModel(nn.Module):
         # No gradients needed
         with torch.no_grad():
             for _ in range(generation_length):
-                predictions = model(input_eval)
+                predictions = self.forward(input_eval)
                 # Get the last predicted word
                 predicted_id = predictions.argmax(dim=-1)[..., -1]
 
@@ -109,7 +120,7 @@ class RetNetModel(nn.Module):
                 input_eval = torch.cat([input_eval, predicted_id.unsqueeze(-1)], dim=-1)
 
                 # Convert predicted word id to word
-                predicted_word = tokenizer.itos(predicted_id.tolist())
+                predicted_word = self.tokenizer.itos(predicted_id.tolist())
 
                 text_generated.append(predicted_word)
 
@@ -150,6 +161,20 @@ class TransformerModel(nn.Module):
         """
         super().__init__()
 
+        self.model_params = {
+                "embed_dim": embed_dim,
+                "value_embed_dim": value_embed_dim,
+                "attention_heads": attention_heads,
+                "ffn_dim": ffn_dim,
+                "layers": layers,
+                "dropout": dropout,
+                "activation_dropout": activation_dropout,
+                "vocab_size": vocab_size,
+                "checkpoint_activations": checkpoint_activations,
+                "fsdp": fsdp,
+                "max_seq_len": max_seq_len
+                }
+
         config = DecoderConfig(
                 decoder_embed_dim=embed_dim,
                 decoder_value_embed_dim=value_embed_dim,
@@ -181,12 +206,13 @@ class TransformerModel(nn.Module):
         result = F.softmax(logits, dim=-1)
         return result
     
-    def generate_text(self, model, tokenizer, start_string, generation_length=100, device='cuda'):
+    def generate_text(self, start_string, generation_length=100, device='cuda'):
         # Evaluation mode
-        model.eval()
+        self.decoder_stack.eval()
+        self.decoder_stack.to(device)
 
         # Convert start string to numbers
-        input_eval = tokenizer.stoi(start_string)
+        input_eval = self.tokenizer.stoi(start_string)
         print(input_eval)
         input_eval = torch.tensor(input_eval).unsqueeze(0).to(device)
 
@@ -196,7 +222,7 @@ class TransformerModel(nn.Module):
         # No gradients needed
         with torch.no_grad():
             for _ in range(generation_length):
-                predictions = model(input_eval)
+                predictions = self.forward(input_eval)
                 # Get the last predicted word
                 predicted_id = predictions.argmax(dim=-1)[..., -1]
 
@@ -204,7 +230,7 @@ class TransformerModel(nn.Module):
                 input_eval = torch.cat([input_eval, predicted_id.unsqueeze(-1)], dim=-1)
 
                 # Convert predicted word id to word
-                predicted_word = tokenizer.itos(predicted_id.tolist())
+                predicted_word = self.tokenizer.itos(predicted_id.tolist())
 
                 text_generated.append(predicted_word)
 
@@ -313,8 +339,13 @@ if __name__ == "__main__":
     print('\nModel Summary:')
     model_summary(model, input_data=torch.ones(1, args.seq_len).long())
 
+    # Print estimated loss if it hasn't learned anything
+    print('\nEstimated Loss if guessing:')
+    print(f'-log(1 / {args.vocab_size}) = {torch.log(torch.tensor(1 / args.vocab_size))}')
+
     # Load the dataset
     train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size)
+    model.tokenizer = tokenizer
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss()
@@ -332,7 +363,7 @@ if __name__ == "__main__":
     print('\nTraining model...')
     for epoch in range(args.epochs):
         print(f'Epoch {epoch + 1}')
-        for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader, mininterval=10)): # Prints progress bar every mininterval seconds
+        for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader, mininterval=60)): # Prints progress bar every mininterval seconds
             # Put inputs and targets on device
             inputs = inputs.to(device)
             targets = targets.to(device)
@@ -343,9 +374,11 @@ if __name__ == "__main__":
             # Get model predictions
             predictions = model(inputs)
             
-            # Transpose the model outputs to match the expected shape for CrossEntropyLoss
-            #TODO: Check that we are transposing correctly
-            predictions = predictions.permute(0, 2, 1) 
+            # Reshape the model outputs to match the expected shape for CrossEntropyLoss
+            B, T, C = predictions.shape
+            predictions = predictions.reshape(B * T, C)
+            B, T = targets.shape
+            targets = targets.reshape(B * T)
         
             # Calculate loss
             loss = loss_fn(predictions, targets)
@@ -371,8 +404,11 @@ if __name__ == "__main__":
                         # Get validation predictions
                         val_predictions = model(val_inputs)
                         
-                        # Transpose the validation predictions to match the expected shape for CrossEntropyLoss
-                        val_predictions = val_predictions.permute(0, 2, 1)
+                        # Reshape the model outputs to match the expected shape for CrossEntropyLoss
+                        B, T, C = val_predictions.shape
+                        val_predictions = val_predictions.reshape(B * T, C)
+                        B, T = val_targets.shape
+                        val_targets = val_targets.reshape(B * T)
                         
                         # Calculate validation loss
                         val_loss = loss_fn(val_predictions, val_targets)
@@ -385,8 +421,14 @@ if __name__ == "__main__":
                 
                 model.train()
 
-    # Save the model state dict
-    torch.save(model.state_dict(), f"{args.model}.pt")
+    # TODO: Rewriting in progress
+    # # Save the model
+    # filepath = f"{args.model}.pt"
+    # torch.save({
+    #         'model': model.decoder_stack.state_dict(),
+    #         'model_params': model.model_params,
+    #         'tokenizer': model.tokenizer
+    #         }, filepath)
 
     # Test the model
     print('\nTesting model...')
@@ -394,7 +436,7 @@ if __name__ == "__main__":
     total_loss = 0
     total_samples = 0
     with torch.no_grad():
-        for inputs, targets in tqdm(test_loader, mininterval=10): # Prints progress bar every mininterval seconds
+        for inputs, targets in tqdm(test_loader, mininterval=60): # Prints progress bar every mininterval seconds
             # Put inputs and targets on device
             inputs = inputs.to(device)
             targets = targets.to(device)
@@ -402,8 +444,11 @@ if __name__ == "__main__":
             # Get model predictions
             predictions = model(inputs)
             
-            # Transpose the model outputs to match the expected shape for CrossEntropyLoss
-            predictions = predictions.permute(0, 2, 1) 
+            # Reshape the model outputs to match the expected shape for CrossEntropyLoss
+            B, T, C = predictions.shape
+            predictions = predictions.reshape(B * T, C)
+            B, T = targets.shape
+            targets = targets.reshape(B * T)
             
             # Calculate loss
             loss = loss_fn(predictions, targets)
@@ -416,7 +461,7 @@ if __name__ == "__main__":
 
     # Generate text from the model
     print('\nGenerating text...')
-    print(model.generate_text(model, tokenizer, start_string="The", generation_length=100, device=device))
+    print(model.generate_text(start_string="The", generation_length=100, device=device))
 
     # Say where the model was saved
     print(f"\nModel saved to {args.model}.pt")

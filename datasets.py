@@ -5,6 +5,18 @@ from torchtext.vocab import build_vocab_from_iterator
 from torchtext.datasets import WikiText2
 import torch.nn.functional as F
 
+class Tokenizer():
+    def __init__(self, vocab, tokenizer, tokens_to_text):
+        self.vocab = vocab
+        self.tokenizer = tokenizer
+        self.tokens_to_text = tokens_to_text
+    
+    def stoi(self, text):
+        return [self.vocab[token] for token in self.tokenizer(text)]
+    
+    def itos(self, token_indices):
+        return self.tokens_to_text(token_indices)
+
 def load_wikitext2(max_seq_len, batch_size):
     """ Loads the WikiText2 dataset and returns the train, validation and test data loaders
     Args:
@@ -36,19 +48,8 @@ def load_wikitext2(max_seq_len, batch_size):
 
     def tokens_to_text(token_indices):
         return ' '.join([index_to_token[index] for index in token_indices])
-    
-    class Tokenizer():
-        def __init__(self, tokenizer, tokens_to_text):
-            self.tokenizer = tokenizer
-            self.tokens_to_text = tokens_to_text
         
-        def stoi(self, text):
-            return [vocab[token] for token in self.tokenizer(text)]
-        
-        def itos(self, token_indices):
-            return self.tokens_to_text(token_indices)
-        
-    tokenizer = Tokenizer(tokenizer, tokens_to_text)
+    tokenizer = Tokenizer(vocab, tokenizer, tokens_to_text)
 
     # Function to process each article
     def data_process(raw_text_iter):
