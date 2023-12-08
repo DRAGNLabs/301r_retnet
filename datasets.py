@@ -37,13 +37,26 @@ def load_wikitext2(max_seq_len, batch_size):
 
     def tokens_to_text(token_indices):
         return ' '.join([index_to_token[index] for index in token_indices])
+    
+    class Tokenizer():
+        def __init__(self, tokenizer, tokens_to_text):
+            self.tokenizer = tokenizer
+            self.tokens_to_text = tokens_to_text
+        
+        def stoi(self, text):
+            return [vocab[token] for token in self.tokenizer(text)]
+        
+        def itos(self, token_indices):
+            return self.tokens_to_text(token_indices)
+        
+    tokenizer = Tokenizer(tokenizer, tokens_to_text)
 
     # Function to process each article
     def data_process(raw_text_iter):
         processed_data = []
         for text in raw_text_iter:
             # Tokenize and numericalize
-            numericalized_text = [vocab[token] for token in tokenizer(text)]
+            numericalized_text = tokenizer.stoi(text)
             # Pad and possibly truncate the sequence
             padded = F.pad(torch.tensor(numericalized_text, dtype=torch.long),
                         (0, max_seq_len - len(numericalized_text)),
@@ -86,4 +99,4 @@ def load_wikitext2(max_seq_len, batch_size):
     valid_loader = DataLoader(valid_dataset, batch_size=batch_size)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-    return train_loader, valid_loader, test_loader, tokens_to_text
+    return train_loader, valid_loader, test_loader, tokenizer
