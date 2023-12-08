@@ -29,7 +29,6 @@ def load_wikitext2(max_seq_len, batch_size):
     # Build vocabulary from training set
     vocab = build_vocab_from_iterator(yield_tokens(train_iter), specials=["<unk>", "<pad>"])
     vocab.set_default_index(vocab["<unk>"])
-    print(f"Vocab size: {len(vocab)}")
 
     # Create a reverse mapping from indices to tokens
     index_to_token = {index: token for token, index in vocab.get_stoi().items()}

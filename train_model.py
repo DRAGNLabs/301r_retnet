@@ -18,6 +18,8 @@ from datasets import load_wikitext2
 
 from tqdm import tqdm
 
+from tabulate import tabulate
+
 class RetNetModel(nn.Module):
     def __init__(
             self,
@@ -83,8 +85,6 @@ class RetNetModel(nn.Module):
         logits, other_stuff = self.decoder_stack(x)
         result = F.softmax(logits, dim=-1)
         return result
-    
-    import torch
 
     def generate_text(self, model, tokenizer, start_string, generation_length=100, device='cuda'):
         # Evaluation mode
@@ -265,8 +265,23 @@ if __name__ == "__main__":
                 fsdp=args.fsdp,
                 max_seq_len=args.seq_len)
     
+
+    # Print all arguments for recordkeeping
+    print('Arguments:')
+    arg_table = []
+    row = []
+    for i, arg in enumerate(vars(args)):
+        row.append(f'{arg}: {getattr(args, arg)}')
+        if (i + 1) % 4 == 0:
+            arg_table.append(row)
+            row = []
+    if row:
+        arg_table.append(row)
+
+    print(tabulate(arg_table, tablefmt="grid"))
+
     # Print model info
-    print('Model Summary:')
+    print('\nModel Summary:')
     model_summary(model, input_data=torch.ones(1, args.seq_len).long())
 
     # Load the dataset
@@ -285,9 +300,10 @@ if __name__ == "__main__":
     model = model.to(device)
 
     # Train the model
-    print('\n\n\n\nTraining model...')
+    print('\nTraining model...')
     for epoch in range(args.epochs):
-        for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader)):
+        print(f'Epoch {epoch + 1}')
+        for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader, mininterval=10)): # Prints progress bar every mininterval seconds
             # Put inputs and targets on device
             inputs = inputs.to(device)
             targets = targets.to(device)
@@ -312,7 +328,7 @@ if __name__ == "__main__":
             optimizer.step()
             
             # Run validation every once in a while
-            if batch_idx % 200 == 0:
+            if batch_idx % 400 == 0:
                 print(f'Train loss: {loss.item()}')
                 model.eval()
                 with torch.no_grad():
@@ -344,12 +360,12 @@ if __name__ == "__main__":
     torch.save(model.state_dict(), f"{args.model}.pt")
 
     # Test the model
-    print('\n\n\n\nTesting model...')
+    print('\nTesting model...')
     model.eval()
     total_loss = 0
     total_samples = 0
     with torch.no_grad():
-        for inputs, targets in tqdm(test_loader):
+        for inputs, targets in tqdm(test_loader, mininterval=10): # Prints progress bar every mininterval seconds
             # Put inputs and targets on device
             inputs = inputs.to(device)
             targets = targets.to(device)
@@ -370,8 +386,8 @@ if __name__ == "__main__":
     print(f"Test Loss: {avg_loss}")
 
     # Generate text from the model
-    print('\n\n\n\nGenerating text...')
+    print('\nGenerating text...')
     print(model.generate_text(model, tokenizer, start_string="The", generation_length=100, device=device))
 
     # Say where the model was saved
-    print(f"\n\n\n\nModel saved to {args.model}.pt")
+    print(f"\nModel saved to {args.model}.pt")
