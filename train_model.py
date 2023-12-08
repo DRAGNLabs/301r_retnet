@@ -16,6 +16,8 @@ from torchinfo import summary as model_summary
 
 from datasets import load_wikitext2
 
+from tqdm import tqdm
+
 class RetNetModel(nn.Module):
     def __init__(
             self,
@@ -47,9 +49,6 @@ class RetNetModel(nn.Module):
             fsdp (bool): Whether to shard Module parameters across data parallel
                 workers or not (with the FairScale library).
             max_seq_len (int): Size of context window.
-
-        Returns:
-            Created RetNetModel with given configuration.
         """
         super().__init__()
 
@@ -80,37 +79,10 @@ class RetNetModel(nn.Module):
         #TODO: Check that we are masking correctly
         self.decoder_stack = RetNetDecoder(config, embed_tokens=self.text_embeddings)
 
-        # FFN after the final decoder
-        #TODO: Double check we need this linear layer
-        self.final_ffn = nn.Linear(
-                in_features=max_seq_len * embed_dim,
-                out_features=max_seq_len * vocab_size,
-                bias=True)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Add padding as needed to reach max_seq_len. Note that x comes with the
-        # shape: (batch_size, seq_len)
-        x = F.pad(
-                input=x,
-                pad=(0, self.max_seq_len - x.shape[-1]),
-                mode="constant",
-                value=0)
-
-        # Last decoder results are in the shape:
-        # (batch_size, max_seq_len, embed_dim)
-        # TODO: Double check this is the output
-        last_decoder_results = self.decoder_stack(x)[1]["inner_states"][-1]
-
-        # Transform last decoder results to shape:
-        # (batch_size, max_seq_len, vocab_size)
-        # TODO: Double check if we need bias
-        token_logits = self.final_ffn(
-                torch.flatten(last_decoder_results, start_dim=1))\
-                .reshape(-1, self.max_seq_len, self.vocab_size)
-
-        # Return token predictions after Softmax activation
-        # TODO: Check that they use softmax at the end for decoding
-        return F.softmax(token_logits, dim=-1)
+        logits, other_stuff = self.decoder_stack(x)
+        result = F.softmax(logits, dim=-1)
+        return result
 
 
 class TransformerModel(nn.Module):
@@ -144,9 +116,6 @@ class TransformerModel(nn.Module):
             fsdp (bool): Whether to shard Module parameters across data parallel
                 workers or not (with the FairScale library).
             max_seq_len (int): Size of context window.
-
-        Returns:
-            Created TransformerModel with given configuration.
         """
         super().__init__()
 
@@ -176,33 +145,10 @@ class TransformerModel(nn.Module):
 
         self.decoder_stack = Decoder(config, embed_tokens=self.text_embeddings)
 
-        # FFN after the final decoder
-        self.final_ffn = nn.Linear(
-                in_features=max_seq_len * embed_dim,
-                out_features=max_seq_len * vocab_size,
-                bias=True)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Add padding as needed to reach max_seq_len. Note that x comes with the
-        # shape: (batch_size, seq_len)
-        x = F.pad(
-                input=x,
-                pad=(0, self.max_seq_len - x.shape[-1]),
-                mode="constant",
-                value=0)
-
-        # Last decoder results are in the shape:
-        # (batch_size, max_seq_len, embed_dim)
-        last_decoder_results = self.decoder_stack(x)[1]["inner_states"][-1]
-
-        # Transform last decoder results to shape:
-        # (batch_size, max_seq_len, vocab_size)
-        token_logits = self.final_ffn(
-                torch.flatten(last_decoder_results, start_dim=1))\
-                .reshape(-1, self.max_seq_len, self.vocab_size)
-
-        # Return token predictions after Softmax activation
-        return F.softmax(token_logits, dim=-1)
+        logits, other_stuff = self.decoder_stack(x)
+        result = F.softmax(logits, dim=-1)
+        return result
     
 
 if __name__ == "__main__":
@@ -241,6 +187,10 @@ if __name__ == "__main__":
             help="Maximum number of unique tokens in vocabulary.")
     parser.add_argument("--batch-size", type=int, default=32,
             help="Batch size.")
+    parser.add_argument("--device", type=str, default='cuda',
+            help="Device to use (GPU).")
+    parser.add_argument("--epochs", type=int, default=10,
+            help="Number of epochs to train for.")
 
     args = parser.parse_args()
     
@@ -288,9 +238,102 @@ if __name__ == "__main__":
     model_summary(model, input_data=torch.ones(1, args.seq_len).long())
 
     # Load the dataset
-    train_loader, valid_loader, test_loader = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size)
+    train_loader, valid_loader, test_loader, tokens_to_text = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size)
+
+    # Define loss function
+    loss_fn = nn.CrossEntropyLoss()
+
+    # Define optimizer
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+
+    # Define the device to use
+    device = torch.device(args.device)
+
+    # Put model on device
+    model = model.to(device)
 
     # Train the model
-    for inputs, targets in train_loader:
-        print(inputs.shape, targets.shape)
-        break
+    print('Training model...')
+    for epoch in range(args.epochs):
+        for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader)):
+            # Put inputs and targets on device
+            inputs = inputs.to(device)
+            targets = targets.to(device)
+        
+            # Zero out gradients
+            optimizer.zero_grad()
+        
+            # Get model predictions
+            predictions = model(inputs)
+            
+            # Transpose the model outputs to match the expected shape for CrossEntropyLoss
+            #TODO: Check that we are transposing correctly
+            predictions = predictions.permute(0, 2, 1) 
+        
+            # Calculate loss
+            loss = loss_fn(predictions, targets)
+        
+            # Backpropagate loss
+            loss.backward()
+        
+            # Update parameters
+            optimizer.step()
+            
+            # Run validation every once in a while
+            if batch_idx % 200 == 0:
+                print(f'Train loss: {loss.item()}')
+                model.eval()
+                with torch.no_grad():
+                    total_loss = 0
+                    total_samples = 0
+                    for val_inputs, val_targets in valid_loader:
+                        # Put validation inputs and targets on device
+                        val_inputs = val_inputs.to(device)
+                        val_targets = val_targets.to(device)
+                        
+                        # Get validation predictions
+                        val_predictions = model(val_inputs)
+                        
+                        # Transpose the validation predictions to match the expected shape for CrossEntropyLoss
+                        val_predictions = val_predictions.permute(0, 2, 1)
+                        
+                        # Calculate validation loss
+                        val_loss = loss_fn(val_predictions, val_targets)
+                        total_loss += val_loss.item() * val_inputs.size(0)
+                        total_samples += val_inputs.size(0)
+                    
+                    # Calculate average validation loss
+                    avg_val_loss = total_loss / total_samples
+                    print(f"Validation Loss: {avg_val_loss}")
+                
+                model.train()
+
+    # Save the model state dict
+    torch.save(model.state_dict(), f"{args.model}.pt")
+
+    # Test the model
+    print('Testing model...')
+    model.eval()
+    total_loss = 0
+    total_samples = 0
+    with torch.no_grad():
+        for inputs, targets in tqdm(test_loader):
+            # Put inputs and targets on device
+            inputs = inputs.to(device)
+            targets = targets.to(device)
+            
+            # Get model predictions
+            predictions = model(inputs)
+            
+            # Transpose the model outputs to match the expected shape for CrossEntropyLoss
+            predictions = predictions.permute(0, 2, 1) 
+            
+            # Calculate loss
+            loss = loss_fn(predictions, targets)
+            total_loss += loss.item() * inputs.size(0)
+            total_samples += inputs.size(0)
+            print(loss.item())
+    
+    # Calculate average loss
+    avg_loss = total_loss / total_samples
+    print(f"Average Loss: {avg_loss}")
