@@ -86,14 +86,14 @@ class RetNetModel(nn.Module):
     
     import torch
 
-    def generate_text(self, model, tokenizer, start_string, generation_length=100):
+    def generate_text(self, model, tokenizer, start_string, generation_length=100, device='cuda'):
         # Evaluation mode
         model.eval()
 
         # Convert start string to numbers
         input_eval = tokenizer.stoi(start_string)
         print(input_eval)
-        input_eval = torch.tensor(input_eval).unsqueeze(0)
+        input_eval = torch.tensor(input_eval).unsqueeze(0).to(device)
 
         # Empty list to store generated text
         text_generated = []
@@ -266,6 +266,7 @@ if __name__ == "__main__":
                 max_seq_len=args.seq_len)
     
     # Print model info
+    print('Model Summary:')
     model_summary(model, input_data=torch.ones(1, args.seq_len).long())
 
     # Load the dataset
@@ -284,7 +285,7 @@ if __name__ == "__main__":
     model = model.to(device)
 
     # Train the model
-    print('Training model...')
+    print('\n\n\n\nTraining model...')
     for epoch in range(args.epochs):
         for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader)):
             # Put inputs and targets on device
@@ -343,7 +344,7 @@ if __name__ == "__main__":
     torch.save(model.state_dict(), f"{args.model}.pt")
 
     # Test the model
-    print('Testing model...')
+    print('\n\n\n\nTesting model...')
     model.eval()
     total_loss = 0
     total_samples = 0
@@ -369,4 +370,8 @@ if __name__ == "__main__":
     print(f"Test Loss: {avg_loss}")
 
     # Generate text from the model
-    print(model.generate_text(model, tokenizer, start_string="The", generation_length=100))
+    print('\n\n\n\nGenerating text...')
+    print(model.generate_text(model, tokenizer, start_string="The", generation_length=100, device=device))
+
+    # Say where the model was saved
+    print(f"\n\n\n\nModel saved to {args.model}.pt")
