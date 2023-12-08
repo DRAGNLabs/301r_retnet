@@ -181,6 +181,35 @@ class TransformerModel(nn.Module):
         result = F.softmax(logits, dim=-1)
         return result
     
+    def generate_text(self, model, tokenizer, start_string, generation_length=100, device='cuda'):
+        # Evaluation mode
+        model.eval()
+
+        # Convert start string to numbers
+        input_eval = tokenizer.stoi(start_string)
+        print(input_eval)
+        input_eval = torch.tensor(input_eval).unsqueeze(0).to(device)
+
+        # Empty list to store generated text
+        text_generated = []
+
+        # No gradients needed
+        with torch.no_grad():
+            for _ in range(generation_length):
+                predictions = model(input_eval)
+                # Get the last predicted word
+                predicted_id = predictions.argmax(dim=-1)[..., -1]
+
+                # Add predicted word to the input (to be used as next input sequence)
+                input_eval = torch.cat([input_eval, predicted_id.unsqueeze(-1)], dim=-1)
+
+                # Convert predicted word id to word
+                predicted_word = tokenizer.itos(predicted_id.tolist())
+
+                text_generated.append(predicted_word)
+
+        return start_string + ' ' + ' '.join(text_generated)
+    
 
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
