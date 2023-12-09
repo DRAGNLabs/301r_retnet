@@ -364,19 +364,10 @@ if __name__ == "__main__":
     for epoch in range(args.epochs):
         print(f'Epoch {epoch + 1}')
         for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader, mininterval=60)): # Prints progress bar every mininterval seconds
-            #! Remove this!!!
-            # Make inputs and targets a batch of just the example at index 1
-            inputs = inputs[1].unsqueeze(0)
-            targets = targets[1].unsqueeze(0)
-
+            
             # Make a sample padding mask where there are 0's for padding and 1's for real tokens
             encoder_padding_mask = torch.ones(inputs.shape, dtype=torch.bool)
             encoder_padding_mask[inputs == 1] = False
-
-            #! Remove this
-            # # Print the example
-            # print('Example:')
-            # print(f'Input: {tokenizer.itos(inputs[0].tolist())}')
 
             # Put inputs and targets on device
             inputs = inputs.to(device)
@@ -403,9 +394,6 @@ if __name__ == "__main__":
         
             # Update parameters
             optimizer.step()
-
-            #! Remove this!!!
-            break
             
             # Run validation every once in a while
             if batch_idx % 400 == 0:
