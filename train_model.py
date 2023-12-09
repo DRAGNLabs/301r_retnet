@@ -91,8 +91,8 @@ class RetNetModel(nn.Module):
         #TODO: Check that we are masking correctly
         self.decoder_stack = RetNetDecoder(config, embed_tokens=self.text_embeddings)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        logits, other_stuff = self.decoder_stack(x)
+    def forward(self, x: torch.Tensor, encoder_padding_mask=False) -> torch.Tensor:
+        logits, other_stuff = self.decoder_stack(x, encoder_padding_mask=encoder_padding_mask)
         result = F.softmax(logits, dim=-1)
         return result
 
@@ -201,8 +201,8 @@ class TransformerModel(nn.Module):
 
         self.decoder_stack = Decoder(config, embed_tokens=self.text_embeddings)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        logits, other_stuff = self.decoder_stack(x)
+    def forward(self, x: torch.Tensor, encoder_padding_mask) -> torch.Tensor:
+        logits, other_stuff = self.decoder_stack(x, encoder_padding_mask=encoder_padding_mask)
         result = F.softmax(logits, dim=-1)
         return result
     
@@ -341,7 +341,7 @@ if __name__ == "__main__":
 
     # Print estimated loss if it hasn't learned anything
     print('\nEstimated Loss if guessing:')
-    print(f'-log(1 / {args.vocab_size}) = {torch.log(torch.tensor(1 / args.vocab_size))}')
+    print(f'-log(1 / {args.vocab_size}) = {-torch.log(torch.tensor(1 / args.vocab_size))}')
 
     # Load the dataset
     train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size)
@@ -364,15 +364,30 @@ if __name__ == "__main__":
     for epoch in range(args.epochs):
         print(f'Epoch {epoch + 1}')
         for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader, mininterval=60)): # Prints progress bar every mininterval seconds
+            #! Remove this!!!
+            # Make inputs and targets a batch of just the example at index 1
+            inputs = inputs[1].unsqueeze(0)
+            targets = targets[1].unsqueeze(0)
+
+            # Make a sample padding mask where there are 0's for padding and 1's for real tokens
+            encoder_padding_mask = torch.ones(inputs.shape, dtype=torch.bool)
+            encoder_padding_mask[inputs == 1] = False
+
+            #! Remove this
+            # # Print the example
+            # print('Example:')
+            # print(f'Input: {tokenizer.itos(inputs[0].tolist())}')
+
             # Put inputs and targets on device
             inputs = inputs.to(device)
             targets = targets.to(device)
+            encoder_padding_mask = encoder_padding_mask.to(device)
         
             # Zero out gradients
             optimizer.zero_grad()
         
             # Get model predictions
-            predictions = model(inputs)
+            predictions = model(inputs, encoder_padding_mask=encoder_padding_mask)
             
             # Reshape the model outputs to match the expected shape for CrossEntropyLoss
             B, T, C = predictions.shape
@@ -388,6 +403,9 @@ if __name__ == "__main__":
         
             # Update parameters
             optimizer.step()
+
+            #! Remove this!!!
+            break
             
             # Run validation every once in a while
             if batch_idx % 400 == 0:
@@ -461,7 +479,7 @@ if __name__ == "__main__":
 
     # Generate text from the model
     print('\nGenerating text...')
-    print(model.generate_text(start_string="The", generation_length=100, device=device))
+    print(model.generate_text(start_string="=", generation_length=100, device=device))
 
     # Say where the model was saved
     print(f"\nModel saved to {args.model}.pt")
