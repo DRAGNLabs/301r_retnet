@@ -6,5 +6,6 @@ __pycache__/
 *$py.class
 
 #venv for Kimball Jardine.
+venv/**
 RetNet
 /RetNet/**
