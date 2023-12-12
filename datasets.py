@@ -95,8 +95,7 @@ def load_wikitext2(max_seq_len, batch_size):
     test_dataset = WikiTextDataset(test_data)
 
     # DataLoader
-    #! Change shuffle back to True
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     valid_loader = DataLoader(valid_dataset, batch_size=batch_size)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 

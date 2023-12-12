@@ -15,5 +15,6 @@ python3 ../train_model.py \
     --value-embed-dim 32 \
     --vocab-size 28783 \
     --device cpu \
-    --epochs 1000 \
+    --epochs 1 \
+    --batch-size 1 \
 
