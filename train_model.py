@@ -106,8 +106,7 @@ class RetNetModel(nn.Module):
  
     def forward(self, x: torch.Tensor, encoder_padding_mask=False) -> torch.Tensor:
         logits, other_stuff = self.decoder_stack(x, encoder_padding_mask=encoder_padding_mask)
-        result = F.softmax(logits, dim=-1)
-        return result
+        return logits
  
  
     def generate_text(self, start_string, generation_length=100, device='cuda'):
@@ -130,6 +129,8 @@ class RetNetModel(nn.Module):
         with torch.no_grad():
             for _ in range(generation_length):
                 predictions = self.forward(input_eval)
+                # Apply softmax to predictions
+                predictions = F.softmax(predictions, dim=-1)
                 # Get the last predicted word
                 predicted_id = predictions.argmax(dim=-1)[..., -1]
  
@@ -231,10 +232,9 @@ class TransformerModel(nn.Module):
         self.decoder_stack = Decoder(config, embed_tokens=self.text_embeddings)
  
  
-    def forward(self, x: torch.Tensor, encoder_padding_mask) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, encoder_padding_mask=False) -> torch.Tensor:
         logits, other_stuff = self.decoder_stack(x, encoder_padding_mask=encoder_padding_mask)
-        result = F.softmax(logits, dim=-1)
-        return result
+        return logits
    
     def generate_text(self, start_string, generation_length=100, device='cuda'):
         # Evaluation mode
@@ -256,6 +256,8 @@ class TransformerModel(nn.Module):
         with torch.no_grad():
             for _ in range(generation_length):
                 predictions = self.forward(input_eval)
+                # Apply softmax to get probabilities
+                predictions = F.softmax(predictions, dim=-1)
                 # Get the last predicted word
                 predicted_id = predictions.argmax(dim=-1)[..., -1]
  
@@ -432,6 +434,11 @@ if __name__ == "__main__":
        
             # Get model predictions
             predictions = model(inputs, encoder_padding_mask=encoder_padding_mask)
+
+            # Get the 30 most likely predicted tokens and their probabilities
+            max_predictions = predictions.topk(k=30, dim=-1)
+            most_likely_tokens = max_predictions.indices
+            probabilities = max_predictions.values
            
             # Reshape the model outputs to match the expected shape for CrossEntropyLoss
             B, T, C = predictions.shape
@@ -447,10 +454,14 @@ if __name__ == "__main__":
        
             # Update parameters
             optimizer.step()
+
+            # Print loss
+            print(f"Loss: {loss.item()}")
+
+            break
  
             # Run validation every once in a while
             if batch_idx % 10000 == 0:
-                print(f'Train loss: {loss.item()}')
                 model.eval()
                 with torch.no_grad():
                     total_loss = 0
@@ -481,42 +492,43 @@ if __name__ == "__main__":
                 model.train()
  
  
-    # Save the model as a pickle file
-    torch.save(model, f"{args.model}.pt")
+    # # Save the model as a pickle file
+    # torch.save(model, f"{args.model}.pt")
  
  
-    # Test the model
-    print('\nTesting model...')
-    model.eval()
-    total_loss = 0
-    total_samples = 0
-    with torch.no_grad():
-        for inputs, targets in tqdm(test_loader, mininterval=60): # Prints progress bar every mininterval seconds
-            # Put inputs and targets on device
-            inputs = inputs.to(device)
-            targets = targets.to(device)
+    # # Test the model
+    # print('\nTesting model...')
+    # model.eval()
+    # total_loss = 0
+    # total_samples = 0
+    # with torch.no_grad():
+    #     for inputs, targets in tqdm(test_loader, mininterval=60): # Prints progress bar every mininterval seconds
+    #         # Put inputs and targets on device
+    #         inputs = inputs.to(device)
+    #         targets = targets.to(device)
            
-            # Get model predictions
-            predictions = model(inputs)
+    #         # Get model predictions
+    #         predictions = model(inputs)
            
-            # Reshape the model outputs to match the expected shape for CrossEntropyLoss
-            B, T, C = predictions.shape
-            predictions = predictions.reshape(B * T, C)
-            B, T = targets.shape
-            targets = targets.reshape(B * T)
+    #         # Reshape the model outputs to match the expected shape for CrossEntropyLoss
+    #         B, T, C = predictions.shape
+    #         predictions = predictions.reshape(B * T, C)
+    #         B, T = targets.shape
+    #         targets = targets.reshape(B * T)
            
-            # Calculate loss
-            loss = loss_fn(predictions, targets)
-            total_loss += loss.item() * inputs.size(0)
-            total_samples += inputs.size(0)
+    #         # Calculate loss
+    #         loss = loss_fn(predictions, targets)
+    #         total_loss += loss.item() * inputs.size(0)
+    #         total_samples += inputs.size(0)
    
-    # Calculate average loss
-    avg_loss = total_loss / total_samples
-    print(f"Test Loss: {avg_loss}")
+    # # Calculate average loss
+    # avg_loss = total_loss / total_samples
+    # print(f"Test Loss: {avg_loss}")
  
  
     # Generate text from the model
     print('\nGenerating text...')
+    print(model.generate_text(start_string="<pad>", generation_length=100, device=device))
     print(model.generate_text(start_string="= valkyria", generation_length=100, device=device))
     print(model.generate_text(start_string="= = reception =", generation_length=100, device=device))
     print(model.generate_text(start_string="the item was intended", generation_length=100, device=device))

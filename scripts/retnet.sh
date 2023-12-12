@@ -1,5 +1,3 @@
-# This is very small on purpose so you can get code working
-
 python3 ../train_model.py \
     --activation-dropout 0.0 \
     --checkpoint-activations False \
@@ -9,12 +7,12 @@ python3 ../train_model.py \
     --fsdp True \
     --layers 1 \
     --lr 0.01 \
-    --model retnet \
+    --model transformer \
     --heads 8 \
     --seq-len 128 \
     --value-embed-dim 32 \
     --vocab-size 28783 \
     --device cpu \
-    --epochs 1 \
-    --batch-size 1 \
+    --epochs 1000 \
+    --batch-size 4 \
 
