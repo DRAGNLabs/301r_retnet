@@ -93,8 +93,7 @@ class RetNetModel(nn.Module):
 
     def forward(self, x: torch.Tensor, encoder_padding_mask=False) -> torch.Tensor:
         logits, other_stuff = self.decoder_stack(x, encoder_padding_mask=encoder_padding_mask)
-        result = F.softmax(logits, dim=-1)
-        return result
+        return logits
 
     def generate_text(self, start_string, generation_length=100, device='cuda'):
         # Evaluation mode
@@ -203,8 +202,7 @@ class TransformerModel(nn.Module):
 
     def forward(self, x: torch.Tensor, encoder_padding_mask) -> torch.Tensor:
         logits, other_stuff = self.decoder_stack(x, encoder_padding_mask=encoder_padding_mask)
-        result = F.softmax(logits, dim=-1)
-        return result
+        return logits
     
     def generate_text(self, start_string, generation_length=100, device='cuda'):
         # Evaluation mode
