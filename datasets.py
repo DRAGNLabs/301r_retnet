@@ -58,6 +58,10 @@ def load_wikitext2(max_seq_len, batch_size, vocab_size):
     def data_process(raw_text_iter):
         processed_data = []
         for text in raw_text_iter:
+            # If text is only whitespace then skip it
+            if text.isspace():
+                continue
+
             # Tokenize and numericalize
             numericalized_text = tokenizer.stoi(text)
             # Pad and possibly truncate the sequence
