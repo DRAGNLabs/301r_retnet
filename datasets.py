@@ -41,7 +41,7 @@ def load_wikitext2(max_seq_len, batch_size, vocab_size):
 
     # Build vocabulary from training set
     vocab = build_vocab_from_iterator(yield_tokens(train_iter),
-            specials=["<unk>", "<pad>"],
+            specials=["<pad>", "<unk>"],
             max_tokens=vocab_size)
     vocab.set_default_index(vocab["<unk>"])
 
