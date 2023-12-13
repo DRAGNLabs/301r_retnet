@@ -342,7 +342,7 @@ if __name__ == "__main__":
     print(f'-log(1 / {args.vocab_size}) = {-torch.log(torch.tensor(1 / args.vocab_size))}')
 
     # Load the dataset
-    train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size)
+    train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size, vocab_size=args.vocab_size)
     model.tokenizer = tokenizer
 
     # Define loss function
