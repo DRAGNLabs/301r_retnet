@@ -1,107 +1,194 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
-from torchtext.data.utils import get_tokenizer
-from torchtext.vocab import build_vocab_from_iterator
-from torchtext.datasets import WikiText2
 import torch.nn.functional as F
 
-class Tokenizer():
-    def __init__(self, vocab, tokenizer, tokens_to_text):
-        self.vocab = vocab
-        self.tokenizer = tokenizer
-        self.tokens_to_text = tokens_to_text
-    
-    def stoi(self, text):
-        return [self.vocab[token] for token in self.tokenizer(text)]
-    
-    def itos(self, token_indices):
-        return self.tokens_to_text(token_indices)
+from collections.abc import Callable
+from torch import Tensor
+from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data.datapipes.datapipe import IterDataPipe
+from torchtext.data.utils import get_tokenizer
+from torchtext.datasets import WikiText2
+from torchtext.vocab import build_vocab_from_iterator, Vocab
 
-def load_wikitext2(max_seq_len, batch_size, vocab_size):
-    """ Loads the WikiText2 dataset and returns the train, validation and test data loaders
+
+class Tokenizer():
+    """ Handles all interactiions with underlying tokenizer and vocab. """
+    def __init__(self, vocab: Vocab, tokenizer_fun: Callable[[str], list[str]]):
+        """
+        Args:
+            vocab (Vocab): A Vocab object created from the training data text.
+            tokenizer_fun (Callable[[str], list[int]]): A function that takes in
+                a string and returns a list of strings, each of them a token.
+        """
+        self.vocab = vocab
+        self.tokenizer_fun = tokenizer_fun
+
+    def stoi(self, text: str) -> list[int]:
+        """ Return token indices for tokens in text.
+        Args:
+            text (str): String to split into tokens and get indices for.
+
+        Returns:
+            A list of ints corresponding to the indices of the tokens in text.
+        """
+        # Convert input string into list of tokens (strings)
+        tokens = self.tokenizer_fun(text)
+
+        return self.vocab.lookup_indices(tokens)
+
+    def itos(self, token_idxs: list[int]) -> list[str]:
+        """ Return list of tokens corresponding to given indices.
+        Args:
+            token_idxs (list): List of ints that are the indices of desired
+                tokens in vocab.
+
+        Returns:
+            A list of tokens corresponding to the token indices given.
+        """
+        return self.vocab.lookup_tokens(token_idxs)
+
+
+def get_vocab_tokenizer(tokenizer_fun_name: str,
+                        training_iter: IterDataPipe,
+                        vocab_size: int) -> tuple[Vocab, Tokenizer]:
+    """ Returns instance of Tokenizer based of given parameters.
     Args:
-        max_seq_len (int): Maximum sequence length
-        batch_size (int): Batch size
-        vocab_size (int): Maximum vocabulary size
+        tokenizer_fun_name (str): Name of tokenizer function.
+        training_iter (IterDataPipe): Iterator that returns instances from the
+            training data.
+        vocab_size (int): Maximum vocabulary size.
+
     Returns:
-        train_loader (DataLoader): Training data loader
-        valid_loader (DataLoader): Validation data loader
-        test_loader (DataLoader): Test data loader
+        A tuple with a Vocab object created from the training_iter and a
+        Tokenizer object built around the given tokenizer function.
     """
     # Tokenizer function
-    tokenizer = get_tokenizer('basic_english')
+    tokenizer_fun = get_tokenizer(tokenizer_fun_name)
 
-    # Function to yield tokens from dataset
-    def yield_tokens(data_iter):
-        for text in data_iter:
-            yield tokenizer(text)
+    # Inner function to yield tokens from dataset iterator
+    def yield_tokens(data_iterator: IterDataPipe) -> list[str]:
+        """ Yields lists of tokens from entries in IterDataPipe.
+        Args:
+            data_iterator (IterDataPipe): Iterator that returns string instances
+                from data.
 
-    # Load the dataset
-    train_iter, valid_iter, test_iter = WikiText2()
+        Yields:
+            A list of token strings of the next element in data_iterator.
+        """
+        for string in data_iterator:
+            yield tokenizer_fun(string)
 
-    # Build vocabulary from training set
-    vocab = build_vocab_from_iterator(yield_tokens(train_iter),
+    # Build vocabulary from training iterator
+    vocab = build_vocab_from_iterator(
+            yield_tokens(training_iter),
             specials=["<pad>", "<unk>"],
             max_tokens=vocab_size)
     vocab.set_default_index(vocab["<unk>"])
 
-    # Create a reverse mapping from indices to tokens
-    index_to_token = {index: token for token, index in vocab.get_stoi().items()}
+    return vocab, Tokenizer(vocab, tokenizer_fun)
 
 
-    def tokens_to_text(token_indices):
-        return ' '.join([index_to_token[index] for index in token_indices])
-        
-    tokenizer = Tokenizer(vocab, tokenizer, tokens_to_text)
+def iter_to_tensors(raw_text_iter: IterDataPipe,
+                    seq_len: int,
+                    tokenizer: Tokenizer,
+                    vocab_padding_idx: int,
+                    skip_whitespace_inputs: bool=True) -> tuple[Tensor, Tensor]:
+    """ Convert data in iterator into a padded tensor representation.
+    Args:
+        raw_text_iter (IterDataPipe): Iterator that returns string instances
+            from data.
+        seq_len (int): Context window/sequence length.
+        tokenizer (Tokenizer): Tokenizer object to handle string to token
+            indices conversions.
+        vocab_padding_idx (int): The vocabulary's index of the padding token.
+        skip_whitespace_inputs (bool): If True then won't add string instances
+            from the raw_text_iter that are completely whitespace to the tensor.
 
-    # Function to process each article
-    def data_process(raw_text_iter):
-        processed_data = []
-        for text in raw_text_iter:
-            # If text is only whitespace then skip it
-            if text.isspace():
-                continue
+    Returns:
+        A tuple of two Tensor objects, each of dimensions (number of elements in
+	raw_text_iter, seq_len), where the first is of inputs and the second is
+	of the corresponding targets.
+    """
+    padded_input_tensors = []
+    for text in raw_text_iter:
+        # Skip element if text is all whitespace and we want to ignore pure
+        # whitespace inputs
+        if skip_whitespace_inputs and text.isspace():
+            continue
 
-            # Tokenize and numericalize
-            numericalized_text = tokenizer.stoi(text)
-            # Pad and possibly truncate the sequence
-            padded = F.pad(torch.tensor(numericalized_text, dtype=torch.long),
-                        (0, max_seq_len - len(numericalized_text)),
-                        value=vocab["<pad>"])
-            if len(padded) > max_seq_len:
-                padded = padded[:max_seq_len]
-            processed_data.append(padded)
-        return processed_data
+        # Tokenize and get corresponding token indices
+        text_token_idxs = tokenizer.stoi(text)
+
+        # NOTE: The following code adds an extra token past the sequence length
+        # that will be part of the targets needed during training
+
+        # Truncate tokens if longer than sequence length + extra token needed
+        # for target
+        text_token_idxs = text_token_idxs[:seq_len + 1]
+
+        # Convert to tensor and add padding
+        padded_token_idxs = F.pad(
+                input=torch.tensor(text_token_idxs, dtype=torch.long),
+                pad=(0, seq_len + 1 - len(text_token_idxs)),
+                value=vocab_padding_idx)
+
+        padded_input_tensors.append(padded_token_idxs)
+
+    # Combine all tensor elements into one large tensor of dimensions (number of
+    # elements in raw_text_iter, seq_len + 1)
+    combined_padded_tensors = torch.stack(padded_input_tensors)
+
+    return combined_padded_tensors[:, :-1], combined_padded_tensors[:, 1:]
+
+
+def load_wikitext2(seq_len: int,
+		   batch_size: int,
+		   vocab_size: int) -> tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
+    """ Loads the WikiText2 dataset and returns DataLoaders.
+    Args:
+        seq_len (int): Context window/sequence length.
+        batch_size (int): Batch size.
+        vocab_size (int): Maximum vocabulary size.
+
+    Returns:
+        Tuple with the format: (Training DataLoader, Validation DataLoader,
+        Testing DataLoader, Tokenizer object).
+    """
+    # Load the WikiText2 dataset and stores corresponding IterDataPipe objects
+    train_iter, valid_iter, test_iter = WikiText2()
+
+    vocab, tokenizer = get_vocab_tokenizer(
+            tokenizer_fun_name="basic_english",
+            training_iter=train_iter,
+            vocab_size=vocab_size)
 
     # Process the datasets
-    train_data = data_process(train_iter)
-    valid_data = data_process(valid_iter)
-    test_data = data_process(test_iter)
+    train_inputs, train_targets = iter_to_tensors(
+            raw_text_iter=train_iter,
+            seq_len=seq_len,
+            tokenizer=tokenizer,
+            vocab_padding_idx=vocab.get_default_index(),
+            skip_whitespace_inputs=True)
 
-    # Custom Dataset class
-    class WikiTextDataset(Dataset):
-        def __init__(self, data):
-            self.data = data
+    valid_inputs, valid_targets = iter_to_tensors(
+            raw_text_iter=valid_iter,
+            seq_len=seq_len,
+            tokenizer=tokenizer,
+            vocab_padding_idx=vocab.get_default_index(),
+            skip_whitespace_inputs=True)
 
-        def __len__(self):
-            return len(self.data)
+    test_inputs, test_targets = iter_to_tensors(
+            raw_text_iter=test_iter,
+            seq_len=seq_len,
+            tokenizer=tokenizer,
+            vocab_padding_idx=vocab.get_default_index(),
+            skip_whitespace_inputs=True)
 
-        def __getitem__(self, idx):
-            item = self.data[idx]
-            # Ensure the sequence is of MAX_SEQ_LEN
-            item_padded = F.pad(item, (0, max_seq_len - len(item)), value=vocab["<pad>"])
-            # Input is the entire sequence
-            input = item_padded
-            # Target is the same sequence shifted by one position and padded
-            target = F.pad(item_padded[1:], (0, 1), value=vocab["<pad>"])
-            return input, target
+    # Create Datasets
+    train_dataset = TensorDataset(train_inputs, train_targets)
+    valid_dataset = TensorDataset(valid_inputs, valid_targets)
+    test_dataset = TensorDataset(test_inputs, test_targets)
 
-    # Create datasets
-    train_dataset = WikiTextDataset(train_data)
-    valid_dataset = WikiTextDataset(valid_data)
-    test_dataset = WikiTextDataset(test_data)
-
-    # DataLoader
+    # Create DataLoaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     valid_loader = DataLoader(valid_dataset, batch_size=batch_size)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)

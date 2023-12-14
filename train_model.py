@@ -390,7 +390,7 @@ if __name__ == "__main__":
  
  
     # Load the dataset
-    train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size, vocab_size=args.vocab_size)
+    train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(seq_len=args.seq_len, batch_size=args.batch_size, vocab_size=args.vocab_size)
     model.tokenizer = tokenizer
  
  
