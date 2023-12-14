@@ -91,8 +91,8 @@ class RetNetModel(nn.Module):
         #TODO: Check that we are masking correctly
         self.decoder_stack = RetNetDecoder(config, embed_tokens=self.text_embeddings)
 
-    def forward(self, x: torch.Tensor, encoder_padding_mask=False) -> torch.Tensor:
-        logits, other_stuff = self.decoder_stack(x, encoder_padding_mask=encoder_padding_mask)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        logits, other_stuff = self.decoder_stack(x)
         return logits
 
     def generate_text(self, start_string, generation_length=100, device='cuda'):
@@ -200,8 +200,8 @@ class TransformerModel(nn.Module):
 
         self.decoder_stack = Decoder(config, embed_tokens=self.text_embeddings)
 
-    def forward(self, x: torch.Tensor, encoder_padding_mask) -> torch.Tensor:
-        logits, other_stuff = self.decoder_stack(x, encoder_padding_mask=encoder_padding_mask)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        logits, other_stuff = self.decoder_stack(x)
         return logits
     
     def generate_text(self, start_string, generation_length=100, device='cuda'):
@@ -363,20 +363,15 @@ if __name__ == "__main__":
         print(f'Epoch {epoch + 1}')
         for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader, mininterval=60)): # Prints progress bar every mininterval seconds
             
-            # Make a sample padding mask where there are 0's for padding and 1's for real tokens
-            encoder_padding_mask = torch.ones(inputs.shape, dtype=torch.bool)
-            encoder_padding_mask[inputs == 1] = False
-
             # Put inputs and targets on device
             inputs = inputs.to(device)
             targets = targets.to(device)
-            encoder_padding_mask = encoder_padding_mask.to(device)
         
             # Zero out gradients
             optimizer.zero_grad()
         
             # Get model predictions
-            predictions = model(inputs, encoder_padding_mask=encoder_padding_mask)
+            predictions = model(inputs)
             
             # Reshape the model predictions for Cross Entropy
             predictions = predictions.transpose(-2, -1)
