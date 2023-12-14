@@ -95,8 +95,8 @@ class RetNetModel(nn.Module):
             A tensor of dimensions: (batch size, sequence length, vocabulary
                 size).
         """
-        logits, _ = self.decoder_stack(x)
-        return logits
+        preds, _ = self.decoder_stack(x)
+        return preds
 
 
 class TransformerModel(nn.Module):
@@ -179,8 +179,8 @@ class TransformerModel(nn.Module):
             A tensor of dimensions: (batch size, sequence length, vocabulary
                 size).
         """
-        logits, other_stuff = self.decoder_stack(x)
-        return logits
+        preds, _ = self.decoder_stack(x)
+        return preds
 
 
 if __name__ == "__main__":
