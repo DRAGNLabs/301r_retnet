@@ -17,11 +17,12 @@ class Tokenizer():
     def itos(self, token_indices):
         return self.tokens_to_text(token_indices)
 
-def load_wikitext2(max_seq_len, batch_size):
+def load_wikitext2(max_seq_len, batch_size, vocab_size):
     """ Loads the WikiText2 dataset and returns the train, validation and test data loaders
     Args:
         max_seq_len (int): Maximum sequence length
         batch_size (int): Batch size
+        vocab_size (int): Maximum vocabulary size
     Returns:
         train_loader (DataLoader): Training data loader
         valid_loader (DataLoader): Validation data loader
@@ -39,7 +40,9 @@ def load_wikitext2(max_seq_len, batch_size):
     train_iter, valid_iter, test_iter = WikiText2()
 
     # Build vocabulary from training set
-    vocab = build_vocab_from_iterator(yield_tokens(train_iter), specials=["<unk>", "<pad>"])
+    vocab = build_vocab_from_iterator(yield_tokens(train_iter),
+            specials=["<pad>", "<unk>"],
+            max_tokens=vocab_size)
     vocab.set_default_index(vocab["<unk>"])
 
     # Create a reverse mapping from indices to tokens
@@ -55,6 +58,10 @@ def load_wikitext2(max_seq_len, batch_size):
     def data_process(raw_text_iter):
         processed_data = []
         for text in raw_text_iter:
+            # If text is only whitespace then skip it
+            if text.isspace():
+                continue
+
             # Tokenize and numericalize
             numericalized_text = tokenizer.stoi(text)
             # Pad and possibly truncate the sequence

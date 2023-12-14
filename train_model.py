@@ -103,12 +103,10 @@ class RetNetModel(nn.Module):
         #TODO: Check that we are masking correctly
         self.decoder_stack = RetNetDecoder(config, embed_tokens=self.text_embeddings)
  
- 
-    def forward(self, x: torch.Tensor, encoder_padding_mask=False) -> torch.Tensor:
-        logits, other_stuff = self.decoder_stack(x, encoder_padding_mask=encoder_padding_mask)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        logits, other_stuff = self.decoder_stack(x)
         return logits
- 
- 
+
     def generate_text(self, start_string, generation_length=100, device='cuda'):
         # Evaluation mode
         self.decoder_stack.eval()
@@ -231,11 +229,10 @@ class TransformerModel(nn.Module):
  
         self.decoder_stack = Decoder(config, embed_tokens=self.text_embeddings)
  
- 
-    def forward(self, x: torch.Tensor, encoder_padding_mask=False) -> torch.Tensor:
-        logits, other_stuff = self.decoder_stack(x, encoder_padding_mask=encoder_padding_mask)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        logits, other_stuff = self.decoder_stack(x)
         return logits
-   
+    
     def generate_text(self, start_string, generation_length=100, device='cuda'):
         # Evaluation mode
         self.decoder_stack.eval()
@@ -393,7 +390,7 @@ if __name__ == "__main__":
  
  
     # Load the dataset
-    train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size)
+    train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size, vocab_size=args.vocab_size)
     model.tokenizer = tokenizer
  
  
@@ -419,33 +416,24 @@ if __name__ == "__main__":
         print(f'Epoch {epoch + 1}')
         for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader, mininterval=60)): # Prints progress bar every mininterval seconds
             
- 
-            # Make a sample padding mask where there are 0's for padding and 1's for real tokens
-            encoder_padding_mask = torch.ones(inputs.shape, dtype=torch.bool)
-            encoder_padding_mask[inputs == 1] = False
- 
             # Put inputs and targets on device
             inputs = inputs.to(device)
             targets = targets.to(device)
-            encoder_padding_mask = encoder_padding_mask.to(device)
-       
+        
             # Zero out gradients
             optimizer.zero_grad()
        
             # Get model predictions
-            predictions = model(inputs, encoder_padding_mask=encoder_padding_mask)
+            predictions = model(inputs)
 
             # Get the 30 most likely predicted tokens and their probabilities
-            max_predictions = predictions.topk(k=30, dim=-1)
+            max_predictions = predictions.topk(k=min(30, predictions.shape[-1]), dim=-1)
             most_likely_tokens = max_predictions.indices
             probabilities = max_predictions.values
            
-            # Reshape the model outputs to match the expected shape for CrossEntropyLoss
-            B, T, C = predictions.shape
-            predictions = predictions.reshape(B * T, C)
-            B, T = targets.shape
-            targets = targets.reshape(B * T)
-       
+            # Reshape the model predictions for Cross Entropy
+            predictions = predictions.transpose(-2, -1)
+
             # Calculate loss
             loss = loss_fn(predictions, targets)
        
@@ -470,13 +458,10 @@ if __name__ == "__main__":
                        
                         # Get validation predictions
                         val_predictions = model(val_inputs)
-                       
-                        # Reshape the model outputs to match the expected shape for CrossEntropyLoss
-                        B, T, C = val_predictions.shape
-                        val_predictions = val_predictions.reshape(B * T, C)
-                        B, T = val_targets.shape
-                        val_targets = val_targets.reshape(B * T)
-                       
+                        
+                        # Reshape the model predictions for Cross Entropy
+                        val_predictions = val_predictions.transpose(-2, -1)
+                        
                         # Calculate validation loss
                         val_loss = loss_fn(val_predictions, val_targets)
                         total_loss += val_loss.item() * val_inputs.size(0)
@@ -506,13 +491,10 @@ if __name__ == "__main__":
            
             # Get model predictions
             predictions = model(inputs)
-           
-            # Reshape the model outputs to match the expected shape for CrossEntropyLoss
-            B, T, C = predictions.shape
-            predictions = predictions.reshape(B * T, C)
-            B, T = targets.shape
-            targets = targets.reshape(B * T)
-           
+            
+            # Reshape the model predictions for Cross Entropy
+            predictions = predictions.transpose(-2, -1)
+            
             # Calculate loss
             loss = loss_fn(predictions, targets)
             total_loss += loss.item() * inputs.size(0)
