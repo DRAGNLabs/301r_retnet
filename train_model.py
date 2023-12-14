@@ -2,20 +2,26 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import dataset
-
+ 
+ 
 from argparse import ArgumentParser
 from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
-
+ 
+ 
 from torchinfo import summary as model_summary
-
+ 
+ 
 from datasets import load_wikitext2
-
+ 
+ 
 from tqdm import tqdm
-
+ 
+ 
 from tabulate import tabulate
-
+ 
+ 
 class RetNetModel(nn.Module):
     def __init__(
             self,
@@ -49,7 +55,8 @@ class RetNetModel(nn.Module):
             max_seq_len (int): Size of context window.
         """
         super().__init__()
-
+ 
+ 
         self.model_params = {
                 "embed_dim": embed_dim,
                 "value_embed_dim": value_embed_dim,
@@ -63,7 +70,8 @@ class RetNetModel(nn.Module):
                 "fsdp": fsdp,
                 "max_seq_len": max_seq_len
                 }
-
+ 
+ 
         config = RetNetConfig(
                 decoder_embed_dim=embed_dim,
                 decoder_value_embed_dim=value_embed_dim,
@@ -75,22 +83,26 @@ class RetNetModel(nn.Module):
                 vocab_size=vocab_size,
                 checkpoint_activations=checkpoint_activations,
                 fsdp=fsdp)
-
+ 
+ 
         # Save max_seq_len for padding later
         self.max_seq_len = max_seq_len
-
+ 
+ 
         # Save vocab_size for final dimensions later
         self.vocab_size = vocab_size
-
+ 
+ 
         # Create embeddings with index 0 representing padding
         self.text_embeddings = nn.Embedding(
                 num_embeddings=vocab_size,
                 embedding_dim=embed_dim,
                 padding_idx=0)
-
+ 
+ 
         #TODO: Check that we are masking correctly
         self.decoder_stack = RetNetDecoder(config, embed_tokens=self.text_embeddings)
-
+ 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         logits, other_stuff = self.decoder_stack(x)
         return logits
@@ -99,33 +111,44 @@ class RetNetModel(nn.Module):
         # Evaluation mode
         self.decoder_stack.eval()
         self.decoder_stack.to(device)
-
+ 
+ 
         # Convert start string to numbers
         input_eval = self.tokenizer.stoi(start_string)
         print(input_eval)
         input_eval = torch.tensor(input_eval).unsqueeze(0).to(device)
-
+ 
+ 
         # Empty list to store generated text
         text_generated = []
-
+ 
+ 
         # No gradients needed
         with torch.no_grad():
             for _ in range(generation_length):
                 predictions = self.forward(input_eval)
+                # Apply softmax to predictions
+                predictions = F.softmax(predictions, dim=-1)
                 # Get the last predicted word
                 predicted_id = predictions.argmax(dim=-1)[..., -1]
-
+ 
+ 
                 # Add predicted word to the input (to be used as next input sequence)
                 input_eval = torch.cat([input_eval, predicted_id.unsqueeze(-1)], dim=-1)
-
+ 
+ 
                 # Convert predicted word id to word
                 predicted_word = self.tokenizer.itos(predicted_id.tolist())
-
+ 
+ 
                 text_generated.append(predicted_word)
-
+ 
+ 
         return start_string + ' ' + ' '.join(text_generated)
-
-
+ 
+ 
+ 
+ 
 class TransformerModel(nn.Module):
     def __init__(
             self,
@@ -159,7 +182,8 @@ class TransformerModel(nn.Module):
             max_seq_len (int): Size of context window.
         """
         super().__init__()
-
+ 
+ 
         self.model_params = {
                 "embed_dim": embed_dim,
                 "value_embed_dim": value_embed_dim,
@@ -173,7 +197,8 @@ class TransformerModel(nn.Module):
                 "fsdp": fsdp,
                 "max_seq_len": max_seq_len
                 }
-
+ 
+ 
         config = DecoderConfig(
                 decoder_embed_dim=embed_dim,
                 decoder_value_embed_dim=value_embed_dim,
@@ -185,21 +210,25 @@ class TransformerModel(nn.Module):
                 vocab_size=vocab_size,
                 checkpoint_activations=checkpoint_activations,
                 fsdp=fsdp)
-
+ 
+ 
         # Save max_seq_len for padding later
         self.max_seq_len = max_seq_len
-
+ 
+ 
         # Save vocab_size for final dimensions later
         self.vocab_size = vocab_size
-
+ 
+ 
         # Create embeddings with index 0 representing padding
         self.text_embeddings = nn.Embedding(
                 num_embeddings=vocab_size,
                 embedding_dim=embed_dim,
                 padding_idx=0)
-
+ 
+ 
         self.decoder_stack = Decoder(config, embed_tokens=self.text_embeddings)
-
+ 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         logits, other_stuff = self.decoder_stack(x)
         return logits
@@ -208,39 +237,50 @@ class TransformerModel(nn.Module):
         # Evaluation mode
         self.decoder_stack.eval()
         self.decoder_stack.to(device)
-
+ 
+ 
         # Convert start string to numbers
         input_eval = self.tokenizer.stoi(start_string)
         print(input_eval)
         input_eval = torch.tensor(input_eval).unsqueeze(0).to(device)
-
+ 
+ 
         # Empty list to store generated text
         text_generated = []
-
+ 
+ 
         # No gradients needed
         with torch.no_grad():
             for _ in range(generation_length):
                 predictions = self.forward(input_eval)
+                # Apply softmax to get probabilities
+                predictions = F.softmax(predictions, dim=-1)
                 # Get the last predicted word
                 predicted_id = predictions.argmax(dim=-1)[..., -1]
-
+ 
+ 
                 # Add predicted word to the input (to be used as next input sequence)
                 input_eval = torch.cat([input_eval, predicted_id.unsqueeze(-1)], dim=-1)
-
+ 
+ 
                 # Convert predicted word id to word
                 predicted_word = self.tokenizer.itos(predicted_id.tolist())
-
+ 
+ 
                 text_generated.append(predicted_word)
-
+ 
+ 
         return start_string + ' ' + ' '.join(text_generated)
-    
-
+   
+ 
+ 
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
     parser = ArgumentParser(
             prog="Model Trainer",
             description="Used to train comparable RetNet, Transformer models.")
-
+ 
+ 
     parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
             help="Probability of element to be zeroed in dropout layer " + \
                     "after activation between FFN layers.")
@@ -275,21 +315,24 @@ if __name__ == "__main__":
             help="Device to use (GPU).")
     parser.add_argument("--epochs", type=int, default=10,
             help="Number of epochs to train for.")
-
+ 
+ 
     args = parser.parse_args()
-    
+   
     # Test that the head dimension will be an even, whole number
     assert args.embed_dim % (args.heads * 2) == 0, \
             "Head Dimension must be even to perform Rotary Position " + \
             f"Embedding ({args.embed_dim} / {args.heads} = " + \
             f"{args.embed_dim / args.heads} -- not an even, whole number)! " + \
             "Try changing the Embedding Dimension or number of heads."
-
+ 
+ 
     # Test that the value embedding dimension is divisible by number of heads
     assert args.value_embed_dim % args.heads == 0, \
             "Value Embed Dimension not divisible by number of heads " + \
             f"({args.value_embed_dim} % {args.heads} != 0)!"
-
+ 
+ 
     # Create requested model
     if args.model == "retnet":
         model = RetNetModel(
@@ -317,8 +360,9 @@ if __name__ == "__main__":
                 checkpoint_activations=args.checkpoint_activations,
                 fsdp=args.fsdp,
                 max_seq_len=args.seq_len)
-    
-
+   
+ 
+ 
     # Print all arguments for recordkeeping
     print('Arguments:')
     arg_table = []
@@ -330,33 +374,42 @@ if __name__ == "__main__":
             row = []
     if row:
         arg_table.append(row)
-
+ 
+ 
     print(tabulate(arg_table, tablefmt="grid"))
-
+ 
+ 
     # Print model info
     print('\nModel Summary:')
     model_summary(model, input_data=torch.ones(1, args.seq_len).long())
-
+ 
+ 
     # Print estimated loss if it hasn't learned anything
     print('\nEstimated Loss if guessing:')
     print(f'-log(1 / {args.vocab_size}) = {-torch.log(torch.tensor(1 / args.vocab_size))}')
-
+ 
+ 
     # Load the dataset
     train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(max_seq_len=args.seq_len, batch_size=args.batch_size, vocab_size=args.vocab_size)
     model.tokenizer = tokenizer
-
+ 
+ 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss()
-
+ 
+ 
     # Define optimizer
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-
+ 
+ 
     # Define the device to use
     device = torch.device(args.device)
-
+ 
+ 
     # Put model on device
     model = model.to(device)
-
+ 
+ 
     # Train the model
     print('\nTraining model...')
     for epoch in range(args.epochs):
@@ -369,25 +422,31 @@ if __name__ == "__main__":
         
             # Zero out gradients
             optimizer.zero_grad()
-        
+       
             # Get model predictions
             predictions = model(inputs)
-            
+
+            # Get the 30 most likely predicted tokens and their probabilities
+            max_predictions = predictions.topk(k=min(30, predictions.shape[-1]), dim=-1)
+            most_likely_tokens = max_predictions.indices
+            probabilities = max_predictions.values
+           
             # Reshape the model predictions for Cross Entropy
             predictions = predictions.transpose(-2, -1)
 
             # Calculate loss
             loss = loss_fn(predictions, targets)
-        
+       
             # Backpropagate loss
             loss.backward()
-        
+       
             # Update parameters
             optimizer.step()
-            
-            # Run validation every once in a while
-            if batch_idx % 400 == 0:
-                print(f'Train loss: {loss.item()}')
+ 
+            # Run validation 3 times per epoch
+            if batch_idx % (len(valid_loader) // 3) == 0:
+                # Print train loss
+                print(f"Train Loss: {loss.item()}")
                 model.eval()
                 with torch.no_grad():
                     total_loss = 0
@@ -396,7 +455,7 @@ if __name__ == "__main__":
                         # Put validation inputs and targets on device
                         val_inputs = val_inputs.to(device)
                         val_targets = val_targets.to(device)
-                        
+                       
                         # Get validation predictions
                         val_predictions = model(val_inputs)
                         
@@ -407,22 +466,18 @@ if __name__ == "__main__":
                         val_loss = loss_fn(val_predictions, val_targets)
                         total_loss += val_loss.item() * val_inputs.size(0)
                         total_samples += val_inputs.size(0)
-                    
+                   
                     # Calculate average validation loss
                     avg_val_loss = total_loss / total_samples
                     print(f"Validation Loss: {avg_val_loss}")
-                
+               
                 model.train()
-
-    # TODO: Rewriting in progress
-    # # Save the model
-    # filepath = f"{args.model}.pt"
-    # torch.save({
-    #         'model': model.decoder_stack.state_dict(),
-    #         'model_params': model.model_params,
-    #         'tokenizer': model.tokenizer
-    #         }, filepath)
-
+ 
+ 
+    # # Save the model as a pickle file
+    # torch.save(model, f"{args.model}.pt")
+ 
+ 
     # Test the model
     print('\nTesting model...')
     model.eval()
@@ -433,7 +488,7 @@ if __name__ == "__main__":
             # Put inputs and targets on device
             inputs = inputs.to(device)
             targets = targets.to(device)
-            
+           
             # Get model predictions
             predictions = model(inputs)
             
@@ -444,14 +499,19 @@ if __name__ == "__main__":
             loss = loss_fn(predictions, targets)
             total_loss += loss.item() * inputs.size(0)
             total_samples += inputs.size(0)
-    
+   
     # Calculate average loss
     avg_loss = total_loss / total_samples
     print(f"Test Loss: {avg_loss}")
-
+ 
+ 
     # Generate text from the model
     print('\nGenerating text...')
-    print(model.generate_text(start_string="=", generation_length=100, device=device))
-
+    print(model.generate_text(start_string="<pad>", generation_length=100, device=device))
+    print(model.generate_text(start_string="= valkyria", generation_length=100, device=device))
+    print(model.generate_text(start_string="= = reception =", generation_length=100, device=device))
+    print(model.generate_text(start_string="the item was intended", generation_length=100, device=device))
+ 
+ 
     # Say where the model was saved
     print(f"\nModel saved to {args.model}.pt")

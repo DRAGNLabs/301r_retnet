@@ -4,8 +4,4 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
-#venv for Kimball Jardine.
-venv/**
-RetNet
-/RetNet/**
+.vscode
