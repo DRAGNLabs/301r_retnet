@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from tabulate import tabulate
 from torch import Tensor
+from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
 from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
@@ -310,6 +311,9 @@ if __name__ == "__main__":
                             fp=open(save_folder / "model_args.json", "w"),
                             indent=4)
 
+    # Create SummaryWriter to record logs for TensorBoard
+    writer = SummaryWriter(log_dir=repo_root_dir / "logs" / save_folder_dir)
+
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
     print(f"-log(1 / {args.vocab_size}) = {-torch.log(torch.tensor(1 / args.vocab_size))}")
@@ -401,6 +405,14 @@ if __name__ == "__main__":
                     avg_val_loss = val_total_loss / val_total_samples
                     print(f"\nAverage Validation Loss: {avg_val_loss}")
 
+                # Log training and validation average loss
+                writer.add_scalar(tag="Loss/train",
+                                  scalar_value=avg_train_loss,
+                                  global_step=num_val_runs)
+                writer.add_scalar(tag="Loss/validation",
+                                  scalar_value=avg_val_loss,
+                                  global_step=num_val_runs)
+
                 # Save current weights of the model
                 weight_filename = f"epoch_{num_epoch}_validation_{num_val_runs}.pt"
                 torch.save(model.state_dict(), save_folder / weight_filename)
@@ -408,6 +420,9 @@ if __name__ == "__main__":
 
                 # Update how many validation runs there have been
                 num_val_runs += 1
+
+    # Close SummaryWriter
+    writer.close()
 
     # Test the model
     print("\nDone training! Now testing model...")
