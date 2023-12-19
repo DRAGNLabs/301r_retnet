@@ -192,7 +192,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
             help="Probability of element to be zeroed in dropout layer " + \
                     "after activation between FFN layers.")
-    parser.add_argument("-c", "--checkpoint-activations", type=bool,
+    parser.add_argument("-c", "--checkpoint-activations", action="store_true",
             default=False, help="Use checkpointing.")
     parser.add_argument("-d", "--dropout", type=float, default=0.1,
             help="Probability of element to be zeroed in dropout layer.")
@@ -200,7 +200,7 @@ if __name__ == "__main__":
             help="Embedding dimension size of each token.")
     parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
             help="FFN hidden layer size.")
-    parser.add_argument("--fsdp", type=bool, default=False,
+    parser.add_argument("--fsdp", action="store_true", default=False,
             help="Module parameters sharded across data parallel workers.")
     parser.add_argument("-l", "--layers", type=int, default=12,
             help="Number of stacked layers in model.")
