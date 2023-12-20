@@ -288,11 +288,17 @@ if __name__ == "__main__":
     total_params = model_summary(model, input_data=torch.ones(1, args.seq_len).long()).total_params
     print("self.model_params:",model.model_params)
     ct = datetime.datetime.now()
-    save_folder = str(ct.strftime('%Y-%m-%d-%H:%M:%S')) + "_" + args.model + "_" + str(total_params) 
+    save_folder_name = str(ct.strftime('%Y-%m-%d-%H:%M:%S')) + "_" + args.model + "_" + str(total_params) 
+    curr_dir = os.path.abspath(__file__)
+    print(curr_dir)
     curr_dir = os.path.dirname(__file__)
-    folder = os.path.join(curr_dir, 'weights', save_folder)
-    if not os.path.isdir(folder):
-        os.makedirs(folder)
+    print(curr_dir)
+    curr_dir = os.path.dirname(os.path.abspath(__file__))
+    print(curr_dir)
+    save_folder = os.path.join(curr_dir, 'weights', save_folder_name)
+    print(save_folder)
+    if not os.path.isdir(save_folder):
+        os.makedirs(save_folder)
     
     # Convert the arguments to a dictionary
     arg_dict = vars(args)
@@ -300,12 +306,10 @@ if __name__ == "__main__":
     json_string = json.dumps(arg_dict)
     # Print the JSON string
     print(json_string)
-    model_info_file = os.path.join(folder, "model_params.json")
+    model_info_file = os.path.join(save_folder, "model_params.json")
     # Write something into the bar/writehere.txt file
     with open(model_info_file, 'w') as f:
         f.write(json_string)
-
-    raise Exception("Hi")
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
@@ -396,6 +400,10 @@ if __name__ == "__main__":
                     # Print average validation loss
                     avg_val_loss = val_total_loss / val_total_samples
                     print(f"\nAverage Validation Loss: {avg_val_loss}")
+        epoch_name = "model_" + str(num_epoch + 1) + ".pt"
+        weights_epoch_file = os.path.join(save_folder, epoch_name)
+        torch.save(model.state_dict(), weights_epoch_file)
+        print(f"Saved weights in {weights_epoch_file}") 
 
     # Test the model
     print("\nDone training! Now testing model...")
