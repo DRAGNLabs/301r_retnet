@@ -107,6 +107,10 @@ class RetNetModel(nn.Module):
         preds, _ = self.decoder_stack(x)
         return preds
 
+    def get_params(self) -> dict:
+        """ Get model parameters dictionary. """
+        return self.model_params
+
 
 class TransformerModel(nn.Module):
     def __init__(
@@ -190,6 +194,10 @@ class TransformerModel(nn.Module):
         """
         preds, _ = self.decoder_stack(x)
         return preds
+
+    def get_params(self) -> dict:
+        """ Get model parameters dictionary. """
+        return self.model_params
 
 
 if __name__ == "__main__":
@@ -298,11 +306,12 @@ if __name__ == "__main__":
     while REPO_ROOT_NAME not in repo_root_dir.name:
         repo_root_dir = repo_root_dir.parent
 
-    # Initialize model weights folders
-    current_time = datetime.now()
-    save_folder_dir = f"{current_time.strftime('%Y-%m-%d-%H:%M:%S')}_" + \
+    # Create unique label for model (timestamp, model type, parameter count)
+    model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
                       f"{args.model}_{total_params}"
-    save_folder = repo_root_dir / "weights" / save_folder_dir
+
+    # Initialize model weights folders
+    save_folder = repo_root_dir / "weights" / model_label
     save_folder.mkdir(parents=True, exist_ok=True)
 
     #Save all the variables in args as JSON inside folder
@@ -312,7 +321,7 @@ if __name__ == "__main__":
                             indent=4)
 
     # Create SummaryWriter to record logs for TensorBoard
-    writer = SummaryWriter(log_dir=repo_root_dir / "logs" / save_folder_dir)
+    writer = SummaryWriter(log_dir=repo_root_dir / "logs" / model_label)
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
@@ -421,9 +430,6 @@ if __name__ == "__main__":
                 # Update how many validation runs there have been
                 num_val_runs += 1
 
-    # Close SummaryWriter
-    writer.close()
-
     # Test the model
     print("\nDone training! Now testing model...")
     model.eval()
@@ -449,6 +455,16 @@ if __name__ == "__main__":
     # Print average testing loss
     avg_loss = total_loss / total_samples
     print(f"Average Test Loss: {avg_loss}")
+
+    # Save hyperparameters and metrics in logs
+    writer.add_hparams(hparam_dict=model.get_params(),
+                       metric_dict={
+                           "Loss/train": avg_train_loss,
+                           "Loss/validation": avg_val_loss,
+                           "Loss/test": avg_loss})
+
+    # Close SummaryWriter
+    writer.close()
 
     # Generate text from the model
     print("\nGenerating text...")
