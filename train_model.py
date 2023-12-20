@@ -221,6 +221,8 @@ if __name__ == "__main__":
             help="Number of heads. Head architecture changes based on model.")
     parser.add_argument("-s", "--seq-len", type=int, default=512,
             help="Sequence length (context window size).")
+    parser.add_argument("--val-freq", type=int, default=3,
+            help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
             help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
@@ -366,8 +368,12 @@ if __name__ == "__main__":
             # Update parameters
             optimizer.step()
 
-            # Run validation 3 times per epoch around 33%, 66%, and 100%
-            if (3*(batch_idx + 1)/len(train_loader) % 1) <= 2/len(train_loader):
+            # Run validation args.validation_freq times per epoch. To do this,
+            # we split up the epoch into arg.validation_freq chunks and run
+            # validation after each chunk is finished.
+            progress_through_chunk = args.val_freq * (batch_idx + 1) \
+                                     / len(train_loader) % 1
+            if progress_through_chunk <= (args.val_freq-1) / len(train_loader):
                 # Print average train loss
                 avg_train_loss = train_total_loss / train_total_samples
                 print("Average Train Loss Since Last Validation Run: " + \
