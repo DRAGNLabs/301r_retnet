@@ -302,12 +302,11 @@ if __name__ == "__main__":
     save_folder = repo_root_dir / "weights" / save_folder_dir
     save_folder.mkdir(parents=True, exist_ok=True)
 
-    #Save args as json inside folder
+    #Save all the variables in args as JSON inside folder
     arg_dict = vars(args)
-    json_string = json.dumps(arg_dict)
-    model_info_file = os.path.join(save_folder, "model_params.json")
-    with open(model_info_file, 'w') as f:
-        f.write(json_string)
+    json_string = json.dump(obj=arg_dict,
+                            fp=open(save_folder / "model_args.json", "w"),
+                            indent=4)
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
