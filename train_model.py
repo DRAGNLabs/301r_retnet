@@ -292,6 +292,7 @@ if __name__ == "__main__":
                       f"{args.model}_{total_params}"
     save_folder = repo_root_dir / "weights" / save_folder_dir
     save_folder.mkdir(parents=True, exist_ok=True)
+    print(f"\nSaving weights in {save_folder}")
 
     # Save all the variables in args as JSON inside folder
     arg_dict = vars(args)
@@ -395,7 +396,7 @@ if __name__ == "__main__":
                     # Save current weights of the model
                     weight_filename = f"epoch_{num_epoch}_validation_{num_val_runs}.pt"
                     torch.save(model.state_dict(), save_folder / weight_filename)
-                    print(f"Saved weights in {weight_filename}")
+                    print(f"Saved weights as {weight_filename}")
 
                 # Update how many validation runs there have been
                 num_val_runs += 1
@@ -429,7 +430,7 @@ if __name__ == "__main__":
     # Save completed model
     weight_filename = f"training_completed.pt"
     torch.save(model.state_dict(), save_folder / weight_filename)
-    print(f"Saved final weights in {weight_filename}")
+    print(f"Saved final weights as {weight_filename}")
 
     # Generate text from the model
     print("\nGenerating text...")
