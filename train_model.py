@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import datetime
+import os.path
+import json
 
 from argparse import ArgumentParser
 from datasets import load_wikitext2
@@ -282,7 +285,27 @@ if __name__ == "__main__":
 
     # Print model info
     print("\nModel Summary:")
-    model_summary(model, input_data=torch.ones(1, args.seq_len).long())
+    total_params = model_summary(model, input_data=torch.ones(1, args.seq_len).long()).total_params
+    print("self.model_params:",model.model_params)
+    ct = datetime.datetime.now()
+    save_folder = str(ct.strftime('%Y-%m-%d-%H:%M:%S')) + "_" + args.model + "_" + str(total_params) 
+    curr_dir = os.path.dirname(__file__)
+    folder = os.path.join(curr_dir, 'weights', save_folder)
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    
+    # Convert the arguments to a dictionary
+    arg_dict = vars(args)
+    # Convert the dictionary to a JSON string
+    json_string = json.dumps(arg_dict)
+    # Print the JSON string
+    print(json_string)
+    model_info_file = os.path.join(folder, "model_params.json")
+    # Write something into the bar/writehere.txt file
+    with open(model_info_file, 'w') as f:
+        f.write(json_string)
+
+    raise Exception("Hi")
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
@@ -399,6 +422,9 @@ if __name__ == "__main__":
     # Print average testing loss
     avg_loss = total_loss / total_samples
     print(f"Average Test Loss: {avg_loss}")
+
+    #Save weights
+    torch.save(model.state_dict(), "model_saved")
 
     # Generate text from the model
     print("\nGenerating text...")
