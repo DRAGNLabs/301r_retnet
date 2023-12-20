@@ -286,28 +286,17 @@ if __name__ == "__main__":
     # Print model info
     print("\nModel Summary:")
     total_params = model_summary(model, input_data=torch.ones(1, args.seq_len).long()).total_params
-    print("self.model_params:",model.model_params)
-    ct = datetime.datetime.now()
-    save_folder_name = str(ct.strftime('%Y-%m-%d-%H:%M:%S')) + "_" + args.model + "_" + str(total_params) 
-    curr_dir = os.path.abspath(__file__)
-    print(curr_dir)
-    curr_dir = os.path.dirname(__file__)
-    print(curr_dir)
+    curr_time = datetime.datetime.now()
+    save_folder_name = str(curr_time.strftime('%Y-%m-%d-%H:%M:%S')) + "_" + args.model + "_" + str(total_params) 
     curr_dir = os.path.dirname(os.path.abspath(__file__))
-    print(curr_dir)
     save_folder = os.path.join(curr_dir, 'weights', save_folder_name)
-    print(save_folder)
     if not os.path.isdir(save_folder):
         os.makedirs(save_folder)
     
-    # Convert the arguments to a dictionary
+    #Save args as json inside folder
     arg_dict = vars(args)
-    # Convert the dictionary to a JSON string
     json_string = json.dumps(arg_dict)
-    # Print the JSON string
-    print(json_string)
     model_info_file = os.path.join(save_folder, "model_params.json")
-    # Write something into the bar/writehere.txt file
     with open(model_info_file, 'w') as f:
         f.write(json_string)
 
@@ -430,6 +419,7 @@ if __name__ == "__main__":
     # Print average testing loss
     avg_loss = total_loss / total_samples
     print(f"Average Test Loss: {avg_loss}")
+    
     # Generate text from the model
     print("\nGenerating text...")
     input_starting_strings = [
