@@ -293,7 +293,7 @@ if __name__ == "__main__":
     save_folder = repo_root_dir / "weights" / save_folder_dir
     save_folder.mkdir(parents=True, exist_ok=True)
 
-        #Save all the variables in args as JSON inside folder
+    # Save all the variables in args as JSON inside folder
     arg_dict = vars(args)
     json_string = json.dump(obj=arg_dict,
                             fp=open(save_folder / "model_args.json", "w"),
@@ -430,7 +430,7 @@ if __name__ == "__main__":
     weight_filename = f"training_completed.pt"
     torch.save(model.state_dict(), save_folder / weight_filename)
     print(f"Saved final weights in {weight_filename}")
-    
+
     # Generate text from the model
     print("\nGenerating text...")
     input_starting_strings = [
