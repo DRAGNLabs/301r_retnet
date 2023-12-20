@@ -1,12 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import datetime
-import os.path
 import json
 
 from argparse import ArgumentParser
 from datasets import load_wikitext2
+from datetime import datetime
 from pathlib import Path
 from tabulate import tabulate
 from torch import Tensor
@@ -295,7 +294,7 @@ if __name__ == "__main__":
         repo_root_dir = repo_root_dir.parent
 
     # Initialize model weights folders
-    current_time = datetime.datetime.now()
+    current_time = datetime.now()
     save_folder_dir = f"{current_time.strftime('%Y-%m-%d-%H:%M:%S')}_" + \
                       f"{args.model}_{total_params}"
     save_folder = repo_root_dir / "weights" / save_folder_dir
