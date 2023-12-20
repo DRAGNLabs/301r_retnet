@@ -7,6 +7,7 @@ import json
 
 from argparse import ArgumentParser
 from datasets import load_wikitext2
+from pathlib import Path
 from tabulate import tabulate
 from torch import Tensor
 from torchinfo import summary as model_summary
@@ -16,6 +17,7 @@ from torchscale.architecture.retnet import RetNetDecoder
 from tqdm import tqdm
 from utils import generate_text
 
+REPO_ROOT_NAME = "301r_retnet"
 
 class RetNetModel(nn.Module):
     """ Create model with RetNet architecture. """
@@ -285,14 +287,21 @@ if __name__ == "__main__":
 
     # Print model info
     print("\nModel Summary:")
-    total_params = model_summary(model, input_data=torch.ones(1, args.seq_len).long()).total_params
-    curr_time = datetime.datetime.now()
-    save_folder_name = str(curr_time.strftime('%Y-%m-%d-%H:%M:%S')) + "_" + args.model + "_" + str(total_params) 
-    curr_dir = os.path.dirname(os.path.abspath(__file__))
-    save_folder = os.path.join(curr_dir, 'weights', save_folder_name)
-    if not os.path.isdir(save_folder):
-        os.makedirs(save_folder)
-    
+    total_params = model_summary(model, input_data=torch.ones(1, args.seq_len)\
+            .long()).total_params
+
+    # Get path of repository root folder
+    repo_root_dir = Path(__file__)
+    while REPO_ROOT_NAME not in repo_root_dir.name:
+        repo_root_dir = repo_root_dir.parent
+
+    # Initialize model weights folders
+    current_time = datetime.datetime.now()
+    save_folder_dir = f"{current_time.strftime('%Y-%m-%d-%H:%M:%S')}_" + \
+                      f"{args.model}_{total_params}"
+    save_folder = repo_root_dir / "weights" / save_folder_dir
+    save_folder.mkdir(parents=True, exist_ok=True)
+
     #Save args as json inside folder
     arg_dict = vars(args)
     json_string = json.dumps(arg_dict)
@@ -392,7 +401,7 @@ if __name__ == "__main__":
         epoch_name = "model_" + str(num_epoch + 1) + ".pt"
         weights_epoch_file = os.path.join(save_folder, epoch_name)
         torch.save(model.state_dict(), weights_epoch_file)
-        print(f"Saved weights in {weights_epoch_file}") 
+        print(f"Saved weights in {weights_epoch_file}")
 
     # Test the model
     print("\nDone training! Now testing model...")
@@ -419,7 +428,7 @@ if __name__ == "__main__":
     # Print average testing loss
     avg_loss = total_loss / total_samples
     print(f"Average Test Loss: {avg_loss}")
-    
+
     # Generate text from the model
     print("\nGenerating text...")
     input_starting_strings = [
