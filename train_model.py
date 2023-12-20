@@ -1,9 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import json
 
 from argparse import ArgumentParser
 from datasets import load_wikitext2
+from datetime import datetime
+from pathlib import Path
 from tabulate import tabulate
 from torch import Tensor
 from torchinfo import summary as model_summary
@@ -12,6 +15,8 @@ from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
 from tqdm import tqdm
 from utils import generate_text
+
+REPO_ROOT_NAME = "301r_retnet"
 
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
@@ -280,12 +285,30 @@ if __name__ == "__main__":
             row = []
     if row:
         arg_table.append(row)
-
     print(tabulate(arg_table, tablefmt="grid"))
 
     # Print model info
     print("\nModel Summary:")
-    model_summary(model, input_data=torch.ones(1, args.seq_len).long())
+    total_params = model_summary(model, input_data=torch.ones(1, args.seq_len)\
+            .long()).total_params
+
+    # Get path of repository root folder
+    repo_root_dir = Path(__file__)
+    while REPO_ROOT_NAME not in repo_root_dir.name:
+        repo_root_dir = repo_root_dir.parent
+
+    # Initialize model weights folders
+    current_time = datetime.now()
+    save_folder_dir = f"{current_time.strftime('%Y-%m-%d-%H:%M:%S')}_" + \
+                      f"{args.model}_{total_params}"
+    save_folder = repo_root_dir / "weights" / save_folder_dir
+    save_folder.mkdir(parents=True, exist_ok=True)
+
+    #Save all the variables in args as JSON inside folder
+    arg_dict = vars(args)
+    json_string = json.dump(obj=arg_dict,
+                            fp=open(save_folder / "model_args.json", "w"),
+                            indent=4)
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
@@ -310,8 +333,9 @@ if __name__ == "__main__":
     model = torch.compile(model).to(device)
 
     # Train the model
+    num_val_runs = 0
     for num_epoch in range(args.epochs):
-        print(f"Epoch #{num_epoch + 1}")
+        print(f"\nEpoch #{num_epoch}")
 
         model.train()
         train_total_loss = 0
@@ -376,6 +400,14 @@ if __name__ == "__main__":
                     # Print average validation loss
                     avg_val_loss = val_total_loss / val_total_samples
                     print(f"\nAverage Validation Loss: {avg_val_loss}")
+
+                # Save current weights of the model
+                weight_filename = f"epoch_{num_epoch}_validation_{num_val_runs}.pt"
+                torch.save(model.state_dict(), save_folder / weight_filename)
+                print(f"Saved weights in {weight_filename}")
+
+                # Update how many validation runs there have been
+                num_val_runs += 1
 
     # Test the model
     print("\nDone training! Now testing model...")
