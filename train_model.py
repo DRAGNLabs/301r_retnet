@@ -34,7 +34,6 @@ class RetNetModel(nn.Module):
             dropout: float,
             activation_dropout: float,
             vocab_size: int,
-            checkpoint_activations: bool,
             fsdp: bool,
             max_seq_len: int):
         """ Use parameters to create corresponding RetNet model.
@@ -50,8 +49,6 @@ class RetNetModel(nn.Module):
                 during dropout after activation between FFN layers.
             vocab_size (int): Maximum vocabulary size (number of unique tokens
                 in vocabulary.
-            checkpoint_activations (bool): Whether to perform checkpointing or
-                not (done with the FairScale library).
             fsdp (bool): Whether to shard Module parameters across data parallel
                 workers or not (with the FairScale library).
             max_seq_len (int): Size of context window.
@@ -68,7 +65,6 @@ class RetNetModel(nn.Module):
                 "dropout": dropout,
                 "activation_dropout": activation_dropout,
                 "vocab_size": vocab_size,
-                "checkpoint_activations": checkpoint_activations,
                 "fsdp": fsdp,
                 "max_seq_len": max_seq_len}
 
@@ -82,7 +78,6 @@ class RetNetModel(nn.Module):
                 dropout=dropout,
                 activation_dropout=activation_dropout,
                 vocab_size=vocab_size,
-                checkpoint_activations=checkpoint_activations,
                 fsdp=fsdp)
 
         # Create embeddings with index 0 representing padding
@@ -118,7 +113,6 @@ class TransformerModel(nn.Module):
             dropout: float,
             activation_dropout: float,
             vocab_size: int,
-            checkpoint_activations: bool,
             fsdp: bool,
             max_seq_len: int):
         """ Use parameters to create corresponding RetNet model
@@ -134,8 +128,6 @@ class TransformerModel(nn.Module):
                 during dropout after activation between FFN layers.
             vocab_size (int): Maximum vocabulary size (number of unique tokens
                 in vocabulary.
-            checkpoint_activations (bool): Whether to perform checkpointing or
-                not (done with the FairScale library).
             fsdp (bool): Whether to shard Module parameters across data parallel
                 workers or not (with the FairScale library).
             max_seq_len (int): Size of context window.
@@ -152,7 +144,6 @@ class TransformerModel(nn.Module):
                 "dropout": dropout,
                 "activation_dropout": activation_dropout,
                 "vocab_size": vocab_size,
-                "checkpoint_activations": checkpoint_activations,
                 "fsdp": fsdp,
                 "max_seq_len": max_seq_len}
 
@@ -166,7 +157,6 @@ class TransformerModel(nn.Module):
                 dropout=dropout,
                 activation_dropout=activation_dropout,
                 vocab_size=vocab_size,
-                checkpoint_activations=checkpoint_activations,
                 fsdp=fsdp)
 
         # Create embeddings with index 0 representing padding
@@ -200,8 +190,8 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
             help="Probability of element to be zeroed in dropout layer " + \
                     "after activation between FFN layers.")
-    parser.add_argument("-c", "--checkpoint-activations", action="store_true",
-            default=False, help="Use checkpointing.")
+    parser.add_argument("-c", "--checkpoints", action="store_true",
+            default=False, help="Save model checkpoints while training.")
     parser.add_argument("-d", "--dropout", type=float, default=0.1,
             help="Probability of element to be zeroed in dropout layer.")
     parser.add_argument("-e", "--embed-dim", type=int, default=768,
@@ -257,7 +247,6 @@ if __name__ == "__main__":
                 dropout=args.dropout,
                 activation_dropout=args.activation_dropout,
                 vocab_size=args.vocab_size,
-                checkpoint_activations=args.checkpoint_activations,
                 fsdp=args.fsdp,
                 max_seq_len=args.seq_len)
     elif args.model == "transformer":
@@ -270,7 +259,6 @@ if __name__ == "__main__":
                 dropout=args.dropout,
                 activation_dropout=args.activation_dropout,
                 vocab_size=args.vocab_size,
-                checkpoint_activations=args.checkpoint_activations,
                 fsdp=args.fsdp,
                 max_seq_len=args.seq_len)
 
@@ -297,18 +285,20 @@ if __name__ == "__main__":
     while REPO_ROOT_NAME not in repo_root_dir.name:
         repo_root_dir = repo_root_dir.parent
 
-    # Initialize model weights folders
-    current_time = datetime.now()
-    save_folder_dir = f"{current_time.strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-                      f"{args.model}_{total_params}"
-    save_folder = repo_root_dir / "weights" / save_folder_dir
-    save_folder.mkdir(parents=True, exist_ok=True)
+    # If checkpoints are to be saved
+    if args.checkpoints:
+        # Initialize model weights folders
+        current_time = datetime.now()
+        save_folder_dir = f"{current_time.strftime('%Y-%m-%d-%H:%M:%S')}_" + \
+                          f"{args.model}_{total_params}"
+        save_folder = repo_root_dir / "weights" / save_folder_dir
+        save_folder.mkdir(parents=True, exist_ok=True)
 
-    #Save all the variables in args as JSON inside folder
-    arg_dict = vars(args)
-    json_string = json.dump(obj=arg_dict,
-                            fp=open(save_folder / "model_args.json", "w"),
-                            indent=4)
+        #Save all the variables in args as JSON inside folder
+        arg_dict = vars(args)
+        json_string = json.dump(obj=arg_dict,
+                                fp=open(save_folder / "model_args.json", "w"),
+                                indent=4)
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
@@ -401,10 +391,12 @@ if __name__ == "__main__":
                     avg_val_loss = val_total_loss / val_total_samples
                     print(f"\nAverage Validation Loss: {avg_val_loss}")
 
-                # Save current weights of the model
-                weight_filename = f"epoch_{num_epoch}_validation_{num_val_runs}.pt"
-                torch.save(model.state_dict(), save_folder / weight_filename)
-                print(f"Saved weights in {weight_filename}")
+                # If checkpoints are to be saved
+                if args.checkpoints:
+                    # Save current weights of the model
+                    weight_filename = f"epoch_{num_epoch}_validation_{num_val_runs}.pt"
+                    torch.save(model.state_dict(), save_folder / weight_filename)
+                    print(f"Saved weights in {weight_filename}")
 
                 # Update how many validation runs there have been
                 num_val_runs += 1
