@@ -282,7 +282,6 @@ if __name__ == "__main__":
             row = []
     if row:
         arg_table.append(row)
-
     print(tabulate(arg_table, tablefmt="grid"))
 
     # Print model info
@@ -331,8 +330,9 @@ if __name__ == "__main__":
     model = torch.compile(model).to(device)
 
     # Train the model
+    num_val_runs = 0
     for num_epoch in range(args.epochs):
-        print(f"Epoch #{num_epoch + 1}")
+        print(f"\nEpoch #{num_epoch}")
 
         model.train()
         train_total_loss = 0
@@ -397,10 +397,14 @@ if __name__ == "__main__":
                     # Print average validation loss
                     avg_val_loss = val_total_loss / val_total_samples
                     print(f"\nAverage Validation Loss: {avg_val_loss}")
-        epoch_name = "model_" + str(num_epoch + 1) + ".pt"
-        weights_epoch_file = os.path.join(save_folder, epoch_name)
-        torch.save(model.state_dict(), weights_epoch_file)
-        print(f"Saved weights in {weights_epoch_file}")
+
+                # Save current weights of the model
+                weight_filename = f"epoch_{num_epoch}_validation_{num_val_runs}.pt"
+                torch.save(model.state_dict(), save_folder / weight_filename)
+                print(f"Saved weights in {weight_filename}")
+
+                # Update how many validation runs there have been
+                num_val_runs += 1
 
     # Test the model
     print("\nDone training! Now testing model...")
