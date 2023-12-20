@@ -13,6 +13,9 @@ from torchscale.architecture.retnet import RetNetDecoder
 from tqdm import tqdm
 from utils import generate_text
 
+# Allow torch to run float32 matrix multiplications in lower precision for
+# better performance while training if hardware is capable
+torch.backends.cuda.matmul.allow_tf32 = True
 
 class RetNetModel(nn.Module):
     """ Create model with RetNet architecture. """
