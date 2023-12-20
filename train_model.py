@@ -430,10 +430,6 @@ if __name__ == "__main__":
     # Print average testing loss
     avg_loss = total_loss / total_samples
     print(f"Average Test Loss: {avg_loss}")
-
-    #Save weights
-    torch.save(model.state_dict(), "model_saved")
-
     # Generate text from the model
     print("\nGenerating text...")
     input_starting_strings = [
