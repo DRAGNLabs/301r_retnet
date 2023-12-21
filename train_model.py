@@ -35,7 +35,6 @@ class RetNetModel(nn.Module):
             dropout: float,
             activation_dropout: float,
             vocab_size: int,
-            checkpoint_activations: bool,
             fsdp: bool,
             max_seq_len: int):
         """ Use parameters to create corresponding RetNet model.
@@ -51,8 +50,6 @@ class RetNetModel(nn.Module):
                 during dropout after activation between FFN layers.
             vocab_size (int): Maximum vocabulary size (number of unique tokens
                 in vocabulary.
-            checkpoint_activations (bool): Whether to perform checkpointing or
-                not (done with the FairScale library).
             fsdp (bool): Whether to shard Module parameters across data parallel
                 workers or not (with the FairScale library).
             max_seq_len (int): Size of context window.
@@ -69,7 +66,6 @@ class RetNetModel(nn.Module):
                 "dropout": dropout,
                 "activation_dropout": activation_dropout,
                 "vocab_size": vocab_size,
-                "checkpoint_activations": checkpoint_activations,
                 "fsdp": fsdp,
                 "max_seq_len": max_seq_len}
 
@@ -83,7 +79,6 @@ class RetNetModel(nn.Module):
                 dropout=dropout,
                 activation_dropout=activation_dropout,
                 vocab_size=vocab_size,
-                checkpoint_activations=checkpoint_activations,
                 fsdp=fsdp)
 
         # Create embeddings with index 0 representing padding
@@ -123,7 +118,6 @@ class TransformerModel(nn.Module):
             dropout: float,
             activation_dropout: float,
             vocab_size: int,
-            checkpoint_activations: bool,
             fsdp: bool,
             max_seq_len: int):
         """ Use parameters to create corresponding RetNet model
@@ -139,8 +133,6 @@ class TransformerModel(nn.Module):
                 during dropout after activation between FFN layers.
             vocab_size (int): Maximum vocabulary size (number of unique tokens
                 in vocabulary.
-            checkpoint_activations (bool): Whether to perform checkpointing or
-                not (done with the FairScale library).
             fsdp (bool): Whether to shard Module parameters across data parallel
                 workers or not (with the FairScale library).
             max_seq_len (int): Size of context window.
@@ -157,7 +149,6 @@ class TransformerModel(nn.Module):
                 "dropout": dropout,
                 "activation_dropout": activation_dropout,
                 "vocab_size": vocab_size,
-                "checkpoint_activations": checkpoint_activations,
                 "fsdp": fsdp,
                 "max_seq_len": max_seq_len}
 
@@ -171,7 +162,6 @@ class TransformerModel(nn.Module):
                 dropout=dropout,
                 activation_dropout=activation_dropout,
                 vocab_size=vocab_size,
-                checkpoint_activations=checkpoint_activations,
                 fsdp=fsdp)
 
         # Create embeddings with index 0 representing padding
@@ -211,8 +201,8 @@ if __name__ == "__main__":
                     "after activation between FFN layers.")
     parser.add_argument("-b", "--batch-size", type=int, default=32,
             help="Batch size.")
-    parser.add_argument("-c", "--checkpoint-activations", action="store_true",
-            default=False, help="Use checkpointing.")
+    parser.add_argument("-c", "--checkpoints", action="store_true",
+            default=False, help="Save model checkpoints while training.")
     parser.add_argument("--device", type=str, default="cuda",
             help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
     parser.add_argument("-d", "--dropout", type=float, default=0.1,
@@ -274,7 +264,6 @@ if __name__ == "__main__":
                 dropout=args.dropout,
                 activation_dropout=args.activation_dropout,
                 vocab_size=args.vocab_size,
-                checkpoint_activations=args.checkpoint_activations,
                 fsdp=args.fsdp,
                 max_seq_len=args.seq_len)
     elif args.model == "transformer":
@@ -287,7 +276,6 @@ if __name__ == "__main__":
                 dropout=args.dropout,
                 activation_dropout=args.activation_dropout,
                 vocab_size=args.vocab_size,
-                checkpoint_activations=args.checkpoint_activations,
                 fsdp=args.fsdp,
                 max_seq_len=args.seq_len)
 
@@ -316,13 +304,14 @@ if __name__ == "__main__":
 
     # Create unique label for model (timestamp, model type, parameter count)
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-                      f"{args.model}_{total_params}"
+                  f"{args.model}_{total_params}"
 
     # Initialize model weights folders
     save_folder = repo_root_dir / "weights" / model_label
     save_folder.mkdir(parents=True, exist_ok=True)
+    print(f"\nSaving weights in {save_folder}")
 
-    #Save all the variables in args as JSON inside folder
+    # Save all the variables in args as JSON inside folder
     arg_dict = vars(args)
     json_string = json.dump(obj=arg_dict,
                             fp=open(save_folder / "model_args.json", "w"),
@@ -434,10 +423,12 @@ if __name__ == "__main__":
                                   scalar_value=avg_val_loss,
                                   global_step=num_val_runs)
 
-                # Save current weights of the model
-                weight_filename = f"epoch_{num_epoch}_validation_{num_val_runs}.pt"
-                torch.save(model.state_dict(), save_folder / weight_filename)
-                print(f"Saved weights in {weight_filename}")
+                # If checkpoints are to be saved
+                if args.checkpoints:
+                    # Save current weights of the model
+                    weight_filename = f"epoch_{num_epoch}_validation_{num_val_runs}.pt"
+                    torch.save(model.state_dict(), save_folder / weight_filename)
+                    print(f"Saved weights as {weight_filename}")
 
                 # Update how many validation runs there have been
                 num_val_runs += 1
@@ -477,6 +468,11 @@ if __name__ == "__main__":
 
     # Close SummaryWriter
     writer.close()
+
+    # Save completed model
+    weight_filename = f"training_completed.pt"
+    torch.save(model.state_dict(), save_folder / weight_filename)
+    print(f"Saved final weights as {weight_filename}")
 
     # Generate text from the model
     print("\nGenerating text...")

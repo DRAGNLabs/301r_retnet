@@ -1,6 +1,7 @@
 python3 ../train_model.py \
     --activation-dropout 0.1 \
     --dropout 0.1 \
+    --checkpoints \
     --embed-dim 10 \
     --ffn-dim 10 \
     --fsdp \
