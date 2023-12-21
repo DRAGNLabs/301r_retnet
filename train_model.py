@@ -228,6 +228,8 @@ if __name__ == "__main__":
             help="Name of model architecture to train.")
     parser.add_argument("-n", "--heads", type=int, default=3,
             help="Number of heads. Head architecture changes based on model.")
+    parser.add_argument("-r", "--rand-seed", type=int, default=None,
+            help="Random seed to use, allowing more reproducible results.")
     parser.add_argument("-s", "--seq-len", type=int, default=512,
             help="Sequence length (context window size).")
     parser.add_argument("--val-freq", type=int, default=3,
@@ -256,6 +258,10 @@ if __name__ == "__main__":
     assert args.value_embed_dim % args.heads == 0, \
             "Value Embed Dimension not divisible by number of heads " + \
             f"({args.value_embed_dim} % {args.heads} != 0)!"
+
+    # Set random seeds
+    if args.rand_seed is not None:
+        torch.manual_seed(args.rand_seed)
 
     # Create requested model
     if args.model == "retnet":
