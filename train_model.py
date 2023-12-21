@@ -209,12 +209,18 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
             help="Probability of element to be zeroed in dropout layer " + \
                     "after activation between FFN layers.")
+    parser.add_argument("-b", "--batch-size", type=int, default=32,
+            help="Batch size.")
     parser.add_argument("-c", "--checkpoint-activations", action="store_true",
             default=False, help="Use checkpointing.")
+    parser.add_argument("--device", type=str, default="cuda",
+            help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
     parser.add_argument("-d", "--dropout", type=float, default=0.1,
             help="Probability of element to be zeroed in dropout layer.")
     parser.add_argument("-e", "--embed-dim", type=int, default=768,
             help="Embedding dimension size of each token.")
+    parser.add_argument("--epochs", type=int, default=10,
+            help="Number of epochs to train for.")
     parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
             help="FFN hidden layer size.")
     parser.add_argument("--fsdp", action="store_true", default=False,
@@ -228,6 +234,8 @@ if __name__ == "__main__":
             help="Name of model architecture to train.")
     parser.add_argument("-n", "--heads", type=int, default=3,
             help="Number of heads. Head architecture changes based on model.")
+    parser.add_argument("-r", "--rand-seed", type=int, default=None,
+            help="Random seed to use, allowing more reproducible results.")
     parser.add_argument("-s", "--seq-len", type=int, default=512,
             help="Sequence length (context window size).")
     parser.add_argument("--val-freq", type=int, default=3,
@@ -236,12 +244,6 @@ if __name__ == "__main__":
             help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
             help="Maximum number of unique tokens in vocabulary.")
-    parser.add_argument("--batch-size", type=int, default=32,
-            help="Batch size.")
-    parser.add_argument("--device", type=str, default="cuda",
-            help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
-    parser.add_argument("--epochs", type=int, default=10,
-            help="Number of epochs to train for.")
 
     args = parser.parse_args()
 
@@ -256,6 +258,10 @@ if __name__ == "__main__":
     assert args.value_embed_dim % args.heads == 0, \
             "Value Embed Dimension not divisible by number of heads " + \
             f"({args.value_embed_dim} % {args.heads} != 0)!"
+
+    # Set random seeds
+    if args.rand_seed is not None:
+        torch.manual_seed(args.rand_seed)
 
     # Create requested model
     if args.model == "retnet":
