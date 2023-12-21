@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from tabulate import tabulate
 from torch import Tensor
+from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
 from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
@@ -101,6 +102,10 @@ class RetNetModel(nn.Module):
         preds, _ = self.decoder_stack(x)
         return preds
 
+    def get_params(self) -> dict:
+        """ Get model parameters dictionary. """
+        return self.model_params
+
 
 class TransformerModel(nn.Module):
     def __init__(
@@ -180,6 +185,10 @@ class TransformerModel(nn.Module):
         preds, _ = self.decoder_stack(x)
         return preds
 
+    def get_params(self) -> dict:
+        """ Get model parameters dictionary. """
+        return self.model_params
+
 
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
@@ -211,6 +220,8 @@ if __name__ == "__main__":
             help="Number of heads. Head architecture changes based on model.")
     parser.add_argument("-s", "--seq-len", type=int, default=512,
             help="Sequence length (context window size).")
+    parser.add_argument("--val-freq", type=int, default=3,
+            help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
             help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
@@ -285,12 +296,12 @@ if __name__ == "__main__":
     while REPO_ROOT_NAME not in repo_root_dir.name:
         repo_root_dir = repo_root_dir.parent
 
+    # Create unique label for model (timestamp, model type, parameter count)
+    model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
+                  f"{args.model}_{total_params}"
 
     # Initialize model weights folders
-    current_time = datetime.now()
-    save_folder_dir = f"{current_time.strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-                      f"{args.model}_{total_params}"
-    save_folder = repo_root_dir / "weights" / save_folder_dir
+    save_folder = repo_root_dir / "weights" / model_label
     save_folder.mkdir(parents=True, exist_ok=True)
     print(f"\nSaving weights in {save_folder}")
 
@@ -299,6 +310,9 @@ if __name__ == "__main__":
     json_string = json.dump(obj=arg_dict,
                             fp=open(save_folder / "model_args.json", "w"),
                             indent=4)
+
+    # Create SummaryWriter to record logs for TensorBoard
+    writer = SummaryWriter(log_dir=repo_root_dir / "logs" / model_label)
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
@@ -356,8 +370,12 @@ if __name__ == "__main__":
             # Update parameters
             optimizer.step()
 
-            # Run validation 3 times per epoch around 33%, 66%, and 100%
-            if (3*(batch_idx + 1)/len(train_loader) % 1) <= 2/len(train_loader):
+            # Run validation args.validation_freq times per epoch. To do this,
+            # we split up the epoch into arg.validation_freq chunks and run
+            # validation after each chunk is finished.
+            progress_through_chunk = args.val_freq * (batch_idx + 1) \
+                                     / len(train_loader) % 1
+            if progress_through_chunk <= (args.val_freq-1) / len(train_loader):
                 # Print average train loss
                 avg_train_loss = train_total_loss / train_total_samples
                 print("Average Train Loss Since Last Validation Run: " + \
@@ -390,6 +408,14 @@ if __name__ == "__main__":
                     # Print average validation loss
                     avg_val_loss = val_total_loss / val_total_samples
                     print(f"\nAverage Validation Loss: {avg_val_loss}")
+
+                # Log training and validation average loss
+                writer.add_scalar(tag="Loss/train",
+                                  scalar_value=avg_train_loss,
+                                  global_step=num_val_runs)
+                writer.add_scalar(tag="Loss/validation",
+                                  scalar_value=avg_val_loss,
+                                  global_step=num_val_runs)
 
                 # If checkpoints are to be saved
                 if args.checkpoints:
@@ -426,6 +452,16 @@ if __name__ == "__main__":
     # Print average testing loss
     avg_loss = total_loss / total_samples
     print(f"Average Test Loss: {avg_loss}")
+
+    # Save hyperparameters and metrics in logs
+    writer.add_hparams(hparam_dict=model.get_params(),
+                       metric_dict={
+                           "Loss/train": avg_train_loss,
+                           "Loss/validation": avg_val_loss,
+                           "Loss/test": avg_loss})
+
+    # Close SummaryWriter
+    writer.close()
 
     # Save completed model
     weight_filename = f"training_completed.pt"

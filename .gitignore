@@ -17,3 +17,6 @@ venv.bak/
 
 # Model weights folder
 weights/
+
+# TensorBoard logs folder
+logs/
