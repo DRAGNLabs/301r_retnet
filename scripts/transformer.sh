@@ -12,4 +12,4 @@ python3 ../train_model.py \
     --seq-len 30 \
     --value-embed-dim 10 \
     --vocab-size 1000 \
-
+    --rand-seed 42 \

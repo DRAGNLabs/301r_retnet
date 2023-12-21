@@ -15,3 +15,4 @@ python3 ../train_model.py \
     --device cuda \
     --epochs 10 \
     --batch-size 128 \
+    --rand-seed 42 \
