@@ -21,5 +21,5 @@ weights/
 # TensorBoard logs folder
 logs/
 
-#Data folder
+# Datasets data folder
 data/
