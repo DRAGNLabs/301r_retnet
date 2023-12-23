@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import json
 
 from argparse import ArgumentParser
-from datasets import load_wikitext2
+from load_data import get_loaders_tokenizer
 from datetime import datetime
 from pathlib import Path
 from tabulate import tabulate
@@ -195,6 +195,55 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, device=
          layers=2, lr=0.001, model_type="retnet", heads=4, rand_seed=None, 
          seq_len=128, val_freq=3, value_embed_dim=12, vocab_size=1000, args=None):
     
+if __name__ == "__main__":
+    # Initialize, setup, and parse the argument parser
+    parser = ArgumentParser(
+            prog="Model Trainer",
+            description="Used to train comparable RetNet, Transformer models.")
+
+    parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
+            help="Probability of element to be zeroed in dropout layer " + \
+                    "after activation between FFN layers.")
+    parser.add_argument("-b", "--batch-size", type=int, default=32,
+            help="Batch size.")
+    parser.add_argument("-c", "--checkpoints", action="store_true",
+            default=False, help="Save model checkpoints while training.")
+    parser.add_argument("--device", type=str, default="cuda",
+            help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
+    parser.add_argument("-d", "--dropout", type=float, default=0.1,
+            help="Probability of element to be zeroed in dropout layer.")
+    parser.add_argument("-e", "--embed-dim", type=int, default=768,
+            help="Embedding dimension size of each token.")
+    parser.add_argument("--epochs", type=int, default=10,
+            help="Number of epochs to train for.")
+    parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
+            help="FFN hidden layer size.")
+    parser.add_argument("--fsdp", action="store_true", default=False,
+            help="Module parameters sharded across data parallel workers.")
+    parser.add_argument("-l", "--layers", type=int, default=12,
+            help="Number of stacked layers in model.")
+    parser.add_argument("--lr", type=float, required=True,
+            help="Learning rate of model to train.")
+    parser.add_argument("-m", "--model", required=True,
+            choices=["retnet", "transformer"],
+            help="Name of model architecture to train.")
+    parser.add_argument("-n", "--heads", type=int, default=3,
+            help="Number of heads. Head architecture changes based on model.")
+    parser.add_argument("-r", "--rand-seed", type=int, default=None,
+            help="Random seed to use, allowing more reproducible results.")
+    parser.add_argument("-s", "--seq-len", type=int, default=512,
+            help="Sequence length (context window size).")
+    parser.add_argument("-t", "--tokenizer", type=str, default="BPE",
+            choices=["BPE", "Unigram", "WordLevel", "WordPiece"],
+            help="Hugging Face tokenizer model to use.")
+    parser.add_argument("--val-freq", type=int, default=3,
+            help="Number of times to run validation per epoch during training.")
+    parser.add_argument("--value-embed-dim", type=int, default=1280,
+            help="Value embed dimension size.")
+    parser.add_argument("--vocab-size", type=int, required=True,
+            help="Maximum number of unique tokens in vocabulary.")
+
+    args = parser.parse_args()
 
     # Test that the head dimension will be an even, whole number
     assert embed_dim % (heads * 2) == 0, \
@@ -273,10 +322,15 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, device=
     print(f"-log(1 / {vocab_size}) = {-torch.log(torch.tensor(1 / vocab_size))}")
 
     # Get DataLoaders
-    train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(
-            seq_len=seq_len,
-            batch_size=batch_size,
-            vocab_size=vocab_size)
+    train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
+            dataset_name="wikitext",
+            tokenizer_name=args.tokenizer,
+            seq_len=args.seq_len,
+            batch_size=args.batch_size,
+            vocab_size=args.vocab_size,
+            data_dir=repo_root_dir / "data",
+            dataset_config="wikitext-103-raw-v1",
+            max_token_len=20)
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
@@ -298,11 +352,11 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, device=
         model.train()
         train_total_loss = 0
         train_total_samples = 0
-        for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader,
-                                                           desc="Train")):
+        for batch_idx, batch_seqs in enumerate(tqdm(train_loader,
+                                                    desc="Train")):
             # Put inputs and targets on device
-            inputs = inputs.to(device, non_blocking=True)
-            targets = targets.to(device, non_blocking=True)
+            inputs = batch_seqs[:, :-1].to(device, non_blocking=True)
+            targets = batch_seqs[:, 1:].to(device, non_blocking=True)
 
             # Zero out gradients
             optimizer.zero_grad()
@@ -342,11 +396,10 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, device=
                 val_total_loss = 0
                 val_total_samples = 0
                 with torch.inference_mode():
-                    for val_inputs, val_targets in tqdm(valid_loader,
-                                                        desc="Validate"):
+                    for val_batch_seqs in tqdm(valid_loader, desc="Validate"):
                         # Put validation inputs and targets on device
-                        val_inputs = val_inputs.to(device, non_blocking=True)
-                        val_targets = val_targets.to(device, non_blocking=True)
+                        val_inputs = val_batch_seqs[:, :-1].to(device, non_blocking=True)
+                        val_targets = val_batch_seqs[:, 1:].to(device, non_blocking=True)
 
                         # Get validation predictions
                         val_predictions = model(val_inputs)
@@ -387,10 +440,10 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, device=
     total_loss = 0
     total_samples = 0
     with torch.inference_mode():
-        for inputs, targets in tqdm(test_loader, desc="Test"):
+        for batch_seqs in tqdm(test_loader, desc="Test"):
             # Put inputs and targets on device
-            inputs = inputs.to(device, non_blocking=True)
-            targets = targets.to(device, non_blocking=True)
+            inputs = batch_seqs[:, :-1].to(device, non_blocking=True)
+            targets = batch_seqs[:, 1:].to(device, non_blocking=True)
 
             # Get model predictions
             predictions = model(inputs)
