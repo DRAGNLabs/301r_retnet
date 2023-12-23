@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import json
 
 from argparse import ArgumentParser
-from datasets import load_wikitext2
+from load_data import get_loaders_tokenizer
 from datetime import datetime
 from pathlib import Path
 from tabulate import tabulate
@@ -228,6 +228,9 @@ if __name__ == "__main__":
             help="Random seed to use, allowing more reproducible results.")
     parser.add_argument("-s", "--seq-len", type=int, default=512,
             help="Sequence length (context window size).")
+    parser.add_argument("-t", "--tokenizer", type=str, default="BPE",
+            choices=["BPE", "Unigram", "WordLevel", "WordPiece"],
+            help="Hugging Face tokenizer model to use.")
     parser.add_argument("--val-freq", type=int, default=3,
             help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
@@ -325,10 +328,15 @@ if __name__ == "__main__":
     print(f"-log(1 / {args.vocab_size}) = {-torch.log(torch.tensor(1 / args.vocab_size))}")
 
     # Get DataLoaders
-    train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(
+    train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
+            dataset_name="wikitext",
+            tokenizer_name=args.tokenizer,
             seq_len=args.seq_len,
             batch_size=args.batch_size,
-            vocab_size=args.vocab_size)
+            vocab_size=args.vocab_size,
+            data_dir=repo_root_dir / "data",
+            dataset_config="wikitext-103-raw-v1",
+            max_token_len=20)
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
@@ -350,11 +358,11 @@ if __name__ == "__main__":
         model.train()
         train_total_loss = 0
         train_total_samples = 0
-        for batch_idx, (inputs, targets) in enumerate(tqdm(train_loader,
-                                                           desc="Train")):
+        for batch_idx, batch_seqs in enumerate(tqdm(train_loader,
+                                                    desc="Train")):
             # Put inputs and targets on device
-            inputs = inputs.to(device, non_blocking=True)
-            targets = targets.to(device, non_blocking=True)
+            inputs = batch_seqs[:, :-1].to(device, non_blocking=True)
+            targets = batch_seqs[:, 1:].to(device, non_blocking=True)
 
             # Zero out gradients
             optimizer.zero_grad()
@@ -394,11 +402,10 @@ if __name__ == "__main__":
                 val_total_loss = 0
                 val_total_samples = 0
                 with torch.inference_mode():
-                    for val_inputs, val_targets in tqdm(valid_loader,
-                                                        desc="Validate"):
+                    for val_batch_seqs in tqdm(valid_loader, desc="Validate"):
                         # Put validation inputs and targets on device
-                        val_inputs = val_inputs.to(device, non_blocking=True)
-                        val_targets = val_targets.to(device, non_blocking=True)
+                        val_inputs = val_batch_seqs[:, :-1].to(device, non_blocking=True)
+                        val_targets = val_batch_seqs[:, 1:].to(device, non_blocking=True)
 
                         # Get validation predictions
                         val_predictions = model(val_inputs)
@@ -439,10 +446,10 @@ if __name__ == "__main__":
     total_loss = 0
     total_samples = 0
     with torch.inference_mode():
-        for inputs, targets in tqdm(test_loader, desc="Test"):
+        for batch_seqs in tqdm(test_loader, desc="Test"):
             # Put inputs and targets on device
-            inputs = inputs.to(device, non_blocking=True)
-            targets = targets.to(device, non_blocking=True)
+            inputs = batch_seqs[:, :-1].to(device, non_blocking=True)
+            targets = batch_seqs[:, 1:].to(device, non_blocking=True)
 
             # Get model predictions
             predictions = model(inputs)

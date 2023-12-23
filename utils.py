@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from datasets import Tokenizer
+from tokenizers import Tokenizer
 from torch import nn
 
 
