@@ -25,8 +25,15 @@ def generate_text(model: nn.Module,
     Returns:
         A list of all the fully generated strings by the model.
     """
-    # Keep track of strings after fully generated
-    generated_strings = []
+    # Keep track of fully generated token indices lists
+    generated_token_idx_list = []
+
+    # Convert initial start strings into tokenized sequences
+    tokenized_start_list = tokenizer(start_string_list,
+                                     padding=False,
+                                     truncation=False,
+                                     return_token_type_ids=False,
+                                     return_attention_mask=False)["input_ids"]
 
     # Move model to device
     model = model.to(device)
@@ -35,9 +42,9 @@ def generate_text(model: nn.Module,
     model.eval()
     with torch.inference_mode():
         # Iterate over each start string
-        for input_idx in range(len(start_string_list)):
-            # Convert initial start string to token indices
-            input_token_idxs = tokenizer.stoi(start_string_list[input_idx])
+        for input_idx in range(len(tokenized_start_list)):
+            # Retrieve string's tokenized version
+            input_token_idxs = tokenized_start_list[input_idx]
 
             # Store generated sequence token indices
             generated_token_idxs = input_token_idxs
@@ -48,8 +55,9 @@ def generate_text(model: nn.Module,
             # Add batch dimension and move to device
             input_tensor = input_tensor.unsqueeze(0).to(device)
 
-            # Generate rest of the string
-            while len(generated_token_idxs) < generation_length:
+            # Keep generating until padding or reached generation length
+            while generated_token_idxs[-1] != tokenizer.pad_token_id \
+                    and len(generated_token_idxs) < generation_length:
                 # Make sure input_tensor isn't longer than sequence length
                 input_tensor = input_tensor[:,
                         max(0, input_tensor.shape[-1] - seq_len):]
@@ -71,8 +79,8 @@ def generate_text(model: nn.Module,
                 # Store predicted token as part of generation
                 generated_token_idxs.append(predicted_id.item())
 
-            # Get text representation of fully generated string and save
-            generated_string = " ".join(tokenizer.itos(generated_token_idxs))
-            generated_strings.append(generated_string)
+            # Store fully generated sequence of token indices for start string
+            generated_token_idx_list.append(generated_token_idxs)
 
-    return generated_strings
+    # Decode token indices lists to lists of strings and return
+    return tokenizer.batch_decode(generated_token_idx_list)
