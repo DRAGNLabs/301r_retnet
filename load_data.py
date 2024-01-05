@@ -1,9 +1,13 @@
 from datasets import get_dataset_split_names, load_dataset
 from os import environ
-from tokenizers import Tokenizer
-from tokenizers.models import BPE, Unigram, WordLevel, WordPiece
-from tokenizers.normalizers import NFD, Sequence, Strip, StripAccents
-from tokenizers.trainers import BpeTrainer, UnigramTrainer, WordLevelTrainer, WordPieceTrainer
+from tokenizers import (
+    decoders,
+    pre_tokenizers,
+    processors,
+    Tokenizer,
+)
+from tokenizers.models import BPE
+from tokenizers.trainers import BpeTrainer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 
@@ -11,7 +15,6 @@ from transformers import PreTrainedTokenizerFast
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def get_loaders_tokenizer(dataset_name: str,
-                          tokenizer_name: str,
                           seq_len: int,
                           batch_size: int,
                           vocab_size: int,
@@ -40,34 +43,30 @@ def get_loaders_tokenizer(dataset_name: str,
     # Filter out undesired data instances
     entire_dataset = entire_dataset.filter(filter_fun)
 
-    # Create one of the four tokenizer models supported by Hugging Face
-    if tokenizer_name == "BPE":
-        tokenizer = Tokenizer(BPE(unk_token="<unk>"))
-        trainer = BpeTrainer(vocab_size=vocab_size,
-                             show_progress=True,
-                             special_tokens=["<pad>", "<bos>", "<eos>", "<unk>"],
-                             max_token_length=max_token_len)
-    elif tokenizer_name == "Unigram":
-        tokenizer = Tokenizer(Unigram())
-        trainer = UnigramTrainer(vocab_size=vocab_size,
-                                 show_progress=True,
-                                 special_tokens=["<pad>", "<bos>", "<eos>", "<unk>"],
-                                 unk_token="<unk>",
-                                 max_piece_length=max_token_len)
-    elif tokenizer_name == "WordLevel":
-        tokenizer = Tokenizer(WordLevel(unk_token="<unk>"))
-        trainer = WordLevelTrainer(vocab_size=vocab_size,
-                                   show_progress=True,
-                                   special_tokens=["<pad>", "<bos>", "<eos>", "<unk>"])
-    elif tokenizer_name == "WordPiece":
-        tokenizer = Tokenizer(WordPiece(unk_token="<unk>",
-                                        max_input_chars_per_word=max_token_len))
-        trainer = WordPieceTrainer(vocab_size=vocab_size,
-                                   show_progress=True,
-                                   special_tokens=["<pad>", "<bos>", "<eos>", "<unk>"])
+    # Create BytePair Encoding tokenizer and trainer
+    tokenizer = Tokenizer(BPE(unk_token="<unk>"))
+    trainer = BpeTrainer(vocab_size=vocab_size,
+                         show_progress=True,
+                         special_tokens=["<pad>", "<bos>", "<unk>"],
+                         max_token_length=max_token_len)
 
-    # Create normalizer
-    tokenizer.normalizer = Sequence([NFD(), Strip(), StripAccents()])
+    # Like GPT-2, we skip the normalizer and go directly to pre-tokenization.
+    # The option we add to ByteLevel here is to not add a space at the beginning
+    # of a sentence (which is the default otherwise)
+    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+
+    tokenizer.train_from_iterator(iter(entire_dataset["train"]["text"]),
+                                  trainer=trainer,
+                                  length=len(entire_dataset["train"]))
+
+    # trim_offsets=False tells post-processor to keep spaces as part of tokens
+    tokenizer.post_processor = processors.TemplateProcessing(
+        single="<bos> $A",
+        special_tokens=[("<bos>", tokenizer.token_to_id("<bos>"))],
+    )
+
+    # Add decoder for converting tokens back to text
+    tokenizer.decoder = decoders.ByteLevel()
 
     # Enable padding
     tokenizer.enable_padding(direction="right",
@@ -78,17 +77,11 @@ def get_loaders_tokenizer(dataset_name: str,
     # Enable truncation
     tokenizer.enable_truncation(max_length=seq_len + 1, direction="right")
 
-    # Pretokenization?
-    # tokenizer.pre_tokenizer = Whitespace()
-
-    tokenizer.train_from_iterator(entire_dataset["train"].to_iterable_dataset(), trainer=trainer, length=len(entire_dataset["train"]))
-
     # Wrap tokenizer with transformers library
     tokenizer = PreTrainedTokenizerFast(model_max_length=seq_len,
                                         padding_side="right",
                                         truncation_side="right",
                                         bos_token="<bos>",
-                                        eos_token="<eos>",
                                         unk_token="<unk>",
                                         pad_token="<pad>",
                                         tokenizer_object=tokenizer)

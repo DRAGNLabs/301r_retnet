@@ -234,9 +234,6 @@ if __name__ == "__main__":
             help="Random seed to use, allowing more reproducible results.")
     parser.add_argument("-s", "--seq-len", type=int, default=512,
             help="Sequence length (context window size).")
-    parser.add_argument("-t", "--tokenizer", type=str, default="BPE",
-            choices=["BPE", "Unigram", "WordLevel", "WordPiece"],
-            help="Hugging Face tokenizer model to use.")
     parser.add_argument("--val-freq", type=int, default=3,
             help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
@@ -331,7 +328,6 @@ if __name__ == "__main__":
     # Get DataLoaders
     train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
             dataset_name="wikitext",
-            tokenizer_name=args.tokenizer,
             seq_len=args.seq_len,
             batch_size=args.batch_size,
             vocab_size=args.vocab_size,
