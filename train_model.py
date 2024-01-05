@@ -15,6 +15,7 @@ from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
 from tqdm import tqdm
+from transformers import set_seed
 from utils import generate_text
 
 REPO_ROOT_NAME = "301r_retnet"
@@ -252,9 +253,9 @@ if __name__ == "__main__":
             "Value Embed Dimension not divisible by number of heads " + \
             f"({args.value_embed_dim} % {args.heads} != 0)!"
 
-    # Set random seeds
+    # Set random seeds for torch, numpy, random, etc. with transformers library
     if args.rand_seed is not None:
-        torch.manual_seed(args.rand_seed)
+        set_seed(args.rand_seed)
 
     # Create requested model
     if args.model == "retnet":
