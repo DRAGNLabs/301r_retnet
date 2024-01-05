@@ -209,6 +209,12 @@ if __name__ == "__main__":
             help="Batch size.")
     parser.add_argument("-c", "--checkpoints", action="store_true",
             default=False, help="Save model checkpoints while training.")
+    parser.add_argument("--dataset-feature", type=str, default="text",
+            help="Hugging Face dataset feature/column to use.")
+    parser.add_argument("--dataset-name", type=str, default="wikitext",
+            help="Hugging Face dataset name. Should also set --dataset-subset.")
+    parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
+            help="Subset/config to use for Hugging Face dataset.")
     parser.add_argument("--device", type=str, default="cuda",
             help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
     parser.add_argument("-d", "--dropout", type=float, default=0.1,
@@ -326,13 +332,15 @@ if __name__ == "__main__":
     print(f"-log(1 / {vocab_size}) = {-torch.log(torch.tensor(1 / vocab_size))}")
 
     # Get DataLoaders
+    print(f"\nNow retrieving '{args.dataset_name}' and training tokenizer...")
     train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
-            dataset_name="wikitext",
+            dataset_name=args.dataset_name,
             seq_len=args.seq_len,
             batch_size=args.batch_size,
             vocab_size=args.vocab_size,
             data_dir=repo_root_dir / "data",
-            dataset_config="wikitext-103-raw-v1",
+            dataset_config=args.dataset_subset,
+            text_feature=args.dataset_feature,
             max_token_len=20)
 
     # Define loss function

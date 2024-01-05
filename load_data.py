@@ -1,11 +1,9 @@
-from datasets import get_dataset_split_names, load_dataset
+from datasets import (
+    get_dataset_infos as get_ds_infos,
+    get_dataset_split_names as get_ds_split_names,
+    load_dataset as load_ds)
 from os import environ
-from tokenizers import (
-    decoders,
-    pre_tokenizers,
-    processors,
-    Tokenizer,
-)
+from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from torch.utils.data import DataLoader
@@ -20,6 +18,7 @@ def get_loaders_tokenizer(dataset_name: str,
                           vocab_size: int,
                           data_dir: str,
                           dataset_config: str=None,
+                          text_feature: str="text",
                           max_token_len: int=20) -> tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
     """ Loads the WikiText2 dataset and returns DataLoaders.
     Args:
@@ -31,14 +30,30 @@ def get_loaders_tokenizer(dataset_name: str,
         Tuple with the format: (Training DataLoader, Validation DataLoader,
         Testing DataLoader, Tokenizer object).
     """
-    assert ["test", "train", "validation"] == sorted(get_dataset_split_names(path=dataset_name, config_name=dataset_config)), \
+    dataset_split_names = get_ds_split_names(
+            path=dataset_name,
+            config_name=dataset_config,
+            trust_remote_code=True)
+    assert "train" in dataset_split_names \
+            and "validation" in dataset_split_names \
+            and "test" in dataset_split_names, \
         f"The dataset {dataset_name} doesn't have a train, validation, and test split!"
 
+    ds_features = get_ds_infos(
+            dataset_name,
+            trust_remote_code=True)[dataset_config].features
+    assert text_feature in ds_features, \
+        f"'{text_feature}' not in '{dataset_name}' features {ds_features}!"
+
     # Retrieve iterators for each split of the dataset
-    entire_dataset = load_dataset(path=dataset_name, name=dataset_config, cache_dir=data_dir)
+    entire_dataset = load_ds(
+            path=dataset_name,
+            name=dataset_config,
+            cache_dir=data_dir,
+            trust_remote_code=True)
 
     # Function to filter out undesired inputs. In this case, filter out instances with only whitespace
-    filter_fun = lambda instance_dict : bool(instance_dict["text"].strip())
+    filter_fun = lambda instance_dict : bool(instance_dict[text_feature].strip())
 
     # Filter out undesired data instances
     entire_dataset = entire_dataset.filter(filter_fun)
@@ -55,7 +70,7 @@ def get_loaders_tokenizer(dataset_name: str,
     # of a sentence (which is the default otherwise)
     tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
 
-    tokenizer.train_from_iterator(iter(entire_dataset["train"]["text"]),
+    tokenizer.train_from_iterator(iter(entire_dataset["train"][text_feature]),
                                   trainer=trainer,
                                   length=len(entire_dataset["train"]))
 
@@ -88,7 +103,7 @@ def get_loaders_tokenizer(dataset_name: str,
 
     # Tokenize the datasets
     tokenization = lambda instances_dict : \
-            tokenizer(instances_dict["text"],
+            tokenizer(instances_dict[text_feature],
                       padding="max_length",
                       truncation=True,
                       max_length=seq_len + 1,
@@ -97,8 +112,8 @@ def get_loaders_tokenizer(dataset_name: str,
 
     entire_dataset = entire_dataset.map(tokenization, batched=True)
 
-    # Drop now unnecessary "text" column
-    entire_dataset = entire_dataset.remove_columns(column_names="text")
+    # Drop now unnecessary text_feature column
+    entire_dataset = entire_dataset.remove_columns(column_names=text_feature)
 
     # Create DataLoaders
     train_loader = DataLoader(entire_dataset["train"].with_format("torch")["input_ids"], batch_size=batch_size, shuffle=True)
