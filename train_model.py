@@ -474,9 +474,13 @@ if __name__ == "__main__":
     writer.close()
 
     # Save completed model
-    weight_filename = f"training_completed.pt"
+    weight_filename = "training_completed.pt"
     torch.save(model.state_dict(), save_folder / weight_filename)
     print(f"Saved final weights as {weight_filename}")
+
+    # Save BPE tokenizer used
+    tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
+    print(f"Saved tokenizer used")
 
     # Generate text from the model
     print("\nGenerating text...")
