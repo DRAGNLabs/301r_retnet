@@ -12,5 +12,4 @@ param_combinations = list(itertools.product(*param_grid.values()))
 
 for combination in param_combinations:
     params = dict(zip(param_grid.keys(), combination))
-    # Call the main function with these parameters
     train_model(**params)

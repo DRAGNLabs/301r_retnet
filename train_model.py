@@ -317,6 +317,7 @@ def main(activation_dropout=0.0, batch_size=32, checkpoints=False, device="cuda"
     print(f"\nSaving weights in {save_folder}")
 
     # Save all the variables in args as JSON inside folder
+    # TODO: This will have to be updated because we're not using the arg parser
     arg_dict = vars(args)
     json_string = json.dump(obj=arg_dict,
                             fp=open(save_folder / "model_args.json", "w"),
