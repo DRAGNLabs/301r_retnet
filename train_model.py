@@ -190,7 +190,11 @@ class TransformerModel(nn.Module):
         return self.model_params
 
 
-if __name__ == "__main__":
+def main(activation_dropout=0.0, batch_size=32, checkpoints=False, device="cuda",
+         dropout=0.1, embed_dim=768, epochs=10, ffn_dim=1280, fsdp=False, 
+         layers=12, lr=0.001, model="retnet", heads=3, rand_seed=None, 
+         seq_len=512, val_freq=3, value_embed_dim=1280, vocab_size=10000):
+    
     # Initialize, setup, and parse the argument parser
     parser = ArgumentParser(
             prog="Model Trainer",
@@ -238,48 +242,49 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Test that the head dimension will be an even, whole number
-    assert args.embed_dim % (args.heads * 2) == 0, \
+    assert embed_dim % (heads * 2) == 0, \
             "Head Dimension must be even to perform Rotary Position " + \
-            f"Embedding ({args.embed_dim} / {args.heads} = " + \
-            f"{args.embed_dim / args.heads} -- not an even, whole number)! " + \
+            f"Embedding ({embed_dim} / {heads} = " + \
+            f"{embed_dim / heads} -- not an even, whole number)! " + \
             "Try changing the Embedding Dimension or number of heads."
 
     # Test that the value embedding dimension is divisible by number of heads
-    assert args.value_embed_dim % args.heads == 0, \
+    assert value_embed_dim % heads == 0, \
             "Value Embed Dimension not divisible by number of heads " + \
-            f"({args.value_embed_dim} % {args.heads} != 0)!"
+            f"({value_embed_dim} % {heads} != 0)!"
 
     # Set random seeds
-    if args.rand_seed is not None:
-        torch.manual_seed(args.rand_seed)
+    if rand_seed is not None:
+        torch.manual_seed(rand_seed)
 
     # Create requested model
-    if args.model == "retnet":
+    if model == "retnet":
         model = RetNetModel(
-                embed_dim=args.embed_dim,
-                value_embed_dim=args.value_embed_dim,
-                retention_heads=args.heads,
-                ffn_dim=args.ffn_dim,
-                layers=args.layers,
-                dropout=args.dropout,
-                activation_dropout=args.activation_dropout,
-                vocab_size=args.vocab_size,
-                fsdp=args.fsdp,
-                max_seq_len=args.seq_len)
-    elif args.model == "transformer":
+                embed_dim=embed_dim,
+                value_embed_dim=value_embed_dim,
+                retention_heads=heads,
+                ffn_dim=ffn_dim,
+                layers=layers,
+                dropout=dropout,
+                activation_dropout=activation_dropout,
+                vocab_size=vocab_size,
+                fsdp=fsdp,
+                max_seq_len=seq_len)
+    elif model == "transformer":
         model = TransformerModel(
-                embed_dim=args.embed_dim,
-                value_embed_dim=args.value_embed_dim,
-                attention_heads=args.heads,
-                ffn_dim=args.ffn_dim,
-                layers=args.layers,
-                dropout=args.dropout,
-                activation_dropout=args.activation_dropout,
-                vocab_size=args.vocab_size,
-                fsdp=args.fsdp,
-                max_seq_len=args.seq_len)
+                embed_dim=embed_dim,
+                value_embed_dim=value_embed_dim,
+                attention_heads=heads,
+                ffn_dim=ffn_dim,
+                layers=layers,
+                dropout=dropout,
+                activation_dropout=activation_dropout,
+                vocab_size=vocab_size,
+                fsdp=fsdp,
+                max_seq_len=seq_len)
 
     # Print all arguments for recordkeeping
+    # TODO: Print out the arguments outside of the arg parser
     print("Arguments:")
     arg_table = []
     row = []
@@ -294,7 +299,7 @@ if __name__ == "__main__":
 
     # Print model info
     print("\nModel Summary:")
-    total_params = model_summary(model, input_data=torch.ones(1, args.seq_len)\
+    total_params = model_summary(model, input_data=torch.ones(1, seq_len)\
             .long()).total_params
 
     # Get path of repository root folder
@@ -304,7 +309,7 @@ if __name__ == "__main__":
 
     # Create unique label for model (timestamp, model type, parameter count)
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-                  f"{args.model}_{total_params}"
+                  f"{model}_{total_params}"
 
     # Initialize model weights folders
     save_folder = repo_root_dir / "weights" / model_label
@@ -322,29 +327,29 @@ if __name__ == "__main__":
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
-    print(f"-log(1 / {args.vocab_size}) = {-torch.log(torch.tensor(1 / args.vocab_size))}")
+    print(f"-log(1 / {vocab_size}) = {-torch.log(torch.tensor(1 / vocab_size))}")
 
     # Get DataLoaders
     train_loader, valid_loader, test_loader, tokenizer = load_wikitext2(
-            seq_len=args.seq_len,
-            batch_size=args.batch_size,
-            vocab_size=args.vocab_size)
+            seq_len=seq_len,
+            batch_size=batch_size,
+            vocab_size=vocab_size)
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
 
     # Define optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # Define the device to use
-    device = torch.device(args.device)
+    device = torch.device(device)
 
     # Compile model and put on device
     model = torch.compile(model).to(device)
 
     # Train the model
     num_val_runs = 0
-    for num_epoch in range(args.epochs):
+    for num_epoch in range(epochs):
         print(f"\nEpoch #{num_epoch}")
 
         model.train()
@@ -379,9 +384,9 @@ if __name__ == "__main__":
             # Run validation args.validation_freq times per epoch. To do this,
             # we split up the epoch into arg.validation_freq chunks and run
             # validation after each chunk is finished.
-            progress_through_chunk = args.val_freq * (batch_idx + 1) \
+            progress_through_chunk = val_freq * (batch_idx + 1) \
                                      / len(train_loader) % 1
-            if progress_through_chunk <= (args.val_freq-1) / len(train_loader):
+            if progress_through_chunk <= (val_freq-1) / len(train_loader):
                 # Print average train loss
                 avg_train_loss = train_total_loss / train_total_samples
                 print("Average Train Loss Since Last Validation Run: " + \
@@ -424,7 +429,7 @@ if __name__ == "__main__":
                                   global_step=num_val_runs)
 
                 # If checkpoints are to be saved
-                if args.checkpoints:
+                if checkpoints:
                     # Save current weights of the model
                     weight_filename = f"epoch_{num_epoch}_validation_{num_val_runs}.pt"
                     torch.save(model.state_dict(), save_folder / weight_filename)
@@ -486,9 +491,13 @@ if __name__ == "__main__":
             tokenizer=tokenizer,
             start_string_list=input_starting_strings,
             device=device,
-            seq_len=args.seq_len,
+            seq_len=seq_len,
             generation_length=100)
 
     print("Generated strings:")
     for idx, string in enumerate(generated_strings):
         print(f"{idx+1}: {string}\n")
+
+
+if __name__ == "__main__":
+    main()
