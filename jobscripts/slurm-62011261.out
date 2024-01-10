@@ -1,0 +1,204 @@
+/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/cuda/__init__.py:138: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 11040). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at ../c10/cuda/CUDAFunctions.cpp:108.)
+  return torch._C._cuda_getDeviceCount() > 0
+
+Model Summary:
+===============================================================================================
+Layer (type:depth-idx)                        Output Shape              Param #
+===============================================================================================
+RetNetModel                                   [1, 128, 28783]           --
+├─RetNetDecoder: 1-1                          [1, 128, 28783]           --
+│    └─Embedding: 2-1                         [1, 128, 32]              921,056
+│    └─Dropout: 2-2                           [1, 128, 32]              --
+│    └─RetNetRelPos: 2-3                      [128, 4]                  --
+│    └─ModuleList: 2-4                        --                        --
+│    │    └─DecoderLayer: 3-1                 [1, 128, 32]              11,328
+│    └─RMSNorm: 2-5                           [1, 128, 32]              32
+│    └─Linear: 2-6                            [1, 128, 28783]           921,056
+===============================================================================================
+Total params: 1,853,472
+Trainable params: 1,853,472
+Non-trainable params: 0
+Total mult-adds (Units.MEGABYTES): 2.63
+===============================================================================================
+Input size (MB): 0.00
+Forward/backward pass size (MB): 29.93
+Params size (MB): 7.41
+Estimated Total Size (MB): 37.35
+===============================================================================================
+
+Saving weights in /home/calvin35/CS301R/301r_retnet/weights/2024-01-10-16:18:17_retnet_1853472
+
+Estimated Loss if guessing:
+-log(1 / 28783) = 10.267539978027344
+
+Epoch #0
+Train:   0%|          | 0/186 [00:00<?, ?it/s]Train:   0%|          | 0/186 [00:07<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/calvin35/CS301R/301r_retnet/jobscripts/../train_model.py", line 505, in <module>
+    train_model(
+  File "/home/calvin35/CS301R/301r_retnet/jobscripts/../train_model.py", line 324, in train_model
+    predictions = model(inputs)
+                  ^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/eval_frame.py", line 328, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/eval_frame.py", line 490, in catch_errors
+    return callback(frame, cache_entry, hooks, frame_state)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 641, in _convert_frame
+    result = inner_convert(frame, cache_size, hooks, frame_state)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 133, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 389, in _convert_frame_assert
+    return _compile(
+           ^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 569, in _compile
+    guarded_code = compile_inner(code, one_graph, hooks, transform)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/utils.py", line 189, in time_wrapper
+    r = func(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 491, in compile_inner
+    out_code = transform_code_object(code, transform)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/bytecode_transformation.py", line 1028, in transform_code_object
+    transformations(instructions, code_options)
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/convert_frame.py", line 458, in transform
+    tracer.run()
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/symbolic_convert.py", line 2069, in run
+    super().run()
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/symbolic_convert.py", line 719, in run
+    and self.step()
+        ^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/symbolic_convert.py", line 683, in step
+    getattr(self, inst.opname)(inst)
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/symbolic_convert.py", line 2157, in RETURN_VALUE
+    self.output.compile_subgraph(
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/output_graph.py", line 833, in compile_subgraph
+    self.compile_and_call_fx_graph(tx, list(reversed(stack_values)), root)
+  File "/apps/miniconda3/latest/lib/python3.11/contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/output_graph.py", line 957, in compile_and_call_fx_graph
+    compiled_fn = self.call_user_compiler(gm)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/utils.py", line 189, in time_wrapper
+    r = func(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/output_graph.py", line 1024, in call_user_compiler
+    raise BackendCompilerFailed(self.compiler_fn, e).with_traceback(
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/output_graph.py", line 1009, in call_user_compiler
+    compiled_fn = compiler_fn(gm, self.example_inputs())
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/repro/after_dynamo.py", line 117, in debug_wrapper
+    compiled_gm = compiler_fn(gm, example_inputs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/__init__.py", line 1568, in __call__
+    return compile_fx(model_, inputs_, config_patches=self.config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1150, in compile_fx
+    return aot_autograd(
+           ^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/backends/common.py", line 55, in compiler_fn
+    cg = aot_module_simplified(gm, example_inputs, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 3891, in aot_module_simplified
+    compiled_fn = create_aot_dispatcher_function(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/utils.py", line 189, in time_wrapper
+    r = func(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 3429, in create_aot_dispatcher_function
+    compiled_fn = compiler_fn(flat_fn, fake_flat_args, aot_config, fw_metadata=fw_metadata)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 2212, in aot_wrapper_dedupe
+    return compiler_fn(flat_fn, leaf_flat_args, aot_config, fw_metadata=fw_metadata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 2392, in aot_wrapper_synthetic_base
+    return compiler_fn(flat_fn, flat_args, aot_config, fw_metadata=fw_metadata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 2917, in aot_dispatch_autograd
+    compiled_fw_func = aot_config.fw_compiler(
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/utils.py", line 189, in time_wrapper
+    r = func(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 1092, in fw_compiler_base
+    return inner_compile(
+           ^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/repro/after_aot.py", line 80, in debug_wrapper
+    inner_compiled_fn = compiler_fn(gm, example_inputs)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/debug.py", line 228, in inner
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/apps/miniconda3/latest/lib/python3.11/contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 54, in newFunction
+    return old_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 341, in compile_fx_inner
+    compiled_graph: CompiledFxGraph = fx_codegen_and_compile(
+                                      ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 565, in fx_codegen_and_compile
+    compiled_fn = graph.compile_to_fn()
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/graph.py", line 970, in compile_to_fn
+    return self.compile_to_module().call
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_dynamo/utils.py", line 189, in time_wrapper
+    r = func(*args, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/graph.py", line 941, in compile_to_module
+    mod = PyCodeCache.load_by_key_path(key, path, linemap=linemap)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 1139, in load_by_key_path
+    exec(code, mod.__dict__, mod.__dict__)
+  File "/tmp/torchinductor_calvin35/h4/ch4neakxhjhwbwmkh4wf4qpuiuakgg7b55zb6ylxawarbzepnhfc.py", line 22, in <module>
+    cpp_fused__to_copy_add_arange_bitwise_not_div_embedding_exp_masked_fill_mean_mul_nan_to_num_ones_pow_rsqrt_slice_sqrt_sub_sum_tril_unsqueeze_view_0 = async_compile.cpp('''
+                                                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 1397, in cpp
+    return self.submit(task)
+           ^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 1370, in submit
+    return task()
+           ^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 1395, in task
+    return CppCodeCache.load(source_code).kernel
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 1105, in load
+    compile_file(input_path, output_path, cmd)
+  File "/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/_inductor/codecache.py", line 1061, in compile_file
+    raise exc.CppCompileError(cmd, output) from e
+torch._dynamo.exc.BackendCompilerFailed: backend='inductor' raised:
+CppCompileError: C++ compile error
+
+Command:
+g++ /tmp/torchinductor_calvin35/dx/cdxadkmnygklwm3dmlx3tlcnzpffylo2im3nc47wzjocosxybyd7.cpp -shared -fPIC -Wall -std=c++17 -Wno-unused-variable -I/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/include -I/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/include/torch/csrc/api/include -I/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/include/TH -I/home/calvin35/CS301R/301r_retnet/venv/lib/python3.11/site-packages/torch/include/THC -I/apps/miniconda3/latest/include/python3.11 -lgomp -O3 -ffast-math -fno-finite-math-only -march=native -fopenmp -D C10_USING_CUSTOM_GENERATED_MACROS -o /tmp/torchinductor_calvin35/dx/cdxadkmnygklwm3dmlx3tlcnzpffylo2im3nc47wzjocosxybyd7.so
+
+Output:
+g++: error: unrecognized command line option ‘-std=c++17’
+
+
+Set TORCH_LOGS="+dynamo" and TORCHDYNAMO_VERBOSE=1 for more information
+
+
+You can suppress this exception and fall back to eager by setting:
+    import torch._dynamo
+    torch._dynamo.config.suppress_errors = True
+

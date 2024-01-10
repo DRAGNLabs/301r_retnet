@@ -192,54 +192,9 @@ class TransformerModel(nn.Module):
 
 def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device="cuda",
          dropout=0.1, embed_dim=768, epochs=10, ffn_dim=1280, fsdp=False, 
-         layers=12, lr=0.001, model="retnet", heads=3, rand_seed=None, 
-         seq_len=512, val_freq=3, value_embed_dim=1280, vocab_size=10000):
+         layers=12, lr=0.001, model_type="retnet", heads=3, rand_seed=None, 
+         seq_len=512, val_freq=3, value_embed_dim=1280, vocab_size=10000, args=None):
     
-    # Initialize, setup, and parse the argument parser
-    parser = ArgumentParser(
-            prog="Model Trainer",
-            description="Used to train comparable RetNet, Transformer models.")
-
-    parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
-            help="Probability of element to be zeroed in dropout layer " + \
-                    "after activation between FFN layers.")
-    parser.add_argument("-b", "--batch-size", type=int, default=32,
-            help="Batch size.")
-    parser.add_argument("-c", "--checkpoints", action="store_true",
-            default=False, help="Save model checkpoints while training.")
-    parser.add_argument("--device", type=str, default="cuda",
-            help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
-    parser.add_argument("-d", "--dropout", type=float, default=0.1,
-            help="Probability of element to be zeroed in dropout layer.")
-    parser.add_argument("-e", "--embed-dim", type=int, default=768,
-            help="Embedding dimension size of each token.")
-    parser.add_argument("--epochs", type=int, default=10,
-            help="Number of epochs to train for.")
-    parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
-            help="FFN hidden layer size.")
-    parser.add_argument("--fsdp", action="store_true", default=False,
-            help="Module parameters sharded across data parallel workers.")
-    parser.add_argument("-l", "--layers", type=int, default=12,
-            help="Number of stacked layers in model.")
-    parser.add_argument("--lr", type=float, required=True,
-            help="Learning rate of model to train.")
-    parser.add_argument("-m", "--model", required=True,
-            choices=["retnet", "transformer"],
-            help="Name of model architecture to train.")
-    parser.add_argument("-n", "--heads", type=int, default=3,
-            help="Number of heads. Head architecture changes based on model.")
-    parser.add_argument("-r", "--rand-seed", type=int, default=None,
-            help="Random seed to use, allowing more reproducible results.")
-    parser.add_argument("-s", "--seq-len", type=int, default=512,
-            help="Sequence length (context window size).")
-    parser.add_argument("--val-freq", type=int, default=3,
-            help="Number of times to run validation per epoch during training.")
-    parser.add_argument("--value-embed-dim", type=int, default=1280,
-            help="Value embed dimension size.")
-    parser.add_argument("--vocab-size", type=int, required=True,
-            help="Maximum number of unique tokens in vocabulary.")
-
-    args = parser.parse_args()
 
     # Test that the head dimension will be an even, whole number
     assert embed_dim % (heads * 2) == 0, \
@@ -258,7 +213,7 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
         torch.manual_seed(rand_seed)
 
     # Create requested model
-    if model == "retnet":
+    if model_type == "retnet":
         model = RetNetModel(
                 embed_dim=embed_dim,
                 value_embed_dim=value_embed_dim,
@@ -270,7 +225,7 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
                 vocab_size=vocab_size,
                 fsdp=fsdp,
                 max_seq_len=seq_len)
-    elif model == "transformer":
+    elif model_type == "transformer":
         model = TransformerModel(
                 embed_dim=embed_dim,
                 value_embed_dim=value_embed_dim,
@@ -285,17 +240,17 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
 
     # Print all arguments for recordkeeping
     # TODO: Print out the arguments outside of the arg parser
-    print("Arguments:")
-    arg_table = []
-    row = []
-    for i, arg in enumerate(vars(args)):
-        row.append(f"{arg}: {getattr(args, arg)}")
-        if (i + 1) % 4 == 0:
-            arg_table.append(row)
-            row = []
-    if row:
-        arg_table.append(row)
-    print(tabulate(arg_table, tablefmt="grid"))
+#     print("Arguments:")
+#     arg_table = []
+#     row = []
+#     for i, arg in enumerate(vars(args)):
+#         row.append(f"{arg}: {getattr(args, arg)}")
+#         if (i + 1) % 4 == 0:
+#             arg_table.append(row)
+#             row = []
+#     if row:
+#         arg_table.append(row)
+#     print(tabulate(arg_table, tablefmt="grid"))
 
     # Print model info
     print("\nModel Summary:")
@@ -309,7 +264,7 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
 
     # Create unique label for model (timestamp, model type, parameter count)
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-                  f"{model}_{total_params}"
+                  f"{model_type}_{total_params}"
 
     # Initialize model weights folders
     save_folder = repo_root_dir / "weights" / model_label
@@ -501,4 +456,70 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
 
 
 if __name__ == "__main__":
-    train_model()
+    # Initialize, setup, and parse the argument parser
+    parser = ArgumentParser(
+            prog="Model Trainer",
+            description="Used to train comparable RetNet, Transformer models.")
+
+    parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
+            help="Probability of element to be zeroed in dropout layer " + \
+                    "after activation between FFN layers.")
+    parser.add_argument("-b", "--batch-size", type=int, default=32,
+            help="Batch size.")
+    parser.add_argument("-c", "--checkpoints", action="store_true",
+            default=False, help="Save model checkpoints while training.")
+    parser.add_argument("--device", type=str, default="cuda",
+            help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
+    parser.add_argument("-d", "--dropout", type=float, default=0.1,
+            help="Probability of element to be zeroed in dropout layer.")
+    parser.add_argument("-e", "--embed-dim", type=int, default=768,
+            help="Embedding dimension size of each token.")
+    parser.add_argument("--epochs", type=int, default=10,
+            help="Number of epochs to train for.")
+    parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
+            help="FFN hidden layer size.")
+    parser.add_argument("--fsdp", action="store_true", default=False,
+            help="Module parameters sharded across data parallel workers.")
+    parser.add_argument("-l", "--layers", type=int, default=12,
+            help="Number of stacked layers in model.")
+    parser.add_argument("--lr", type=float, required=True,
+            help="Learning rate of model to train.")
+    parser.add_argument("-m", "--model", required=True,
+            choices=["retnet", "transformer"],
+            help="Name of model architecture to train.")
+    parser.add_argument("-n", "--heads", type=int, default=3,
+            help="Number of heads. Head architecture changes based on model.")
+    parser.add_argument("-r", "--rand-seed", type=int, default=None,
+            help="Random seed to use, allowing more reproducible results.")
+    parser.add_argument("-s", "--seq-len", type=int, default=512,
+            help="Sequence length (context window size).")
+    parser.add_argument("--val-freq", type=int, default=3,
+            help="Number of times to run validation per epoch during training.")
+    parser.add_argument("--value-embed-dim", type=int, default=1280,
+            help="Value embed dimension size.")
+    parser.add_argument("--vocab-size", type=int, required=True,
+            help="Maximum number of unique tokens in vocabulary.")
+
+    args = parser.parse_args()
+
+    train_model(
+        activation_dropout=args.activation_dropout, 
+        batch_size=args.batch_size, 
+        checkpoints=args.checkpoints, 
+        device=args.device, 
+        dropout=args.dropout, 
+        embed_dim=args.embed_dim, 
+        epochs=args.epochs, 
+        ffn_dim=args.ffn_dim, 
+        fsdp=args.fsdp, 
+        layers=args.layers, 
+        lr=args.lr, 
+        model_type=args.model, 
+        heads=args.heads, 
+        rand_seed=args.rand_seed, 
+        seq_len=args.seq_len, 
+        val_freq=args.val_freq, 
+        value_embed_dim=args.value_embed_dim, 
+        vocab_size=args.vocab_size,
+        args=args
+    )
