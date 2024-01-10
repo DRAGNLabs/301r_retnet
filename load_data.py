@@ -22,18 +22,28 @@ def get_loaders_tokenizer(
         dataset_config: str=None,
         text_feature: str="text",
         max_token_len: int=20,
-        splits: list=[0.7, 0.2, 0.1]) -> \
+        splits: list[float]=[0.7, 0.2, 0.1]) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
-    """ Loads the WikiText2 dataset and returns DataLoaders.
+    """ Loads Hugging Face dataset and creates DataLoaders and Tokenizer.
     Args:
+        dataset_name (str): Name of Hugging Face dataset.
         seq_len (int): Context window/sequence length.
         batch_size (int): Batch size.
         vocab_size (int): Maximum vocabulary size.
+        data_dir (str): Relative path from base of repository to directory in
+            which to download the dataset.
+        dataset_config (str): Configuration/subset of dataset to use.
+        text_feature (str): Name of the feature/column of the dataset to use.
+        max_token_len (int): Prevents tokenizer creating tokens longer than the
+            specified size.
+        splits (list[float]): A list of three floats containing the train,
+            validation, and test splits respectively. Should sum to 1.
 
     Returns:
         Tuple with the format: (Training DataLoader, Validation DataLoader,
         Testing DataLoader, Tokenizer object).
     """
+    # Test text_feature is actually a feature of the dataset
     ds_features = get_ds_infos(
         dataset_name,
         trust_remote_code=True)[dataset_config].features
@@ -77,6 +87,7 @@ def get_loaders_tokenizer(
     # of a sentence (which is the default otherwise)
     tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
 
+    # Train tokenizer on only training data
     tokenizer.train_from_iterator(
         iter(entire_dataset["train"][text_feature]),
         trainer=trainer,
