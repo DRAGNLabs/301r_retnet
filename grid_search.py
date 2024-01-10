@@ -1,4 +1,4 @@
-from train_model import main as train_model
+from train_model import train_model
 import itertools
 
 param_grid = {

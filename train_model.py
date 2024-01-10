@@ -190,7 +190,7 @@ class TransformerModel(nn.Module):
         return self.model_params
 
 
-def main(activation_dropout=0.0, batch_size=32, checkpoints=False, device="cuda",
+def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device="cuda",
          dropout=0.1, embed_dim=768, epochs=10, ffn_dim=1280, fsdp=False, 
          layers=12, lr=0.001, model="retnet", heads=3, rand_seed=None, 
          seq_len=512, val_freq=3, value_embed_dim=1280, vocab_size=10000):
@@ -501,4 +501,4 @@ def main(activation_dropout=0.0, batch_size=32, checkpoints=False, device="cuda"
 
 
 if __name__ == "__main__":
-    main()
+    train_model()
