@@ -1,11 +1,11 @@
+import json
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import json
 
 from argparse import ArgumentParser
-from load_data import get_loaders_tokenizer
 from datetime import datetime
+from load_data import get_loaders_tokenizer
 from math import isclose
 from pathlib import Path
 from tabulate import tabulate
@@ -60,34 +60,34 @@ class RetNetModel(nn.Module):
 
         # Store hyperparameters
         self.model_params = {
-                "embed_dim": embed_dim,
-                "value_embed_dim": value_embed_dim,
-                "retention_heads": retention_heads,
-                "ffn_dim": ffn_dim,
-                "layers": layers,
-                "dropout": dropout,
-                "activation_dropout": activation_dropout,
-                "vocab_size": vocab_size,
-                "fsdp": fsdp,
-                "max_seq_len": max_seq_len}
+            "embed_dim": embed_dim,
+            "value_embed_dim": value_embed_dim,
+            "retention_heads": retention_heads,
+            "ffn_dim": ffn_dim,
+            "layers": layers,
+            "dropout": dropout,
+            "activation_dropout": activation_dropout,
+            "vocab_size": vocab_size,
+            "fsdp": fsdp,
+            "max_seq_len": max_seq_len}
 
         # Create RetNet configuration
         config = RetNetConfig(
-                decoder_embed_dim=embed_dim,
-                decoder_value_embed_dim=value_embed_dim,
-                decoder_retention_heads=retention_heads,
-                decoder_ffn_embed_dim=ffn_dim,
-                decoder_layers=layers,
-                dropout=dropout,
-                activation_dropout=activation_dropout,
-                vocab_size=vocab_size,
-                fsdp=fsdp)
+            decoder_embed_dim=embed_dim,
+            decoder_value_embed_dim=value_embed_dim,
+            decoder_retention_heads=retention_heads,
+            decoder_ffn_embed_dim=ffn_dim,
+            decoder_layers=layers,
+            dropout=dropout,
+            activation_dropout=activation_dropout,
+            vocab_size=vocab_size,
+            fsdp=fsdp)
 
         # Create embeddings with index 0 representing padding
         text_embeddings = nn.Embedding(
-                num_embeddings=vocab_size,
-                embedding_dim=embed_dim,
-                padding_idx=0)
+            num_embeddings=vocab_size,
+            embedding_dim=embed_dim,
+            padding_idx=0)
 
         self.decoder_stack = RetNetDecoder(config, embed_tokens=text_embeddings)
 
@@ -122,7 +122,7 @@ class TransformerModel(nn.Module):
             vocab_size: int,
             fsdp: bool,
             max_seq_len: int):
-        """ Use parameters to create corresponding RetNet model
+        """ Use parameters to create corresponding Transformer model.
         Args:
             embed_dim (int): Dimension size of each embedded token.
             value_embed_dim (int): Value embed dimension size.
@@ -143,34 +143,34 @@ class TransformerModel(nn.Module):
 
         # Store hyperparameters
         self.model_params = {
-                "embed_dim": embed_dim,
-                "value_embed_dim": value_embed_dim,
-                "attention_heads": attention_heads,
-                "ffn_dim": ffn_dim,
-                "layers": layers,
-                "dropout": dropout,
-                "activation_dropout": activation_dropout,
-                "vocab_size": vocab_size,
-                "fsdp": fsdp,
-                "max_seq_len": max_seq_len}
+            "embed_dim": embed_dim,
+            "value_embed_dim": value_embed_dim,
+            "attention_heads": attention_heads,
+            "ffn_dim": ffn_dim,
+            "layers": layers,
+            "dropout": dropout,
+            "activation_dropout": activation_dropout,
+            "vocab_size": vocab_size,
+            "fsdp": fsdp,
+            "max_seq_len": max_seq_len}
 
         # Create Transformer Decoder configuration
         config = DecoderConfig(
-                decoder_embed_dim=embed_dim,
-                decoder_value_embed_dim=value_embed_dim,
-                decoder_attention_heads=attention_heads,
-                decoder_ffn_embed_dim=ffn_dim,
-                decoder_layers=layers,
-                dropout=dropout,
-                activation_dropout=activation_dropout,
-                vocab_size=vocab_size,
-                fsdp=fsdp)
+            decoder_embed_dim=embed_dim,
+            decoder_value_embed_dim=value_embed_dim,
+            decoder_attention_heads=attention_heads,
+            decoder_ffn_embed_dim=ffn_dim,
+            decoder_layers=layers,
+            dropout=dropout,
+            activation_dropout=activation_dropout,
+            vocab_size=vocab_size,
+            fsdp=fsdp)
 
         # Create embeddings with index 0 representing padding
         text_embeddings = nn.Embedding(
-                num_embeddings=vocab_size,
-                embedding_dim=embed_dim,
-                padding_idx=0)
+            num_embeddings=vocab_size,
+            embedding_dim=embed_dim,
+            padding_idx=0)
 
         self.decoder_stack = Decoder(config, embed_tokens=text_embeddings)
 
@@ -200,57 +200,57 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, device=
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
     parser = ArgumentParser(
-            prog="Model Trainer",
-            description="Used to train comparable RetNet, Transformer models.")
+        prog="Model Trainer",
+        description="Used to train comparable RetNet, Transformer models.")
 
     parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
-            help="Probability of element to be zeroed in dropout layer " + \
-                    "after activation between FFN layers.")
+        help="Probability of element to be zeroed in dropout layer after " + \
+            "activation between FFN layers.")
     parser.add_argument("-b", "--batch-size", type=int, default=32,
-            help="Batch size.")
+        help="Batch size.")
     parser.add_argument("-c", "--checkpoints", action="store_true",
-            default=False, help="Save model checkpoints while training.")
+        default=False, help="Save model checkpoints while training.")
     parser.add_argument("--dataset-feature", type=str, default="text",
-            help="Hugging Face dataset feature/column to use.")
+        help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
-            help="Hugging Face dataset name. Should also set --dataset-subset.")
+        help="Hugging Face dataset name. Should also set --dataset-subset.")
     parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
-            help="Subset/config to use for Hugging Face dataset.")
+        help="Subset/config to use for Hugging Face dataset.")
     parser.add_argument("--device", type=str, default="cuda",
-            help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
+        help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
     parser.add_argument("-d", "--dropout", type=float, default=0.1,
-            help="Probability of element to be zeroed in dropout layer.")
+        help="Probability of element to be zeroed in dropout layer.")
     parser.add_argument("-e", "--embed-dim", type=int, default=768,
-            help="Embedding dimension size of each token.")
+        help="Embedding dimension size of each token.")
     parser.add_argument("--epochs", type=int, default=10,
-            help="Number of epochs to train for.")
+        help="Number of epochs to train for.")
     parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
-            help="FFN hidden layer size.")
+        help="FFN hidden layer size.")
     parser.add_argument("--fsdp", action="store_true", default=False,
-            help="Module parameters sharded across data parallel workers.")
+        help="Module parameters sharded across data parallel workers.")
     parser.add_argument("-l", "--layers", type=int, default=12,
-            help="Number of stacked layers in model.")
+        help="Number of stacked layers in model.")
     parser.add_argument("--lr", type=float, required=True,
-            help="Learning rate of model to train.")
+        help="Learning rate of model to train.")
     parser.add_argument("-m", "--model", required=True,
-            choices=["retnet", "transformer"],
-            help="Name of model architecture to train.")
+        choices=["retnet", "transformer"],
+        help="Name of model architecture to train.")
     parser.add_argument("-n", "--heads", type=int, default=3,
-            help="Number of heads. Head architecture changes based on model.")
+        help="Number of heads. Head architecture changes based on model.")
     parser.add_argument("-r", "--rand-seed", type=int, default=None,
-            help="Random seed to use, allowing more reproducible results.")
+        help="Random seed to use, allowing more reproducible results.")
     parser.add_argument("-s", "--seq-len", type=int, default=512,
-            help="Sequence length (context window size).")
+        help="Sequence length (context window size).")
     parser.add_argument("--splits", type=float, nargs=3,
-            default=[0.7, 0.2, 0.1],
-            help="Space-separated decimal splits of train, validation, and " + \
-                 "test datasets. (Ex: '0.7 0.2 0.1')")
+        default=[0.7, 0.2, 0.1],
+        help="Space-separated decimal splits of train, validation, and " + \
+            "test datasets. (Ex: '0.7 0.2 0.1')")
     parser.add_argument("--val-freq", type=int, default=3,
-            help="Number of times to run validation per epoch during training.")
+        help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
-            help="Value embed dimension size.")
+        help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
-            help="Maximum number of unique tokens in vocabulary.")
+        help="Maximum number of unique tokens in vocabulary.")
 
     args = parser.parse_args()
 
@@ -269,9 +269,8 @@ if __name__ == "__main__":
 
     # Test the dataset splits add up to 1, using isclose for rounding errors
     assert isclose(sum(args.splits), 1), \
-            "The dataset splits for the training, validation, and testing " + \
-            "datasets must sum up to 1 " + \
-            f"({' + '.join(map(str, args.splits))} != 1)!"
+        "The dataset splits for the training, validation, and testing " + \
+        f"datasets must sum up to 1 ({' + '.join(map(str, args.splits))} != 1)!"
 
     # Set random seeds for torch, numpy, random, etc. with transformers library
     if args.rand_seed is not None:
@@ -340,15 +339,15 @@ if __name__ == "__main__":
     # Get DataLoaders
     print(f"\nNow retrieving '{args.dataset_name}' and training tokenizer...")
     train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
-            dataset_name=args.dataset_name,
-            seq_len=args.seq_len,
-            batch_size=args.batch_size,
-            vocab_size=args.vocab_size,
-            data_dir=repo_root_dir / "data",
-            dataset_config=args.dataset_subset,
-            text_feature=args.dataset_feature,
-            max_token_len=20,
-            splits=args.splits)
+        dataset_name=args.dataset_name,
+        seq_len=args.seq_len,
+        batch_size=args.batch_size,
+        vocab_size=args.vocab_size,
+        data_dir=repo_root_dir / "data",
+        dataset_config=args.dataset_subset,
+        text_feature=args.dataset_feature,
+        max_token_len=20,
+        splits=args.splits)
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
@@ -370,8 +369,9 @@ if __name__ == "__main__":
         model.train()
         train_total_loss = 0
         train_total_samples = 0
-        for batch_idx, batch_seqs in enumerate(tqdm(train_loader,
-                                                    desc="Train")):
+        for batch_idx, batch_seqs in enumerate(tqdm(
+                train_loader,
+                desc="Train")):
             # Put inputs and targets on device
             inputs = batch_seqs[:, :-1].to(device, non_blocking=True)
             targets = batch_seqs[:, 1:].to(device, non_blocking=True)
@@ -405,7 +405,7 @@ if __name__ == "__main__":
                 # Print average train loss
                 avg_train_loss = train_total_loss / train_total_samples
                 print("Average Train Loss Since Last Validation Run: " + \
-                      f"{avg_train_loss}")
+                    f"{avg_train_loss}")
                 train_total_loss = 0
                 train_total_samples = 0
 
@@ -416,8 +416,12 @@ if __name__ == "__main__":
                 with torch.inference_mode():
                     for val_batch_seqs in tqdm(valid_loader, desc="Validate"):
                         # Put validation inputs and targets on device
-                        val_inputs = val_batch_seqs[:, :-1].to(device, non_blocking=True)
-                        val_targets = val_batch_seqs[:, 1:].to(device, non_blocking=True)
+                        val_inputs = val_batch_seqs[:, :-1].to(
+                            device,
+                            non_blocking=True)
+                        val_targets = val_batch_seqs[:, 1:].to(
+                            device,
+                            non_blocking=True)
 
                         # Get validation predictions
                         val_predictions = model(val_inputs)
@@ -435,18 +439,23 @@ if __name__ == "__main__":
                     print(f"\nAverage Validation Loss: {avg_val_loss}")
 
                 # Log training and validation average loss
-                writer.add_scalar(tag="Loss/train",
-                                  scalar_value=avg_train_loss,
-                                  global_step=num_val_runs)
-                writer.add_scalar(tag="Loss/validation",
-                                  scalar_value=avg_val_loss,
-                                  global_step=num_val_runs)
+                writer.add_scalar(
+                    tag="Loss/train",
+                    scalar_value=avg_train_loss,
+                    global_step=num_val_runs)
+                writer.add_scalar(
+                    tag="Loss/validation",
+                    scalar_value=avg_val_loss,
+                    global_step=num_val_runs)
 
                 # If checkpoints are to be saved
                 if checkpoints:
                     # Save current weights of the model
-                    weight_filename = f"epoch_{num_epoch}_validation_{num_val_runs}.pt"
-                    torch.save(model.state_dict(), save_folder / weight_filename)
+                    weight_filename = f"epoch_{num_epoch}_validation_" + \
+                        f"{num_val_runs}.pt"
+                    torch.save(
+                        model.state_dict(),
+                        save_folder / weight_filename)
                     print(f"Saved weights as {weight_filename}")
 
                 # Update how many validation runs there have been
@@ -479,11 +488,12 @@ if __name__ == "__main__":
     print(f"Average Test Loss: {avg_loss}")
 
     # Save hyperparameters and metrics in logs
-    writer.add_hparams(hparam_dict=model.get_params(),
-                       metric_dict={
-                           "Loss/train": avg_train_loss,
-                           "Loss/validation": avg_val_loss,
-                           "Loss/test": avg_loss})
+    writer.add_hparams(
+        hparam_dict=model.get_params(),
+        metric_dict={
+            "Loss/train": avg_train_loss,
+            "Loss/validation": avg_val_loss,
+            "Loss/test": avg_loss})
 
     # Close SummaryWriter
     writer.close()
@@ -500,9 +510,9 @@ if __name__ == "__main__":
     # Generate text from the model
     print("\nGenerating text...")
     input_starting_strings = [
-            "<pad>",
-            "= valkyria",
-            "= = reception ="]
+        "<pad>",
+        "= valkyria",
+        "= = reception ="]
 
     generated_strings = generate_text(
             model=model,

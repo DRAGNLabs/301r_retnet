@@ -13,15 +13,17 @@ from transformers import PreTrainedTokenizerFast
 # Disable parallelism to avoid errors with DataLoaders later on
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
-def get_loaders_tokenizer(dataset_name: str,
-                          seq_len: int,
-                          batch_size: int,
-                          vocab_size: int,
-                          data_dir: str,
-                          dataset_config: str=None,
-                          text_feature: str="text",
-                          max_token_len: int=20,
-                          splits: list=[0.7, 0.2, 0.1]) -> tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
+def get_loaders_tokenizer(
+        dataset_name: str,
+        seq_len: int,
+        batch_size: int,
+        vocab_size: int,
+        data_dir: str,
+        dataset_config: str=None,
+        text_feature: str="text",
+        max_token_len: int=20,
+        splits: list=[0.7, 0.2, 0.1]) -> \
+            tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
     """ Loads the WikiText2 dataset and returns DataLoaders.
     Args:
         seq_len (int): Context window/sequence length.
@@ -33,49 +35,52 @@ def get_loaders_tokenizer(dataset_name: str,
         Testing DataLoader, Tokenizer object).
     """
     ds_features = get_ds_infos(
-            dataset_name,
-            trust_remote_code=True)[dataset_config].features
+        dataset_name,
+        trust_remote_code=True)[dataset_config].features
     assert text_feature in ds_features, \
         f"'{text_feature}' not in '{dataset_name}' features {ds_features}!"
 
     # Retrieve iterators for each split of the dataset
     entire_dataset = load_ds(
-            path=dataset_name,
-            name=dataset_config,
-            split="all",
-            cache_dir=data_dir,
-            trust_remote_code=True)
+        path=dataset_name,
+        name=dataset_config,
+        split="all",
+        cache_dir=data_dir,
+        trust_remote_code=True)
 
     # Split into training, validation, and testing datasets
     train_testvalid = entire_dataset.train_test_split(train_size=splits[0])
     test_valid = train_testvalid["test"].train_test_split(
-            train_size=splits[1] / (splits[1] + splits[2]))
+        train_size=splits[1] / (splits[1] + splits[2]))
     entire_dataset = DatasetDict({
-            "train": train_testvalid["train"],
-            "validation": test_valid["train"],
-            "test": test_valid["test"]})
+        "train": train_testvalid["train"],
+        "validation": test_valid["train"],
+        "test": test_valid["test"]})
 
-    # Function to filter out undesired inputs. In this case, filter out instances with only whitespace
-    filter_fun = lambda instance_dict : bool(instance_dict[text_feature].strip())
+    # Function to filter out undesired inputs. In this case, filter out
+    # instances with only whitespace
+    filter_fun = lambda inst_dict : bool(inst_dict[text_feature].strip())
 
     # Filter out undesired data instances
     entire_dataset = entire_dataset.filter(filter_fun)
 
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
-    trainer = BpeTrainer(vocab_size=vocab_size,
-                         show_progress=True,
-                         special_tokens=["<pad>", "<bos>", "<unk>"],
-                         max_token_length=max_token_len)
+    trainer = BpeTrainer(
+        vocab_size=vocab_size,
+        show_progress=True,
+        special_tokens=["<pad>", "<bos>", "<unk>"],
+        max_token_length=max_token_len)
 
     # Like GPT-2, we skip the normalizer and go directly to pre-tokenization.
     # The option we add to ByteLevel here is to not add a space at the beginning
     # of a sentence (which is the default otherwise)
     tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
 
-    tokenizer.train_from_iterator(iter(entire_dataset["train"][text_feature]),
-                                  trainer=trainer,
-                                  length=len(entire_dataset["train"]))
+    tokenizer.train_from_iterator(
+        iter(entire_dataset["train"][text_feature]),
+        trainer=trainer,
+        length=len(entire_dataset["train"]))
 
     # trim_offsets=False tells post-processor to keep spaces as part of tokens
     tokenizer.post_processor = processors.TemplateProcessing(
@@ -87,31 +92,34 @@ def get_loaders_tokenizer(dataset_name: str,
     tokenizer.decoder = decoders.ByteLevel()
 
     # Enable padding
-    tokenizer.enable_padding(direction="right",
-                             pad_id=0,
-                             pad_token="<pad>",
-                             length=seq_len + 1)
+    tokenizer.enable_padding(
+        direction="right",
+        pad_id=0,
+        pad_token="<pad>",
+        length=seq_len + 1)
 
     # Enable truncation
     tokenizer.enable_truncation(max_length=seq_len + 1, direction="right")
 
     # Wrap tokenizer with transformers library
-    tokenizer = PreTrainedTokenizerFast(model_max_length=seq_len,
-                                        padding_side="right",
-                                        truncation_side="right",
-                                        bos_token="<bos>",
-                                        unk_token="<unk>",
-                                        pad_token="<pad>",
-                                        tokenizer_object=tokenizer)
+    tokenizer = PreTrainedTokenizerFast(
+        model_max_length=seq_len,
+        padding_side="right",
+        truncation_side="right",
+        bos_token="<bos>",
+        unk_token="<unk>",
+        pad_token="<pad>",
+        tokenizer_object=tokenizer)
 
     # Tokenize the datasets
     tokenization = lambda instances_dict : \
-            tokenizer(instances_dict[text_feature],
-                      padding="max_length",
-                      truncation=True,
-                      max_length=seq_len + 1,
-                      return_token_type_ids=False,
-                      return_attention_mask=False)
+        tokenizer(
+            instances_dict[text_feature],
+            padding="max_length",
+            truncation=True,
+            max_length=seq_len + 1,
+            return_token_type_ids=False,
+            return_attention_mask=False)
 
     entire_dataset = entire_dataset.map(tokenization, batched=True)
 
@@ -119,8 +127,15 @@ def get_loaders_tokenizer(dataset_name: str,
     entire_dataset = entire_dataset.remove_columns(column_names=text_feature)
 
     # Create DataLoaders
-    train_loader = DataLoader(entire_dataset["train"].with_format("torch")["input_ids"], batch_size=batch_size, shuffle=True)
-    valid_loader = DataLoader(entire_dataset["validation"].with_format("torch")["input_ids"], batch_size=batch_size)
-    test_loader = DataLoader(entire_dataset["test"].with_format("torch")["input_ids"], batch_size=batch_size)
+    train_loader = DataLoader(
+        entire_dataset["train"].with_format("torch")["input_ids"],
+        batch_size=batch_size,
+        shuffle=True)
+    valid_loader = DataLoader(
+        entire_dataset["validation"].with_format("torch")["input_ids"],
+        batch_size=batch_size)
+    test_loader = DataLoader(
+        entire_dataset["test"].with_format("torch")["input_ids"],
+        batch_size=batch_size)
 
     return train_loader, valid_loader, test_loader, tokenizer
