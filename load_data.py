@@ -58,6 +58,13 @@ def get_loaders_tokenizer(
         cache_dir=data_dir,
         trust_remote_code=True)
 
+    # Function to filter out undesired inputs. In this case, filter out
+    # instances with only whitespace
+    filter_fun = lambda inst_dict : bool(inst_dict[text_feature].strip())
+
+    # Filter out undesired data instances
+    entire_dataset = entire_dataset.filter(filter_fun)
+
     # Split into training, validation, and testing datasets
     train_testvalid = entire_dataset.train_test_split(train_size=splits[0])
     test_valid = train_testvalid["test"].train_test_split(
@@ -66,13 +73,6 @@ def get_loaders_tokenizer(
         "train": train_testvalid["train"],
         "validation": test_valid["train"],
         "test": test_valid["test"]})
-
-    # Function to filter out undesired inputs. In this case, filter out
-    # instances with only whitespace
-    filter_fun = lambda inst_dict : bool(inst_dict[text_feature].strip())
-
-    # Filter out undesired data instances
-    entire_dataset = entire_dataset.filter(filter_fun)
 
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
