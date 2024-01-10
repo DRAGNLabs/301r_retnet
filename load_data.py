@@ -1,4 +1,5 @@
 from datasets import (
+    DatasetDict,
     get_dataset_infos as get_ds_infos,
     get_dataset_split_names as get_ds_split_names,
     load_dataset as load_ds)
@@ -19,7 +20,8 @@ def get_loaders_tokenizer(dataset_name: str,
                           data_dir: str,
                           dataset_config: str=None,
                           text_feature: str="text",
-                          max_token_len: int=20) -> tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
+                          max_token_len: int=20,
+                          splits: list=[0.7, 0.2, 0.1]) -> tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
     """ Loads the WikiText2 dataset and returns DataLoaders.
     Args:
         seq_len (int): Context window/sequence length.
@@ -30,15 +32,6 @@ def get_loaders_tokenizer(dataset_name: str,
         Tuple with the format: (Training DataLoader, Validation DataLoader,
         Testing DataLoader, Tokenizer object).
     """
-    dataset_split_names = get_ds_split_names(
-            path=dataset_name,
-            config_name=dataset_config,
-            trust_remote_code=True)
-    assert "train" in dataset_split_names \
-            and "validation" in dataset_split_names \
-            and "test" in dataset_split_names, \
-        f"The dataset {dataset_name} doesn't have a train, validation, and test split!"
-
     ds_features = get_ds_infos(
             dataset_name,
             trust_remote_code=True)[dataset_config].features
@@ -49,8 +42,18 @@ def get_loaders_tokenizer(dataset_name: str,
     entire_dataset = load_ds(
             path=dataset_name,
             name=dataset_config,
+            split="all",
             cache_dir=data_dir,
             trust_remote_code=True)
+
+    # Split into training, validation, and testing datasets
+    train_testvalid = entire_dataset.train_test_split(train_size=splits[0])
+    test_valid = train_testvalid["test"].train_test_split(
+            train_size=splits[1] / (splits[1] + splits[2]))
+    entire_dataset = DatasetDict({
+            "train": train_testvalid["train"],
+            "validation": test_valid["train"],
+            "test": test_valid["test"]})
 
     # Function to filter out undesired inputs. In this case, filter out instances with only whitespace
     filter_fun = lambda instance_dict : bool(instance_dict[text_feature].strip())

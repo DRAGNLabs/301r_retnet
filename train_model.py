@@ -6,6 +6,7 @@ import json
 from argparse import ArgumentParser
 from load_data import get_loaders_tokenizer
 from datetime import datetime
+from math import isclose
 from pathlib import Path
 from tabulate import tabulate
 from torch import Tensor
@@ -235,6 +236,10 @@ if __name__ == "__main__":
             help="Random seed to use, allowing more reproducible results.")
     parser.add_argument("-s", "--seq-len", type=int, default=512,
             help="Sequence length (context window size).")
+    parser.add_argument("--splits", type=float, nargs=3,
+            default=[0.7, 0.2, 0.1],
+            help="Space-separated decimal splits of train, validation, and " + \
+                 "test datasets. (Ex: '0.7 0.2 0.1')")
     parser.add_argument("--val-freq", type=int, default=3,
             help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
@@ -255,6 +260,12 @@ if __name__ == "__main__":
     assert args.value_embed_dim % args.heads == 0, \
             "Value Embed Dimension not divisible by number of heads " + \
             f"({args.value_embed_dim} % {args.heads} != 0)!"
+
+    # Test the dataset splits add up to 1, using isclose for rounding errors
+    assert isclose(sum(args.splits), 1), \
+            "The dataset splits for the training, validation, and testing " + \
+            "datasets must sum up to 1 " + \
+            f"({' + '.join(map(str, args.splits))} != 1)!"
 
     # Set random seeds for torch, numpy, random, etc. with transformers library
     if args.rand_seed is not None:
@@ -341,7 +352,8 @@ if __name__ == "__main__":
             data_dir=repo_root_dir / "data",
             dataset_config=args.dataset_subset,
             text_feature=args.dataset_feature,
-            max_token_len=20)
+            max_token_len=20,
+            splits=args.splits)
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
