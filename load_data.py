@@ -22,7 +22,8 @@ def get_loaders_tokenizer(
         dataset_config: str=None,
         text_feature: str="text",
         max_token_len: int=20,
-        splits: list[float]=[0.7, 0.2, 0.1]) -> \
+        splits: list[float]=[0.7, 0.2, 0.1],
+        rand_seed: int=None) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
     """ Loads Hugging Face dataset and creates DataLoaders and Tokenizer.
     Args:
@@ -38,6 +39,7 @@ def get_loaders_tokenizer(
             specified size.
         splits (list[float]): A list of three floats containing the train,
             validation, and test splits respectively. Should sum to 1.
+        rand_seed (int): Seed used during dataset shuffling, ignored if None.
 
     Returns:
         Tuple with the format: (Training DataLoader, Validation DataLoader,
@@ -64,6 +66,9 @@ def get_loaders_tokenizer(
 
     # Filter out undesired data instances
     entire_dataset = entire_dataset.filter(filter_fun)
+
+    # Shuffle dataset
+    entire_dataset = entire_dataset.shuffle(seed=rand_seed)
 
     # Split into training, validation, and testing datasets
     train_testvalid = entire_dataset.train_test_split(train_size=splits[0])
