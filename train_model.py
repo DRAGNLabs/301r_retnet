@@ -355,7 +355,8 @@ if __name__ == "__main__":
         dataset_config=args.dataset_subset,
         text_feature=args.dataset_feature,
         max_token_len=20,
-        splits=args.splits)
+        splits=args.splits,
+        rand_seed=args.rand_seed)
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
