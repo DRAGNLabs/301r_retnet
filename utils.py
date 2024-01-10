@@ -4,13 +4,13 @@ import torch.nn.functional as F
 from tokenizers import Tokenizer
 from torch import nn
 
-
-def generate_text(model: nn.Module,
-                  tokenizer: Tokenizer,
-                  start_string_list: list[str],
-                  device: torch.device,
-                  seq_len: int,
-                  generation_length: int=100) -> list[str]:
+def generate_text(
+        model: nn.Module,
+        tokenizer: Tokenizer,
+        start_string_list: list[str],
+        device: torch.device,
+        seq_len: int,
+        generation_length: int=100) -> list[str]:
     """ Use model to generate text given beginning input
     Args:
         model (nn.Module): Model used to make predictions.
@@ -29,11 +29,12 @@ def generate_text(model: nn.Module,
     generated_token_idx_list = []
 
     # Convert initial start strings into tokenized sequences
-    tokenized_start_list = tokenizer(start_string_list,
-                                     padding=False,
-                                     truncation=False,
-                                     return_token_type_ids=False,
-                                     return_attention_mask=False)["input_ids"]
+    tokenized_start_list = tokenizer(
+        start_string_list,
+        padding=False,
+        truncation=False,
+        return_token_type_ids=False,
+        return_attention_mask=False)["input_ids"]
 
     # Move model to device
     model = model.to(device)
@@ -59,8 +60,9 @@ def generate_text(model: nn.Module,
             while generated_token_idxs[-1] != tokenizer.pad_token_id \
                     and len(generated_token_idxs) < generation_length:
                 # Make sure input_tensor isn't longer than sequence length
-                input_tensor = input_tensor[:,
-                        max(0, input_tensor.shape[-1] - seq_len):]
+                input_tensor = input_tensor[
+                    :,
+                    max(0, input_tensor.shape[-1] - seq_len):]
 
                 # Get model predictions
                 predictions = model(input_tensor)
@@ -73,8 +75,8 @@ def generate_text(model: nn.Module,
 
                 # Add predicted word to input (used as next input sequence)
                 input_tensor = torch.cat(
-                        [input_tensor, predicted_id[None, None]],
-                        dim=-1)
+                    [input_tensor, predicted_id[None, None]],
+                    dim=-1)
             
                 # Store predicted token as part of generation
                 generated_token_idxs.append(predicted_id.item())
