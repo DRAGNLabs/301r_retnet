@@ -68,18 +68,18 @@ def get_loaders_tokenizer(
     entire_dataset = entire_dataset.filter(filter_fun)
 
     # Split into training, validation, and testing datasets
-    train_testvalid = entire_dataset.train_test_split(
+    train_validtest = entire_dataset.train_test_split(
         train_size=splits[0],
         shuffle=True,
         seed=rand_seed)
-    test_valid = train_testvalid["test"].train_test_split(
+    valid_test = train_validtest["test"].train_test_split(
         train_size=splits[1] / (splits[1] + splits[2]),
         shuffle=True,
         seed=rand_seed)
     entire_dataset = DatasetDict({
-        "train": train_testvalid["train"],
-        "validation": test_valid["train"],
-        "test": test_valid["test"]})
+        "train": train_validtest["train"],
+        "validation": valid_test["train"],
+        "test": valid_test["test"]})
 
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
