@@ -67,13 +67,15 @@ def get_loaders_tokenizer(
     # Filter out undesired data instances
     entire_dataset = entire_dataset.filter(filter_fun)
 
-    # Shuffle dataset
-    entire_dataset = entire_dataset.shuffle(seed=rand_seed)
-
     # Split into training, validation, and testing datasets
-    train_testvalid = entire_dataset.train_test_split(train_size=splits[0])
+    train_testvalid = entire_dataset.train_test_split(
+        train_size=splits[0],
+        shuffle=True,
+        seed=rand_seed)
     test_valid = train_testvalid["test"].train_test_split(
-        train_size=splits[1] / (splits[1] + splits[2]))
+        train_size=splits[1] / (splits[1] + splits[2]),
+        shuffle=True,
+        seed=rand_seed)
     entire_dataset = DatasetDict({
         "train": train_testvalid["train"],
         "validation": test_valid["train"],
