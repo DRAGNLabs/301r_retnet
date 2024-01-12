@@ -378,12 +378,12 @@ if __name__ == "__main__":
         model.train()
         train_total_loss = 0
         train_total_samples = 0
-        for batch_idx, batch_seqs in enumerate(tqdm(
+        for batch_idx, train_batch_seqs in enumerate(tqdm(
                 train_loader,
                 desc="Train")):
             # Put inputs and targets on device
-            inputs = batch_seqs[:, :-1].to(device, non_blocking=True)
-            targets = batch_seqs[:, 1:].to(device, non_blocking=True)
+            inputs = train_batch_seqs[:, :-1].to(device, non_blocking=True)
+            targets = train_batch_seqs[:, 1:].to(device, non_blocking=True)
 
             # Zero out gradients
             optimizer.zero_grad()
@@ -476,10 +476,10 @@ if __name__ == "__main__":
     total_loss = 0
     total_samples = 0
     with torch.inference_mode():
-        for batch_seqs in tqdm(test_loader, desc="Test"):
+        for test_batch_seqs in tqdm(test_loader, desc="Test"):
             # Put inputs and targets on device
-            inputs = batch_seqs[:, :-1].to(device, non_blocking=True)
-            targets = batch_seqs[:, 1:].to(device, non_blocking=True)
+            inputs = test_batch_seqs[:, :-1].to(device, non_blocking=True)
+            targets = test_batch_seqs[:, 1:].to(device, non_blocking=True)
 
             # Get model predictions
             predictions = model(inputs)
