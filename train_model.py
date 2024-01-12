@@ -82,6 +82,17 @@ class RetNetModel(nn.Module):
             activation_dropout=activation_dropout,
             vocab_size=vocab_size,
             fsdp=fsdp)
+        self.config = RetNetConfig(
+                decoder_embed_dim=embed_dim,
+                decoder_value_embed_dim=value_embed_dim,
+                decoder_retention_heads=retention_heads,
+                decoder_ffn_embed_dim=ffn_dim,
+                decoder_layers=layers,
+                dropout=dropout,
+                activation_dropout=activation_dropout,
+                vocab_size=vocab_size,
+                checkpoint_activations=checkpoint_activations,
+                fsdp=fsdp)
 
         # Create embeddings with index 0 representing padding
         text_embeddings = nn.Embedding(
@@ -89,7 +100,7 @@ class RetNetModel(nn.Module):
             embedding_dim=embed_dim,
             padding_idx=0)
 
-        self.decoder_stack = RetNetDecoder(config, embed_tokens=text_embeddings)
+        self.decoder_stack = RetNetDecoder(self.config, embed_tokens=text_embeddings)
 
     def forward(self, x: Tensor) -> Tensor:
         """
@@ -155,7 +166,7 @@ class TransformerModel(nn.Module):
             "max_seq_len": max_seq_len}
 
         # Create Transformer Decoder configuration
-        config = DecoderConfig(
+        self.config = DecoderConfig(
             decoder_embed_dim=embed_dim,
             decoder_value_embed_dim=value_embed_dim,
             decoder_attention_heads=attention_heads,
@@ -172,7 +183,7 @@ class TransformerModel(nn.Module):
             embedding_dim=embed_dim,
             padding_idx=0)
 
-        self.decoder_stack = Decoder(config, embed_tokens=text_embeddings)
+        self.decoder_stack = Decoder(self.config, embed_tokens=text_embeddings)
 
     def forward(self, x: Tensor) -> Tensor:
         """
@@ -283,6 +294,7 @@ if __name__ == "__main__":
             vocab_size=args.vocab_size,
             fsdp=args.fsdp,
             max_seq_len=args.seq_len)
+        torch.save(model.state_dict(), "retnet301.pt")
     elif args.model == "transformer":
         model = TransformerModel(
             embed_dim=args.embed_dim,
