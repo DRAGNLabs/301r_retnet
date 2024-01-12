@@ -46,12 +46,15 @@ def get_loaders_tokenizer(
         Testing DataLoader, Tokenizer object).
     """
     # Test text_feature is actually a feature of the dataset
-    ds_features = get_ds_infos(
+
+    # Note from Jay: I can't find any docs on this to make it work offline, seems unnecessary if you've already taken the time and care to download the data
+    """ds_features = get_ds_infos(
         dataset_name,
         trust_remote_code=True)[dataset_config].features
     assert text_feature in ds_features, \
         f"'{text_feature}' not in '{dataset_name}' features {ds_features}!"
-
+    """
+    
     # Retrieve iterators for each split of the dataset
     entire_dataset = load_ds(
         path=dataset_name,
