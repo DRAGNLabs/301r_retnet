@@ -72,7 +72,7 @@ class RetNetModel(nn.Module):
             "max_seq_len": max_seq_len}
 
         # Create RetNet configuration
-        config = RetNetConfig(
+        self.config = RetNetConfig(
             decoder_embed_dim=embed_dim,
             decoder_value_embed_dim=value_embed_dim,
             decoder_retention_heads=retention_heads,
