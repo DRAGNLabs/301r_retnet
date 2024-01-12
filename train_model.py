@@ -82,17 +82,6 @@ class RetNetModel(nn.Module):
             activation_dropout=activation_dropout,
             vocab_size=vocab_size,
             fsdp=fsdp)
-        self.config = RetNetConfig(
-                decoder_embed_dim=embed_dim,
-                decoder_value_embed_dim=value_embed_dim,
-                decoder_retention_heads=retention_heads,
-                decoder_ffn_embed_dim=ffn_dim,
-                decoder_layers=layers,
-                dropout=dropout,
-                activation_dropout=activation_dropout,
-                vocab_size=vocab_size,
-                checkpoint_activations=checkpoint_activations,
-                fsdp=fsdp)
 
         # Create embeddings with index 0 representing padding
         text_embeddings = nn.Embedding(

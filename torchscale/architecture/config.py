@@ -1,5 +1,6 @@
 # Copyright (c) 2022 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
+from transformers import PretrainedConfig
 
 
 class EncoderConfig(object):
@@ -209,8 +210,9 @@ class EncoderDecoderConfig(object):
                 self.__dict__[hp] = getattr(args, hp, None)
                 
                 
-class RetNetConfig(object):
+class RetNetConfig(PretrainedConfig):
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
         self.decoder_value_embed_dim = kwargs.pop("decoder_value_embed_dim", 1280)
         self.decoder_retention_heads = kwargs.pop("decoder_retention_heads", 3)
