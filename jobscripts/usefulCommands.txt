@@ -7,3 +7,6 @@ sbatch {batch_script}
 # This is how to cancel a job
 scancel {job_id}
 
+# How to see the GPU type
+nvidia-smi
+
