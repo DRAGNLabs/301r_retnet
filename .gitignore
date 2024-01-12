@@ -23,3 +23,6 @@ logs/
 
 # Datasets data folder
 data/
+
+# Out files
+*.out
