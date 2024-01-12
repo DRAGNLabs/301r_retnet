@@ -336,7 +336,7 @@ if __name__ == "__main__":
     print("\nEstimated Loss if guessing:")
     print(f"-log(1 / {vocab_size}) = {-torch.log(torch.tensor(1 / vocab_size))}")
 
-    # Get DataLoaders
+    # Get DataLoaders and trained Tokenizer
     print(f"\nNow retrieving '{args.dataset_name}' and training tokenizer...")
     train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
         dataset_name=args.dataset_name,
@@ -349,6 +349,10 @@ if __name__ == "__main__":
         max_token_len=20,
         splits=args.splits,
         rand_seed=args.rand_seed)
+
+    # Save trained tokenizer
+    tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
+    print(f"Saved trained tokenizer")
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
@@ -503,10 +507,6 @@ if __name__ == "__main__":
     weight_filename = "training_completed.pt"
     torch.save(model.state_dict(), save_folder / weight_filename)
     print(f"Saved final weights as {weight_filename}")
-
-    # Save BPE tokenizer used
-    tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
-    print(f"Saved tokenizer used")
 
     # Generate text from the model
     print("\nGenerating text...")
