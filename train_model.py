@@ -191,9 +191,9 @@ class TransformerModel(nn.Module):
 
 
 def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device="cuda",
-         dropout=0.1, embed_dim=768, epochs=10, ffn_dim=1280, fsdp=False, 
+         dropout=0.1, embed_dim=768, epochs=1, ffn_dim=1280, fsdp=False, 
          layers=12, lr=0.001, model_type="retnet", heads=3, rand_seed=None, 
-         seq_len=512, val_freq=3, value_embed_dim=1280, vocab_size=10000, args=None):
+         seq_len=512, val_freq=3, value_embed_dim=1200, vocab_size=10000, args=None):
     
 
     # Test that the head dimension will be an even, whole number
@@ -204,6 +204,7 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
             "Try changing the Embedding Dimension or number of heads."
 
     # Test that the value embedding dimension is divisible by number of heads
+    print(value_embed_dim)
     assert value_embed_dim % heads == 0, \
             "Value Embed Dimension not divisible by number of heads " + \
             f"({value_embed_dim} % {heads} != 0)!"
@@ -238,20 +239,6 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
                 fsdp=fsdp,
                 max_seq_len=seq_len)
 
-    # Print all arguments for recordkeeping
-    # TODO: Print out the arguments outside of the arg parser
-#     print("Arguments:")
-#     arg_table = []
-#     row = []
-#     for i, arg in enumerate(vars(args)):
-#         row.append(f"{arg}: {getattr(args, arg)}")
-#         if (i + 1) % 4 == 0:
-#             arg_table.append(row)
-#             row = []
-#     if row:
-#         arg_table.append(row)
-#     print(tabulate(arg_table, tablefmt="grid"))
-
     # Print model info
     print("\nModel Summary:")
     total_params = model_summary(model, input_data=torch.ones(1, seq_len)\
@@ -273,10 +260,10 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
 
     # Save all the variables in args as JSON inside folder
     # TODO: This will have to be updated because we're not using the arg parser
-    arg_dict = vars(args)
-    json_string = json.dump(obj=arg_dict,
-                            fp=open(save_folder / "model_args.json", "w"),
-                            indent=4)
+#     arg_dict = vars(args)
+#     json_string = json.dump(obj=arg_dict,
+#                             fp=open(save_folder / "model_args.json", "w"),
+#                             indent=4)
 
     # Create SummaryWriter to record logs for TensorBoard
     writer = SummaryWriter(log_dir=repo_root_dir / "logs" / model_label)
@@ -301,7 +288,7 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
     device = torch.device(device)
 
     # Compile model and put on device
-    model = torch.compile(model).to(device)
+    model = (model).to(device)
 
     # Train the model
     num_val_runs = 0
@@ -453,6 +440,8 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
     print("Generated strings:")
     for idx, string in enumerate(generated_strings):
         print(f"{idx+1}: {string}\n")
+
+    return model, avg_loss
 
 
 if __name__ == "__main__":

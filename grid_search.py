@@ -1,15 +1,54 @@
-from train_model import train_model
 import itertools
+import torch
+from train_model import train_model 
 
-param_grid = {
-    'embed_dim': [256, 512, 768],
-    'ffn_dim': [512, 1024, 2048],
-    # Add other parameters here
-}
+# Hyperparameters ranges to test
+learning_rates = [0.01, 0.001, 0.0001]
+dropouts = [0.1, 0.2, 0.3]
+embed_dims = [768, 1024, 1280]
+batch_sizes = [16, 32, 64]
 
-# Create a product of all parameter combinations
-param_combinations = list(itertools.product(*param_grid.values()))
+# Cartesian product of all hyperparameters
+param_combinations = list(itertools.product(learning_rates, dropouts, embed_dims, batch_sizes))
 
-for combination in param_combinations:
-    params = dict(zip(param_grid.keys(), combination))
-    train_model(**params)
+def evaluate_models(model1, model2, retnet_loss, transformer_loss):
+    # Add your code here to evaluate the models on the evaluation data
+    similarity_score = retnet_loss - transformer_loss
+    return similarity_score
+
+similarity_scores = {}
+# Iterate over each combination of parameters
+for lr, dropout, embed_dim, batch_size in param_combinations:
+    print(f"Training with lr={lr}, dropout={dropout}, embed_dim={embed_dim}, batch_size={batch_size}")
+
+    retnet_model, avg_loss_retnet = train_model(dropout=dropout,
+                                                embed_dim=embed_dim,
+                                                lr=lr,
+                                                batch_size=batch_size,
+                                                model_type="retnet")
+    
+    transformer_model, avg_loss_transformer = train_model(dropout=dropout,
+                                                        embed_dim=embed_dim,
+                                                        lr=lr,
+                                                        batch_size=batch_size,
+                                                        model_type="transformer")
+    
+    # Evaluate the models on the evaluation data
+    similarity_score = evaluate_models(retnet_model, transformer_model, avg_loss_retnet, avg_loss_transformer)
+    print(f"Similarity score: {similarity_score}")
+    similarity_scores[(lr, dropout, embed_dim, batch_size)] = similarity_score
+                                
+
+
+# Now to evaluate the best model on the test data
+most_similar_params = min(similarity_scores, key=similarity_scores.get)
+print(f"========================================\n========================================\n")
+print(f"Most similar parameters: {most_similar_params}")
+print(f"Similarity score: {similarity_scores[most_similar_params]}")
+print(f"========================================\n========================================\n")
+
+most_different_params = max(similarity_scores, key=similarity_scores.get)
+print(f"========================================\n========================================\n")
+print(f"Most different parameters: {most_different_params}")
+print(f"Similarity score: {similarity_scores[most_different_params]}")
+print(f"========================================\n========================================\n")
