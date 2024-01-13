@@ -56,6 +56,7 @@ def get_loaders_tokenizer(
     """
     
     # Retrieve iterators for each split of the dataset
+    print(f'Data dir: {data_dir}')
     entire_dataset = load_ds(
         path=dataset_name,
         name=dataset_config,

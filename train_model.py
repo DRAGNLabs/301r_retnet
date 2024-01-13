@@ -351,7 +351,7 @@ if __name__ == "__main__":
         seq_len=args.seq_len,
         batch_size=args.batch_size,
         vocab_size=args.vocab_size,
-        data_dir=repo_root_dir / "data", #NOTE(jay): would not hardcode data, add as a parameter for flexibility
+        data_dir= Path("/grphome/grp_retnet/compute/data") / args.dataset_name, #NOTE(jay): would not hardcode data, add as a parameter for flexibility
         dataset_config=args.dataset_subset,
         text_feature=args.dataset_feature,
         max_token_len=20,
