@@ -225,6 +225,7 @@ class RetNetConfig(PretrainedConfig):
         self.activation_dropout = kwargs.pop("activation_dropout", 0.0)
         self.no_scale_embedding = kwargs.pop("no_scale_embedding", True)
         self.layernorm_embedding = kwargs.pop("layernorm_embedding", False)
+        self.max_seq_len = kwargs.pop("max_seq_len", 512)
         self.moe_freq = kwargs.pop("moe_freq", 0)
         self.moe_top1_expert = kwargs.pop("moe_top1_expert", False)
         self.moe_expert_count = kwargs.pop("moe_expert_count", 0)
