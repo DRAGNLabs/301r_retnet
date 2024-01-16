@@ -404,8 +404,11 @@ if __name__ == "__main__":
             # Run validation args.val_freq times per epoch. To do this, we split
             # up the epoch into arg.val_freq chunks and run validation after
             # each chunk is finished.
-            if (num_val_runs + 1) / args.val_freq \
-                    <= (batch_idx + 1) / len(train_loader):
+            avg_val_loss = 0
+            avg_train_loss = 0
+            if args.val_freq > 0 \
+                    and (num_val_runs + 1) / args.val_freq \
+                        <= (batch_idx + 1) / len(train_loader):
                 # Print average train loss
                 avg_train_loss = train_total_loss / train_total_samples
                 print("Average Train Loss Since Last Validation Run: " + \
