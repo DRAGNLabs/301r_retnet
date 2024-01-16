@@ -402,8 +402,8 @@ if __name__ == "__main__":
             optimizer.step()
 
             # Run validation args.val_freq times per epoch. To do this, we split
-            # up the epoch into arg.validation_freq chunks and run validation
-            # after each chunk is finished.
+            # up the epoch into arg.val_freq chunks and run validation after
+            # each chunk is finished.
             if (num_val_runs + 1) / args.val_freq \
                     <= (batch_idx + 1) / len(train_loader):
                 # Print average train loss
