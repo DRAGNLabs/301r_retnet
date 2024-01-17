@@ -209,7 +209,7 @@ class EncoderDecoderConfig(object):
             if getattr(args, hp, None) is not None:
                 self.__dict__[hp] = getattr(args, hp, None)
                 
-                
+
 class RetNetConfig(PretrainedConfig):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

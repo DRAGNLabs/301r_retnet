@@ -16,7 +16,7 @@ from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
 from tqdm import tqdm
-from transformers import set_seed
+from transformers import set_seed, PreTrainedModel
 from utils import generate_text
 
 REPO_ROOT_NAME = "301r_retnet"
@@ -25,20 +25,21 @@ REPO_ROOT_NAME = "301r_retnet"
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
 
-class RetNetModel(nn.Module):
+class RetNetModel(PreTrainedModel):
     """ Create model with RetNet architecture. """
     def __init__(
             self,
-            embed_dim: int,
-            value_embed_dim: int,
-            retention_heads: int,
-            ffn_dim: int,
-            layers: int,
-            dropout: float,
-            activation_dropout: float,
-            vocab_size: int,
-            fsdp: bool,
-            max_seq_len: int):
+            embed_dim: int=768,
+            value_embed_dim: int=1280,
+            retention_heads: int=3,
+            ffn_dim: int=1280,
+            layers: int=12,
+            dropout: float=0.1,
+            activation_dropout: float=0.0,
+            vocab_size: int=50265,
+            fsdp: bool=False,
+            max_seq_len: int=512,
+            config: str=None):
         """ Use parameters to create corresponding RetNet model.
         Args:
             embed_dim (int): Dimension size of each embedded token.
@@ -55,33 +56,25 @@ class RetNetModel(nn.Module):
             fsdp (bool): Whether to shard Module parameters across data parallel
                 workers or not (with the FairScale library).
             max_seq_len (int): Size of context window.
+            config (str): Path to RetNet configuration file.
         """
-        super().__init__()
-
-        # Store hyperparameters
-        self.model_params = {
-            "embed_dim": embed_dim,
-            "value_embed_dim": value_embed_dim,
-            "retention_heads": retention_heads,
-            "ffn_dim": ffn_dim,
-            "layers": layers,
-            "dropout": dropout,
-            "activation_dropout": activation_dropout,
-            "vocab_size": vocab_size,
-            "fsdp": fsdp,
-            "max_seq_len": max_seq_len}
 
         # Create RetNet configuration
-        self.config = RetNetConfig(
-            decoder_embed_dim=embed_dim,
-            decoder_value_embed_dim=value_embed_dim,
-            decoder_retention_heads=retention_heads,
-            decoder_ffn_embed_dim=ffn_dim,
-            decoder_layers=layers,
-            dropout=dropout,
-            activation_dropout=activation_dropout,
-            vocab_size=vocab_size,
-            fsdp=fsdp)
+        if config:
+            self.config = RetNetConfig.from_pretrained(config)
+        else:
+            self.config = RetNetConfig(
+                decoder_embed_dim=embed_dim,
+                decoder_value_embed_dim=value_embed_dim,
+                decoder_retention_heads=retention_heads,
+                decoder_ffn_embed_dim=ffn_dim,
+                decoder_layers=layers,
+                dropout=dropout,
+                activation_dropout=activation_dropout,
+                vocab_size=vocab_size,
+                fsdp=fsdp)
+
+        super().__init__(self.config)
 
         # Create embeddings with index 0 representing padding
         text_embeddings = nn.Embedding(
@@ -284,6 +277,7 @@ if __name__ == "__main__":
             fsdp=args.fsdp,
             max_seq_len=args.seq_len)
         torch.save(model.state_dict(), "retnet301.pt")
+        model.config.save_pretrained('retnet_config')
     elif args.model == "transformer":
         model = TransformerModel(
             embed_dim=args.embed_dim,

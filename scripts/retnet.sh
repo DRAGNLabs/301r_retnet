@@ -1,11 +1,11 @@
-python3 ../train_model.py \
+python3 train_model.py \
     --activation-dropout 0.1 \
     --batch-size 128 \
     --checkpoints \
     --dataset-feature text \
     --dataset-name c4 \
     --dataset-subset en \
-    --device cuda \
+    --device cpu \
     --dropout 0.1 \
     --embed-dim 128 \
     --epochs 10 \
