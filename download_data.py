@@ -14,7 +14,7 @@ def main():
         help="Hugging Face dataset name. Should also set --dataset-subset.")
     parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
         help="Subset/config to use for Hugging Face dataset.")
-    parser.add_argument("--dataset-dir", type=str, default="data",
+    parser.add_argument("--dataset-dir", type=str, default=None,
         help="Directory to save dataset to.")
 
     args = parser.parse_args()
@@ -24,7 +24,10 @@ def main():
     while REPO_ROOT_NAME not in repo_root_dir.name:
         repo_root_dir = repo_root_dir.parent
     
-    data_dir=repo_root_dir / args.dataset_dir
+    if args.dataset_dir is None:
+        data_dir = repo_root_dir / "data"
+    else:
+        data_dir = args.dataset_dir
 
     print('Beginning download')
     entire_dataset = load_ds(
