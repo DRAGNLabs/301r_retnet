@@ -57,12 +57,8 @@ def get_loaders_tokenizer(
     
     # Retrieve iterators for each split of the dataset
     print(f'Data dir: {data_dir}')
-    entire_dataset = load_ds(
-        path=dataset_name,
-        name=dataset_config,
-        split="all",
-        cache_dir=data_dir,
-        trust_remote_code=True)
+    
+    entire_dataset = load_ds("parquet", data_files=str(data_dir) + ".parquet", split="all")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace

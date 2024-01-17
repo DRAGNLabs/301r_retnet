@@ -33,12 +33,11 @@ def main():
             path=args.dataset_name,
             name=args.dataset_subset,
             split="all",
-            cache_dir=data_dir,
             trust_remote_code=True)
     
     # check if dataset is of type datasets.arrow_dataset.Dataset
     if isinstance(dataset, datasets.arrow_dataset.Dataset):
-        filename = 'main.parquet'
+        filename = args.dataset_subset + '.parquet'
         dataset.to_parquet(data_dir / filename)
     elif isinstance(dataset, datasets.dataset_dict.DatasetDict):
         for key, value in dataset.items():
