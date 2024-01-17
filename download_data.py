@@ -1,5 +1,5 @@
-from datasets import (
-    load_dataset as load_ds)
+import datasets
+from datasets import load_dataset
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -20,19 +20,32 @@ def main():
     args = parser.parse_args()
 
     # Get path of repository root folder
-    repo_root_dir = Path("/grphome/grp_retnet/compute") # This is hard coded. You can pass in your own path too
+    repo_root_dir = Path("/grphome/grp_retnet/compute/data") # This is hard coded. You can pass in your own path too
     # while REPO_ROOT_NAME not in repo_root_dir.name:
     #     repo_root_dir = repo_root_dir.parent
     
     data_dir=repo_root_dir / args.dataset_dir
+    if not data_dir.exists():
+        data_dir.mkdir(parents=True)
 
     print('Beginning download')
-    entire_dataset = load_ds(
+    dataset = load_dataset(
             path=args.dataset_name,
             name=args.dataset_subset,
             split="all",
             cache_dir=data_dir,
             trust_remote_code=True)
+    
+    # check if dataset is of type datasets.arrow_dataset.Dataset
+    if isinstance(dataset, datasets.arrow_dataset.Dataset):
+        filename = 'main.parquet'
+        dataset.to_parquet(data_dir / filename)
+    elif isinstance(dataset, datasets.dataset_dict.DatasetDict):
+        for key, value in dataset.items():
+            filename = key + '.parquet'
+            value.to_parquet(data_dir / filename)
+    else:
+        print('Dataset is not of type datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict')
 
 if __name__ == "__main__":
     main()
