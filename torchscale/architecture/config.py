@@ -72,7 +72,7 @@ class EncoderConfig(object):
                 self.__dict__[hp] = getattr(args, hp, None)
 
 
-class DecoderConfig(object):
+class DecoderConfig(PretrainedConfig):
     def __init__(self, **kwargs):
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
         self.decoder_attention_heads = kwargs.pop("decoder_attention_heads", 12)

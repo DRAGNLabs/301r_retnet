@@ -9,181 +9,18 @@ from load_data import get_loaders_tokenizer
 from math import isclose
 from pathlib import Path
 from tabulate import tabulate
-from torch import Tensor
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
-from torchscale.architecture.config import DecoderConfig, RetNetConfig
-from torchscale.architecture.decoder import Decoder
-from torchscale.architecture.retnet import RetNetDecoder
 from tqdm import tqdm
-from transformers import set_seed, PreTrainedModel
+from transformers import set_seed
 from utils import generate_text
+from hugging_face_model import RetNetModel, TransformerModel
 
 REPO_ROOT_NAME = "301r_retnet"
 
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
-
-class RetNetModel(PreTrainedModel):
-    """ Create model with RetNet architecture. """
-    def __init__(
-            self,
-            embed_dim: int=768,
-            value_embed_dim: int=1280,
-            retention_heads: int=3,
-            ffn_dim: int=1280,
-            layers: int=12,
-            dropout: float=0.1,
-            activation_dropout: float=0.0,
-            vocab_size: int=50265,
-            fsdp: bool=False,
-            max_seq_len: int=512,
-            config: str=None):
-        """ Use parameters to create corresponding RetNet model.
-        Args:
-            embed_dim (int): Dimension size of each embedded token.
-            value_embed_dim (int): Value embed dimension size.
-            retention_heads (int): Number of retention heads in MSR module.
-            ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
-            layers (int): Number of retention network layers.
-            dropout (float): Probability of an element to be zeroed during
-                dropout.
-            activation_dropout (float): Probability of an element to be zeroed
-                during dropout after activation between FFN layers.
-            vocab_size (int): Maximum vocabulary size (number of unique tokens
-                in vocabulary.
-            fsdp (bool): Whether to shard Module parameters across data parallel
-                workers or not (with the FairScale library).
-            max_seq_len (int): Size of context window.
-            config (str): Path to RetNet configuration file.
-        """
-
-        # Create RetNet configuration
-        if config:
-            self.config = RetNetConfig.from_pretrained(config)
-        else:
-            self.config = RetNetConfig(
-                decoder_embed_dim=embed_dim,
-                decoder_value_embed_dim=value_embed_dim,
-                decoder_retention_heads=retention_heads,
-                decoder_ffn_embed_dim=ffn_dim,
-                decoder_layers=layers,
-                dropout=dropout,
-                activation_dropout=activation_dropout,
-                vocab_size=vocab_size,
-                fsdp=fsdp)
-
-        super().__init__(self.config)
-
-        # Create embeddings with index 0 representing padding
-        text_embeddings = nn.Embedding(
-            num_embeddings=vocab_size,
-            embedding_dim=embed_dim,
-            padding_idx=0)
-
-        self.decoder_stack = RetNetDecoder(self.config, embed_tokens=text_embeddings)
-
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        Args:
-            x (Tensor): Long tensor of dimensions: (batch size, sequence
-                length).
-
-        Returns:
-            A tensor of dimensions: (batch size, sequence length, vocabulary
-                size).
-        """
-        preds, _ = self.decoder_stack(x)
-        return preds
-
-    def get_params(self) -> dict:
-        """ Get model parameters dictionary. """
-        return self.model_params
-
-
-class TransformerModel(nn.Module):
-    def __init__(
-            self,
-            embed_dim: int,
-            value_embed_dim: int,
-            attention_heads: int,
-            ffn_dim: int,
-            layers: int,
-            dropout: float,
-            activation_dropout: float,
-            vocab_size: int,
-            fsdp: bool,
-            max_seq_len: int):
-        """ Use parameters to create corresponding Transformer model.
-        Args:
-            embed_dim (int): Dimension size of each embedded token.
-            value_embed_dim (int): Value embed dimension size.
-            attention_heads (int): Number of attention heads in MHA module.
-            ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
-            layers (int): Number of retention network layers.
-            dropout (float): Probability of an element to be zeroed during
-                dropout.
-            activation_dropout (float): Probability of an element to be zeroed
-                during dropout after activation between FFN layers.
-            vocab_size (int): Maximum vocabulary size (number of unique tokens
-                in vocabulary.
-            fsdp (bool): Whether to shard Module parameters across data parallel
-                workers or not (with the FairScale library).
-            max_seq_len (int): Size of context window.
-        """
-        super().__init__()
-
-        # Store hyperparameters
-        self.model_params = {
-            "embed_dim": embed_dim,
-            "value_embed_dim": value_embed_dim,
-            "attention_heads": attention_heads,
-            "ffn_dim": ffn_dim,
-            "layers": layers,
-            "dropout": dropout,
-            "activation_dropout": activation_dropout,
-            "vocab_size": vocab_size,
-            "fsdp": fsdp,
-            "max_seq_len": max_seq_len}
-
-        # Create Transformer Decoder configuration
-        self.config = DecoderConfig(
-            decoder_embed_dim=embed_dim,
-            decoder_value_embed_dim=value_embed_dim,
-            decoder_attention_heads=attention_heads,
-            decoder_ffn_embed_dim=ffn_dim,
-            decoder_layers=layers,
-            dropout=dropout,
-            activation_dropout=activation_dropout,
-            vocab_size=vocab_size,
-            fsdp=fsdp)
-
-        # Create embeddings with index 0 representing padding
-        text_embeddings = nn.Embedding(
-            num_embeddings=vocab_size,
-            embedding_dim=embed_dim,
-            padding_idx=0)
-
-        self.decoder_stack = Decoder(self.config, embed_tokens=text_embeddings)
-
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        Args:
-            x (Tensor): Long tensor of dimensions: (batch size, sequence
-                length).
-
-        Returns:
-            A tensor of dimensions: (batch size, sequence length, vocabulary
-                size).
-        """
-        preds, _ = self.decoder_stack(x)
-        return preds
-
-    def get_params(self) -> dict:
-        """ Get model parameters dictionary. """
-        return self.model_params
-
 
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
@@ -276,8 +113,9 @@ if __name__ == "__main__":
             vocab_size=args.vocab_size,
             fsdp=args.fsdp,
             max_seq_len=args.seq_len)
-        torch.save(model.state_dict(), "retnet301.pt")
         model.config.save_pretrained('retnet_config')
+        torch.save(model.state_dict(), "./retnet_config/retnet301.pt")
+        
     elif args.model == "transformer":
         model = TransformerModel(
             embed_dim=args.embed_dim,
@@ -290,6 +128,9 @@ if __name__ == "__main__":
             vocab_size=args.vocab_size,
             fsdp=args.fsdp,
             max_seq_len=args.seq_len)
+        model.config.save_pretrained('transformer_config')
+        torch.save(model.state_dict(), "transformer_config/transformer.pt")
+        
 
     # Print all arguments for recordkeeping
     print("Arguments:")
