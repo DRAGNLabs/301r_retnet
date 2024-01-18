@@ -26,3 +26,6 @@ data/
 
 #.pt files because they are too big for github
 **/*.pt
+
+# Out files
+*.out
