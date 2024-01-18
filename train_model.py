@@ -197,7 +197,8 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
          dropout=0.1, embed_dim=76, epochs=1, ffn_dim=12, fsdp=False, 
          layers=2, lr=0.001, model_type="retnet", heads=4, rand_seed=None, 
          seq_len=128, splits=[0.7, 0.2, 0.1], val_freq=3, value_embed_dim=12, vocab_size=1000):
-    
+    arg_dict = locals()
+    print(arg_dict)
 
     # Test that the head dimension will be an even, whole number
     assert embed_dim % (heads * 2) == 0, \
@@ -264,13 +265,11 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     save_folder = repo_root_dir / "weights" / model_label
     save_folder.mkdir(parents=True, exist_ok=True)
     print(f"\nSaving weights in {save_folder}")
-
+    
     # Save all the variables in args as JSON inside folder
-    # TODO: This will have to be updated because we're not using the arg parser
-#     arg_dict = vars(args)
-#     json_string = json.dump(obj=arg_dict,
-#                             fp=open(save_folder / "model_args.json", "w"),
-#                             indent=4)
+    json_string = json.dump(obj=arg_dict,
+                            fp=open(save_folder / "model_args.json", "w"),
+                            indent=4)
 
     # Create SummaryWriter to record logs for TensorBoard
     writer = SummaryWriter(log_dir=repo_root_dir / "logs" / model_label)
@@ -550,6 +549,5 @@ if __name__ == "__main__":
         seq_len=args.seq_len, 
         val_freq=args.val_freq, 
         value_embed_dim=args.value_embed_dim, 
-        vocab_size=args.vocab_size,
-        args=args
+        vocab_size=args.vocab_size
     )
