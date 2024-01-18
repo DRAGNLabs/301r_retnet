@@ -5,7 +5,7 @@ from pathlib import Path
 
 REPO_ROOT_NAME = "301r_retnet"
 
-def main():
+def download_data():
     # Initialize, setup, and parse the argument parser
     parser = ArgumentParser(
         prog="Data Downloader")
@@ -35,4 +35,4 @@ def main():
             trust_remote_code=True)
 
 if __name__ == "__main__":
-    main()
+    download_data()
