@@ -154,7 +154,7 @@ class RetNetModel(LightningModule):
         return [optimizer], [lr_scheduler]
 
 
-class TransformerModel(nn.Module):
+class TransformerModel(LightningModule):
     def __init__(
             self,
             embed_dim: int,
@@ -231,10 +231,48 @@ class TransformerModel(nn.Module):
         """
         preds, _ = self.decoder_stack(x)
         return preds
+    
+    def training_step(self, batch, batch_idx):
+        # TODO: this may not work, need to check
+        inputs = batch[:, :-1]
+        targets = batch[:, 1:]
+
+        preds, _ = self.decoder_stack(inputs)
+
+        # Reshape the model predictions for Cross Entropy
+        preds = preds.transpose(-2, -1)
+
+        # Calculate loss
+        loss = self.loss_fn(preds, targets)
+        train_total_loss += loss * len(inputs)
+        train_total_samples += len(inputs)
+
+        return loss
+    
+    def validation_step(self, batch, batch_idx):
+        # Put validation inputs and targets on device
+        val_inputs = batch[:, :-1]
+        val_targets = batch[:, 1:]
+
+        # Get validation predictions
+        val_predictions = model(val_inputs)
+
+        # Reshape the model predictions for Cross Entropy
+        val_predictions = val_predictions.transpose(-2, -1)
+
+        # Calculate validation loss
+        val_loss = self.loss_fn(val_predictions, val_targets)
+
+        return val_loss
 
     def get_params(self) -> dict:
         """ Get model parameters dictionary. """
         return self.model_params
+    
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.decoder_stack.parameters(), lr=self.model_params["lr"])
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
+        return [optimizer], [lr_scheduler]
 
 
 if __name__ == "__main__":
