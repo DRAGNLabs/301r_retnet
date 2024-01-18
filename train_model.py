@@ -190,10 +190,10 @@ class TransformerModel(nn.Module):
         return self.model_params
 
 
-def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device="cuda",
-         dropout=0.1, embed_dim=768, epochs=1, ffn_dim=1280, fsdp=False, 
+def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, device="cuda",
+         dropout=0.1, embed_dim=76, epochs=1, ffn_dim=12, fsdp=False, 
          layers=12, lr=0.001, model_type="retnet", heads=3, rand_seed=None, 
-         seq_len=512, val_freq=3, value_embed_dim=1200, vocab_size=10000, args=None):
+         seq_len=128, val_freq=3, value_embed_dim=12, vocab_size=1000, args=None):
     
 
     # Test that the head dimension will be an even, whole number
@@ -440,7 +440,7 @@ def train_model(activation_dropout=0.0, batch_size=32, checkpoints=False, device
     print("Generated strings:")
     for idx, string in enumerate(generated_strings):
         print(f"{idx+1}: {string}\n")
-
+        
     return model, avg_loss
 
 
