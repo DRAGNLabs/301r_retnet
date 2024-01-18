@@ -1,6 +1,5 @@
 import json
 from typing import Any
-from pytorch_lightning.utilities.types import STEP_OUTPUT
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,6 +9,7 @@ from datetime import datetime
 from load_data import get_loaders_tokenizer
 from math import isclose
 from pathlib import Path
+import signal
 from tabulate import tabulate
 from torch import Tensor
 from torch.utils.tensorboard import SummaryWriter
@@ -21,6 +21,10 @@ from tqdm import tqdm
 from transformers import set_seed
 from utils import generate_text
 from pytorch_lightning import LightningModule
+from pytorch_lightning import Trainer
+from pytorch_lightning.plugins.environments import SLURMEnvironment
+from pytorch_lightning.callbacks import ModelCheckpoint
+from dataset import DataModule
 
 REPO_ROOT_NAME = "301r_retnet"
 
@@ -430,40 +434,37 @@ if __name__ == "__main__":
 
     # Get DataLoaders and trained Tokenizer
     print(f"\nNow retrieving '{args.dataset_name}' and training tokenizer...")
-    train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
-        dataset_name=args.dataset_name,
-        seq_len=args.seq_len,
-        batch_size=args.batch_size,
-        vocab_size=args.vocab_size,
-        data_dir= Path("/grphome/grp_retnet/compute/data") / args.dataset_name / args.dataset_subset,
-        dataset_config=args.dataset_subset,
-        text_feature=args.dataset_feature,
-        max_token_len=20,
-        splits=args.splits,
-        rand_seed=args.rand_seed)
+    dm = DataModule(args.data_dir, args.batch_size)
 
-    # Save trained tokenizer
-    tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
-    print(f"Saved trained tokenizer")
+    model = torch.compile(model)
 
-    # TODO: does this work with lightning?
-    model = torch.compile(model).to(device)
+    # Implement callbacks
+    model_checkpoint = ModelCheckpoint(
+        dirpath=save_folder,
+        filename='epoch_{epoch}_validation_{num_val_runs}', # TODO: where are we getting num val runs?
+        save_top_k=args.save_top_k,
+        monitor='val_loss',
+        mode='max')
+    
+    # TODO: make sure these args exist
+    trainer = Trainer(
+        default_root_dir=args.default_root_dir, # main directory for run
+        accelerator=args.accelerator, # gpu or cpu
+        num_nodes=args.num_nodes,
+        devices=args.devices,
+        strategy="ddp",
+        max_epochs=args.num_epochs,
+        accumulate_grad_batches=args.gradient_accumulation_steps,
+        sync_batchnorm=True,
+        plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
+        callbacks=[model_checkpoint],
+        logger=logger
+        )
+    
+    trainer.fit(model, datamodule=dm)
 
-    # TODO: Implement checkpoint callback
-    # If checkpoints are to be saved
-    if args.checkpoints:
-        # Save current weights of the model
-        weight_filename = f"epoch_{num_epoch}_validation_" + \
-            f"{num_val_runs}.pt"
-        torch.save(
-            model.state_dict(),
-            save_folder / weight_filename)
-        print(f"Saved weights as {weight_filename}")
-
-    # TODO: run trainer.test
     print("\nDone training! Now testing model...")
-    model.eval()
-    trainer.test() # TODO: the test dataloader is defined when trainer is defined?
+    trainer.test() # Automatically loads best checkpoint, and tests with test dataloader
 
     # Save hyperparameters and metrics in logs
     writer.add_hparams(

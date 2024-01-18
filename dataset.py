@@ -6,13 +6,9 @@ from datasets import (
     load_dataset as load_ds)
 
 class DataModule(LightningDataModule):
-    def __init__(self, train_path, val_path, tokenizer, batch_size, sequence_length, num_workers=0):
+    def __init__(self, dataset_path, batch_size, num_workers=0):
         super().__init__()
-        self.train_path = train_path
-        self.val_path = val_path
-        self.tokenizer = tokenizer
         self.batch_size = batch_size
-        self.sequence_length = sequence_length
         self.num_workers = num_workers
         self.entire_dataset = None # TODO: Load datasetdict object from file
     
