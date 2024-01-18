@@ -324,16 +324,17 @@ if __name__ == "__main__":
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
         f"{args.model}_{total_params}"
 
-    # Initialize model weights folders
-    save_folder = repo_root_dir / "weights" / model_label
-    save_folder.mkdir(parents=True, exist_ok=True)
-    print(f"\nSaving weights in {save_folder}")
+    # Initialize model folders for saving data
+    root_save_folder = repo_root_dir / "models" / model_label
+    weights_folder = root_save_folder / "weights"
+    weights_folder.mkdir(parents=True)
+    print(f"\nSaving model files in {root_save_folder}")
 
     # Save all the variables in args as JSON inside folder
     arg_dict = vars(args)
     json_string = json.dump(
         obj=arg_dict,
-        fp=open(save_folder / "model_args.json", "w"),
+        fp=open(root_save_folder / "model_args.json", "w"),
         indent=4)
 
     # Create SummaryWriter to record logs for TensorBoard
@@ -359,7 +360,7 @@ if __name__ == "__main__":
         rand_seed=args.rand_seed)
 
     # Save trained tokenizer
-    tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
+    tokenizer.save_pretrained(save_directory=root_save_folder, filename_prefix="BPE")
     print(f"Saved trained tokenizer")
 
     # Define loss function
@@ -470,7 +471,7 @@ if __name__ == "__main__":
                         f"{num_val_runs}.pt"
                     torch.save(
                         model.state_dict(),
-                        save_folder / weight_filename)
+                        weights_folder / weight_filename)
                     print(f"Saved weights as {weight_filename}")
 
                 # Update how many validation runs there have been
@@ -515,7 +516,7 @@ if __name__ == "__main__":
 
     # Save completed model
     weight_filename = "training_completed.pt"
-    torch.save(model.state_dict(), save_folder / weight_filename)
+    torch.save(model.state_dict(), weights_folder / weight_filename)
     print(f"Saved final weights as {weight_filename}")
 
     # Generate text from the model
