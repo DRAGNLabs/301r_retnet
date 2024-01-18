@@ -127,9 +127,9 @@ class RetNetModel(LightningModule):
 
         # Calculate loss
         loss = self.loss_fn(preds, targets)
-        train_total_loss += loss * len(inputs)
-        train_total_samples += len(inputs)
 
+        self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        
         return loss
     
     def validation_step(self, batch, batch_idx):
@@ -146,7 +146,27 @@ class RetNetModel(LightningModule):
         # Calculate validation loss
         val_loss = self.loss_fn(val_predictions, val_targets)
 
+        self.log('val_loss', val_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+
         return val_loss
+    
+    def test_step(self, batch, batch_idx):
+        # Put validation inputs and targets on device
+        test_inputs = batch[:, :-1]
+        test_targets = batch[:, 1:]
+
+        # Get validation predictions
+        test_predictions = model(test_inputs)
+
+        # Reshape the model predictions for Cross Entropy
+        test_predictions = test_predictions.transpose(-2, -1)
+
+        # Calculate validation loss
+        test_loss = self.loss_fn(test_predictions, test_targets)
+
+        self.log('val_loss', test_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        
+        return test_loss
 
     def get_params(self) -> dict:
         """ Get model parameters dictionary. """
@@ -423,10 +443,6 @@ if __name__ == "__main__":
         fp=open(save_folder / "model_args.json", "w"),
         indent=4)
 
-    # Create SummaryWriter to record logs for TensorBoard
-    # TODO: implement with lightning
-    writer = SummaryWriter(log_dir=repo_root_dir / "logs" / model_label)
-
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
     print(f"-log(1 / {args.vocab_size}) = " + \
@@ -458,7 +474,7 @@ if __name__ == "__main__":
         sync_batchnorm=True,
         plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
         callbacks=[model_checkpoint],
-        logger=logger
+        val_check_interval=args.val_freq
         )
     
     trainer.fit(model, datamodule=dm)
@@ -466,16 +482,14 @@ if __name__ == "__main__":
     print("\nDone training! Now testing model...")
     trainer.test() # Automatically loads best checkpoint, and tests with test dataloader
 
-    # Save hyperparameters and metrics in logs
-    writer.add_hparams(
-        hparam_dict=model.get_params(),
-        metric_dict={
-            "Loss/train": avg_train_loss,
-            "Loss/validation": avg_val_loss,
-            "Loss/test": avg_loss})
+    # Save hyperparameters and metrics in logs TODO: I don't think this is necessary, we just log in step
+    # writer.add_hparams(
+    #     hparam_dict=model.get_params(),
+    #     metric_dict={
+    #         "Loss/train": avg_train_loss,
+    #         "Loss/validation": avg_val_loss,
+    #         "Loss/test": avg_loss})
 
-    # Close SummaryWriter
-    writer.close()
 
     # Generate text from the model
     print("\nGenerating text...")
