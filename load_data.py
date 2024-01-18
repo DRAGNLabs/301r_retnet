@@ -31,8 +31,8 @@ def get_loaders_tokenizer(
         seq_len (int): Context window/sequence length.
         batch_size (int): Batch size.
         vocab_size (int): Maximum vocabulary size.
-        data_dir (str): Relative path from base of repository to directory in
-            which to download the dataset.
+        data_dir (str): Absolute path to directory in which to download the
+            dataset.
         dataset_config (str): Configuration/subset of dataset to use.
         text_feature (str): Name of the feature/column of the dataset to use.
         max_token_len (int): Prevents tokenizer creating tokens longer than the
@@ -45,16 +45,6 @@ def get_loaders_tokenizer(
         Tuple with the format: (Training DataLoader, Validation DataLoader,
         Testing DataLoader, Tokenizer object).
     """
-    # Test text_feature is actually a feature of the dataset
-
-    # Note from Jay: I can't find any docs on this to make it work offline, seems unnecessary if you've already taken the time and care to download the data
-    """ds_features = get_ds_infos(
-        dataset_name,
-        trust_remote_code=True)[dataset_config].features
-    assert text_feature in ds_features, \
-        f"'{text_feature}' not in '{dataset_name}' features {ds_features}!"
-    """
-    
     # Retrieve iterators for each split of the dataset
     entire_dataset = load_ds(
         path=dataset_name,
