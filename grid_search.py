@@ -3,9 +3,9 @@ import torch
 from train_model import train_model
 
 # Hyperparameters ranges to test
-learning_rates = [0.01, 0.001, 0.0001]
-embed_dims = [768, 1024, 1280]
-batch_sizes = [16, 32, 64]
+learning_rates = [0.01, 0.001]
+embed_dims = [768, 1024]
+batch_sizes = [16]
 
 # Cartesian product of all hyperparameters
 param_combinations = list(itertools.product(learning_rates, embed_dims, batch_sizes))
