@@ -359,10 +359,11 @@ if __name__ == "__main__":
 
     # Create SummaryWriter to record logs for TensorBoard
     if args.tboard_dir is None:
-        writer = SummaryWriter(log_dir=repo_root_dir / "logs" / model_label)
+        tboard_log_dir = repo_root_dir / "logs" / model_label
     else:
-        writer = SummaryWriter(log_dir=f"{args.tboard_dir}/logs/{model_label}")
-    print(f"Saving TensorBoard logs in {args.tboard_dir}/logs/{model_label}")
+        tboard_log_dir = f"{args.tboard_dir}/logs/{model_label}"
+    writer = SummaryWriter(log_dir=tboard_log_dir)
+    print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
     # Save all the variables in args as JSON inside folder
     arg_dict = vars(args)
