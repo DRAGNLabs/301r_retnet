@@ -526,7 +526,7 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, device=
     print("Generated strings:")
     for idx, string in enumerate(generated_strings):
         print(f"{idx+1}: {string}\n")
-
+        
     return model, avg_loss
 
 

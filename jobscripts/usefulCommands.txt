@@ -10,3 +10,4 @@ scancel {job_id}
 # How to see the GPU type
 nvidia-smi
 
+
