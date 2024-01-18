@@ -148,16 +148,6 @@ def get_loaders_tokenizer(
     # Drop now unnecessary text_feature column
     entire_dataset = entire_dataset.remove_columns(column_names=text_feature)
 
-    # Create DataLoaders
-    train_loader = DataLoader(
-        entire_dataset["train"].with_format("torch")["input_ids"],
-        batch_size=batch_size,
-        shuffle=True)
-    valid_loader = DataLoader(
-        entire_dataset["validation"].with_format("torch")["input_ids"],
-        batch_size=batch_size)
-    test_loader = DataLoader(
-        entire_dataset["test"].with_format("torch")["input_ids"],
-        batch_size=batch_size)
+    # Save tokenizer to file
 
-    return train_loader, valid_loader, test_loader, tokenizer
+    # Save tokenized data

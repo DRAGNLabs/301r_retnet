@@ -9,14 +9,15 @@ from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
+from argparse import ArgumentParser
 
 # Disable parallelism to avoid errors with DataLoaders later on
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def get_loaders_tokenizer(
+        tokenizer_folder: str,
         dataset_name: str,
         seq_len: int,
-        batch_size: int,
         vocab_size: int,
         data_dir: str,
         dataset_config: str=None,
@@ -46,14 +47,6 @@ def get_loaders_tokenizer(
         Testing DataLoader, Tokenizer object).
     """
     # Test text_feature is actually a feature of the dataset
-
-    # Note from Jay: I can't find any docs on this to make it work offline, seems unnecessary if you've already taken the time and care to download the data
-    """ds_features = get_ds_infos(
-        dataset_name,
-        trust_remote_code=True)[dataset_config].features
-    assert text_feature in ds_features, \
-        f"'{text_feature}' not in '{dataset_name}' features {ds_features}!"
-    """
     
     # Retrieve iterators for each split of the dataset
     print(f'Data dir: {data_dir}')
@@ -85,13 +78,13 @@ def get_loaders_tokenizer(
         "validation": valid_test["train"],
         "test": valid_test["test"]})
 
-    #! # Create BytePair Encoding tokenizer and trainer
-    # tokenizer = Tokenizer(BPE(unk_token="<unk>"))
-    # trainer = BpeTrainer(
-    #     vocab_size=vocab_size,
-    #     show_progress=True,
-    #     special_tokens=["<pad>", "<bos>", "<unk>"],
-    #     max_token_length=max_token_len)
+    # Create BytePair Encoding tokenizer and trainer
+    tokenizer = Tokenizer(BPE(unk_token="<unk>"))
+    trainer = BpeTrainer(
+        vocab_size=vocab_size,
+        show_progress=True,
+        special_tokens=["<pad>", "<bos>", "<unk>"],
+        max_token_length=max_token_len)
 
     # Like GPT-2, we skip the normalizer and go directly to pre-tokenization.
     # The option we add to ByteLevel here is to not add a space at the beginning
@@ -133,31 +126,62 @@ def get_loaders_tokenizer(
         pad_token="<pad>",
         tokenizer_object=tokenizer)
 
-    # Tokenize the datasets
-    tokenization = lambda instances_dict : \
-        tokenizer(
-            instances_dict[text_feature],
-            padding="max_length",
-            truncation=True,
-            max_length=seq_len + 1,
-            return_token_type_ids=False,
-            return_attention_mask=False)
+    # Save tokenizer to file
+    tokenizer.save_pretrained(tokenizer_folder)
 
-    entire_dataset = entire_dataset.map(tokenization, batched=True)
+if __name__ == "__main__":
+    # Get arguments
+    parser = ArgumentParser()
 
-    # Drop now unnecessary text_feature column
-    entire_dataset = entire_dataset.remove_columns(column_names=text_feature)
+    parser.add_argument(
+        "--tokenizer_folder",
+        type=str,
+        required=True,
+        help="Folder to save tokenizer to.")
+    parser.add_argument(
+        "--dataset_name",
+        type=str,
+        required=True,
+        help="Name of Hugging Face dataset.")
+    parser.add_argument(
+        "--seq_len",
+        type=int,
+        required=True,
+        help="Context window/sequence length.")
+    parser.add_argument(
+        "--vocab_size",
+        type=int,
+        required=True,
+        help="Maximum vocabulary size.")
+    parser.add_argument(
+        "--data_dir",
+        type=str,
+        required=True,
+        help="Relative path from base of repository to directory in which to download the dataset.")
+    parser.add_argument(
+        "--dataset_config",
+        type=str,
+        default=None,
+        help="Configuration/subset of dataset to use.")
+    parser.add_argument(
+        "--text_feature",
+        type=str,
+        default="text",
+        help="Name of the feature/column of the dataset to use.")
+    parser.add_argument(
+        "--max_token_len",
+        type=int,
+        default=20,
+        help="Prevents tokenizer creating tokens longer than the specified size.")
+    parser.add_argument(
+        "--splits",
+        type=list,
+        default=[0.7, 0.2, 0.1],
+        help="A list of three floats containing the train, validation, and test splits respectively. Should sum to 1.")
+    parser.add_argument(
+        "--rand_seed",
+        type=int,
+        default=None,
+        help="Seed used during dataset shuffling, ignored if None.")
 
-    # Create DataLoaders
-    train_loader = DataLoader(
-        entire_dataset["train"].with_format("torch")["input_ids"],
-        batch_size=batch_size,
-        shuffle=True)
-    valid_loader = DataLoader(
-        entire_dataset["validation"].with_format("torch")["input_ids"],
-        batch_size=batch_size)
-    test_loader = DataLoader(
-        entire_dataset["test"].with_format("torch")["input_ids"],
-        batch_size=batch_size)
-
-    return train_loader, valid_loader, test_loader, tokenizer
+    get_loaders_tokenizer()
