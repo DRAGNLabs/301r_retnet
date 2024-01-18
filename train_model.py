@@ -205,6 +205,8 @@ if __name__ == "__main__":
         help="Batch size.")
     parser.add_argument("-c", "--checkpoints", action="store_true",
         default=False, help="Save model checkpoints while training.")
+    parser.add_argument("--dataset-dir", type=str, default=None,
+        help="Path to directory to save dataset in.")
     parser.add_argument("--dataset-feature", type=str, default="text",
         help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
@@ -230,6 +232,8 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--model", required=True,
         choices=["retnet", "transformer"],
         help="Name of model architecture to train.")
+    parser.add_argument("--models-dir", type=str, default=None,
+        help="Path to directory to save files necessary to run models.")
     parser.add_argument("-n", "--heads", type=int, default=3,
         help="Number of heads. Head architecture changes based on model.")
     parser.add_argument("-r", "--rand-seed", type=int, default=None,
@@ -240,12 +244,16 @@ if __name__ == "__main__":
         default=[0.7, 0.2, 0.1],
         help="Space-separated decimal splits of train, validation, and " + \
             "test datasets. (Ex: '0.7 0.2 0.1')")
+    parser.add_argument("--tboard-dir", type=str, default=None,
+        help="Path to directory to save TensorBoard logs in.")
     parser.add_argument("--val-freq", type=int, default=3,
         help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
         help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
         help="Maximum number of unique tokens in vocabulary.")
+    parser.add_argument("--weights-dir", type=str, default=None,
+        help="Path to directory to save model weights in.")
 
     args = parser.parse_args()
 
@@ -324,11 +332,37 @@ if __name__ == "__main__":
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
         f"{args.model}_{total_params}"
 
-    # Initialize model folders for saving data
-    root_save_folder = repo_root_dir / "models" / model_label
-    weights_folder = root_save_folder / "weights"
-    weights_folder.mkdir(parents=True)
-    print(f"\nSaving model files in {root_save_folder}")
+    # Initialize dataset folder
+    if args.dataset_dir is None:
+        data_folder = repo_root_dir / "data"
+    else:
+        data_folder = Path(args.dataset_dir)
+    data_folder.mkdir(parents=True, exist_ok=True)
+    print(f"\nUsing dataset cache directory {data_folder}")
+
+    # Initialize unique model save folder
+    if args.models_dir is None:
+        root_save_folder = repo_root_dir / "models" / model_label
+    else:
+        root_save_folder = Path(args.models_dir) / model_label
+    root_save_folder.mkdir(parents=True, exist_ok=False)
+    print(f"Saving model files in {root_save_folder}")
+
+    # Initialize weights folder. Shouldn't already exist or else run risk of
+    # previous model's weights being overwritten
+    if args.weights_dir is None:
+        weights_folder = root_save_folder / "weights"
+    else:
+        weights_folder = Path(args.weights_dir)
+    weights_folder.mkdir(parents=True, exist_ok=False)
+    print(f"Saving weight files in {weights_folder}")
+
+    # Create SummaryWriter to record logs for TensorBoard
+    if args.tboard_dir is None:
+        writer = SummaryWriter(log_dir=repo_root_dir / "logs" / model_label)
+    else:
+        writer = SummaryWriter(log_dir=f"{args.tboard_dir}/logs/{model_label}")
+    print(f"Saving TensorBoard logs in {args.tboard_dir}/logs/{model_label}")
 
     # Save all the variables in args as JSON inside folder
     arg_dict = vars(args)
@@ -336,9 +370,6 @@ if __name__ == "__main__":
         obj=arg_dict,
         fp=open(root_save_folder / "model_args.json", "w"),
         indent=4)
-
-    # Create SummaryWriter to record logs for TensorBoard
-    writer = SummaryWriter(log_dir=repo_root_dir / "logs" / model_label)
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
@@ -352,7 +383,7 @@ if __name__ == "__main__":
         seq_len=args.seq_len,
         batch_size=args.batch_size,
         vocab_size=args.vocab_size,
-        data_dir=repo_root_dir / "data", #NOTE(jay): would not hardcode data, add as a parameter for flexibility
+        data_dir=data_folder,
         dataset_config=args.dataset_subset,
         text_feature=args.dataset_feature,
         max_token_len=20,
@@ -360,7 +391,9 @@ if __name__ == "__main__":
         rand_seed=args.rand_seed)
 
     # Save trained tokenizer
-    tokenizer.save_pretrained(save_directory=root_save_folder, filename_prefix="BPE")
+    tokenizer.save_pretrained(
+        save_directory=root_save_folder,
+        filename_prefix="BPE")
     print(f"Saved trained tokenizer")
 
     # Define loss function
