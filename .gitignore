@@ -24,8 +24,9 @@ logs/
 # Datasets data folder
 data/
 
-#.pt files because they are too big for github
+# .pt files because they are too big for github
 **/*.pt
+**/*.safetensors
 
 # Out files
 *.out

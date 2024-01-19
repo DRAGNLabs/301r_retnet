@@ -1,26 +1,19 @@
 import torch.nn as nn
 
 from torch import Tensor
+from typing import Optional, Union
 from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
-from transformers import PreTrainedModel
+from transformers import PreTrainedModel, AutoModel, AutoConfig
 
 class RetNetModel(PreTrainedModel):
     """ Create model with RetNet architecture. """
+    config_class = RetNetConfig
+
     def __init__(
             self,
-            embed_dim: int=768,
-            value_embed_dim: int=1280,
-            retention_heads: int=3,
-            ffn_dim: int=1280,
-            layers: int=12,
-            dropout: float=0.1,
-            activation_dropout: float=0.0,
-            vocab_size: int=50265,
-            fsdp: bool=False,
-            max_seq_len: int=512,
-            config: str=None):
+            config: Optional[Union[RetNetConfig, str]] = None):
         """ Use parameters to create corresponding RetNet model.
         Args:
             embed_dim (int): Dimension size of each embedded token.
@@ -41,26 +34,21 @@ class RetNetModel(PreTrainedModel):
         """
 
         # Create RetNet configuration
-        if config:
+        if not config:
+            self.config = RetNetConfig()
+        elif isinstance(config, str):
             self.config = RetNetConfig.from_pretrained(config)
+        elif isinstance(config, RetNetConfig):
+            self.config = config
         else:
-            self.config = RetNetConfig(
-                decoder_embed_dim=embed_dim,
-                decoder_value_embed_dim=value_embed_dim,
-                decoder_retention_heads=retention_heads,
-                decoder_ffn_embed_dim=ffn_dim,
-                decoder_layers=layers,
-                dropout=dropout,
-                activation_dropout=activation_dropout,
-                vocab_size=vocab_size,
-                fsdp=fsdp)
+            raise ValueError("Config must be str or RetNetConfig object.")
 
-        super().__init__(self.config)
+        super().__init__(config)
 
         # Create embeddings with index 0 representing padding
         text_embeddings = nn.Embedding(
-            num_embeddings=self.config.vocab_size,
-            embedding_dim=self.config.decoder_embed_dim,
+            num_embeddings=int(self.config.vocab_size),
+            embedding_dim=int(self.config.decoder_embed_dim),
             padding_idx=0)
 
         self.decoder_stack = RetNetDecoder(self.config, embed_tokens=text_embeddings)
@@ -84,19 +72,10 @@ class RetNetModel(PreTrainedModel):
 
 
 class TransformerModel(PreTrainedModel):
+    config_class = DecoderConfig
+
     def __init__(
-            self,
-            embed_dim: int = 768,
-            value_embed_dim: int = 1280,
-            attention_heads: int = 3,
-            ffn_dim: int = 1280,
-            layers: int = 12,
-            dropout: float = 0.1,
-            activation_dropout: float = 0.0,
-            vocab_size: int = 50265,
-            fsdp: bool = False,
-            max_seq_len: int = 512,
-            config: str = None):
+            self, config: Optional[Union[DecoderConfig, str]] = None):
         """ Use parameters to create corresponding Transformer model.
         Args:
             embed_dim (int): Dimension size of each embedded token.
@@ -115,19 +94,16 @@ class TransformerModel(PreTrainedModel):
             max_seq_len (int): Size of context window.
         """
         
-        if config:
+        # Create Transformer configuration
+        if not config:
+            self.config = DecoderConfig()
+        elif isinstance(config, str):
             self.config = DecoderConfig.from_pretrained(config)
+        elif isinstance(config, DecoderConfig):
+            self.config = config
         else:
-            self.config = DecoderConfig(
-                decoder_embed_dim=embed_dim,
-                decoder_value_embed_dim=value_embed_dim,
-                decoder_attention_heads=attention_heads,
-                decoder_ffn_embed_dim=ffn_dim,
-                decoder_layers=layers,
-                dropout=dropout,
-                activation_dropout=activation_dropout,
-                vocab_size=vocab_size,
-                fsdp=fsdp)
+            raise ValueError("Config must be str or DecoderConfig object.")
+
         
         super().__init__(self.config)
 

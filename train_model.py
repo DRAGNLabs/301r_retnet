@@ -12,9 +12,10 @@ from tabulate import tabulate
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
 from tqdm import tqdm
-from transformers import set_seed
+from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM
 from utils import generate_text
 from hugging_face_model import RetNetModel, TransformerModel
+from torchscale.architecture.config import RetNetConfig, DecoderConfig
 
 REPO_ROOT_NAME = "301r_retnet"
 
@@ -102,34 +103,40 @@ if __name__ == "__main__":
 
     # Create requested model
     if args.model == "retnet":
-        model = RetNetModel(
-            embed_dim=args.embed_dim,
-            value_embed_dim=args.value_embed_dim,
-            retention_heads=args.heads,
-            ffn_dim=args.ffn_dim,
-            layers=args.layers,
+        AutoConfig.register("retnet", RetNetConfig)
+        AutoModel.register(RetNetConfig, RetNetModel)
+        AutoModelForCausalLM.register(RetNetConfig, RetNetModel)
+        config = RetNetConfig(
+            decoder_embed_dim=args.embed_dim,
+            decoder_value_embed_dim=args.value_embed_dim,
+            decoder_retention_heads=args.heads,
+            decoder_ffn_embed_dim=args.ffn_dim,
+            decoder_layers=args.layers,
             dropout=args.dropout,
             activation_dropout=args.activation_dropout,
             vocab_size=args.vocab_size,
             fsdp=args.fsdp,
             max_seq_len=args.seq_len)
-        model.config.save_pretrained('retnet_config')
-        torch.save(model.state_dict(), "./retnet_config/retnet301.pt")
+        model = RetNetModel(config)
+        model.save_pretrained('retnet')
         
     elif args.model == "transformer":
-        model = TransformerModel(
-            embed_dim=args.embed_dim,
-            value_embed_dim=args.value_embed_dim,
-            attention_heads=args.heads,
-            ffn_dim=args.ffn_dim,
-            layers=args.layers,
+        AutoConfig.register("custom_transformer", DecoderConfig)
+        AutoModel.register(DecoderConfig, TransformerModel)
+        AutoModelForCausalLM.register(DecoderConfig, TransformerModel)
+        config = DecoderConfig(
+            decoder_embed_dim=args.embed_dim,
+            decoder_value_embed_dim=args.value_embed_dim,
+            decoder_attention_heads=args.heads,
+            decoder_ffn_embed_dim=args.ffn_dim,
+            decoder_layers=args.layers,
             dropout=args.dropout,
             activation_dropout=args.activation_dropout,
             vocab_size=args.vocab_size,
             fsdp=args.fsdp,
             max_seq_len=args.seq_len)
-        model.config.save_pretrained('transformer_config')
-        torch.save(model.state_dict(), "transformer_config/transformer.pt")
+        model = TransformerModel(config)
+        model.save_pretrained('transformer')
         
 
     # Print all arguments for recordkeeping
