@@ -5,14 +5,9 @@ import time
 from train_model import train_model
 
 # Hyperparameters ranges to test
-# learning_rates = [0.01, 0.001, 0.0001]
-# embed_dims = [768, 1023, 1281]
-# batch_sizes = [16, 32, 64]
-
-# Smaller hyperparameters ranges to test
-batch_sizes = [16]
-embed_dims = [768]
-learning_rates = [0.01, 0.001]
+learning_rates = [0.01, 0.001, 0.0001]
+embed_dims = [768, 1023, 1281]
+batch_sizes = [16, 32, 64]
 
 # Cartesian product of all hyperparameters
 param_combinations = list(itertools.product(learning_rates, embed_dims, batch_sizes))
