@@ -15,7 +15,8 @@ ENV/
 env.bak/
 venv.bak/
 
-# Model weights folder
+# Weights and saved models folders
+models/
 weights/
 
 # TensorBoard logs folder

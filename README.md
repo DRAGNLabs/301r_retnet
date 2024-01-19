@@ -8,6 +8,14 @@ _Hyperparameters Scaling_
 
 ### Python Code Examples
 
+#### 0. **Preparing Data**:
+This repository is designed to be run on a cluster. As such, the data must be downloaded and prepared before running the training script.
+
+To download data from the HuggingFace Hub, run the `download_data.py` script with the following parameters:
+- dataset_name : the name of the dataset on HF hub
+- dataset_subset : the subset to use
+- dataset_dir : the name of the folder to save the dataset in. Typically, you can just keep this the same as the dataset_name
+
 #### 1. **Setting Up a Basic Model**:
 
 This snippet shows how to initialize a neural network with basic hyperparameters.
