@@ -19,10 +19,9 @@ def get_loaders_tokenizer(
         dataset_name: str,
         seq_len: int,
         vocab_size: int,
-        data_dir: str,
-        dataset_config: str=None,
+        dataset_dir: str,
+        dataset_subset: str=None,
         text_feature: str="text",
-        max_token_len: int=20,
         splits: list[float]=[0.7, 0.2, 0.1],
         rand_seed: int=None) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
@@ -32,12 +31,11 @@ def get_loaders_tokenizer(
         seq_len (int): Context window/sequence length.
         batch_size (int): Batch size.
         vocab_size (int): Maximum vocabulary size.
-        data_dir (str): Relative path from base of repository to directory in
+        dataset_dir (str): Relative path from base of repository to directory in
             which to download the dataset.
-        dataset_config (str): Configuration/subset of dataset to use.
+        dataset_subset (str): Configuration/subset of dataset to use.
         text_feature (str): Name of the feature/column of the dataset to use.
-        max_token_len (int): Prevents tokenizer creating tokens longer than the
-            specified size.
+       
         splits (list[float]): A list of three floats containing the train,
             validation, and test splits respectively. Should sum to 1.
         rand_seed (int): Seed used during dataset shuffling, ignored if None.
@@ -49,12 +47,12 @@ def get_loaders_tokenizer(
     # Test text_feature is actually a feature of the dataset
     
     # Retrieve iterators for each split of the dataset
-    print(f'Data dir: {data_dir}')
+    print(f'Data dir: {dataset_dir}')
     entire_dataset = load_ds(
         path=dataset_name,
-        name=dataset_config,
+        name=dataset_subset,
         split="all",
-        cache_dir=data_dir,
+        cache_dir=dataset_dir,
         trust_remote_code=True)
 
     # Function to filter out undesired inputs. In this case, filter out
@@ -83,8 +81,7 @@ def get_loaders_tokenizer(
     trainer = BpeTrainer(
         vocab_size=vocab_size,
         show_progress=True,
-        special_tokens=["<pad>", "<bos>", "<unk>"],
-        max_token_length=max_token_len)
+        special_tokens=["<pad>", "<bos>", "<unk>"])
 
     # Like GPT-2, we skip the normalizer and go directly to pre-tokenization.
     # The option we add to ByteLevel here is to not add a space at the beginning
@@ -154,12 +151,12 @@ if __name__ == "__main__":
         required=True,
         help="Maximum vocabulary size.")
     parser.add_argument(
-        "--data_dir",
+        "--dataset_dir",
         type=str,
         required=True,
         help="Relative path from base of repository to directory in which to download the dataset.")
     parser.add_argument(
-        "--dataset_config",
+        "--dataset_subset",
         type=str,
         default=None,
         help="Configuration/subset of dataset to use.")
@@ -168,20 +165,16 @@ if __name__ == "__main__":
         type=str,
         default="text",
         help="Name of the feature/column of the dataset to use.")
-    parser.add_argument(
-        "--max_token_len",
-        type=int,
-        default=20,
-        help="Prevents tokenizer creating tokens longer than the specified size.")
-    parser.add_argument(
-        "--splits",
-        type=list,
+    parser.add_argument("--splits", type=float, nargs=3,
         default=[0.7, 0.2, 0.1],
-        help="A list of three floats containing the train, validation, and test splits respectively. Should sum to 1.")
+        help="Space-separated decimal splits of train, validation, and " + \
+            "test datasets. (Ex: '0.7 0.2 0.1')")
     parser.add_argument(
         "--rand_seed",
         type=int,
         default=None,
         help="Seed used during dataset shuffling, ignored if None.")
 
-    get_loaders_tokenizer()
+    args = parser.parse_args()
+
+    get_loaders_tokenizer(args.tokenizer_folder, args.dataset_name, args.seq_len, args.vocab_size, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)
