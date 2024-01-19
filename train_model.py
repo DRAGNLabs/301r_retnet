@@ -191,10 +191,10 @@ class TransformerModel(nn.Module):
 
 
 def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, 
-                dataset_feature="text", dataset_name="wikitext", dataset_subset="wikitext-2-v1", device="cuda",
-         dropout=0.1, embed_dim=76, epochs=1, ffn_dim=12, fsdp=False, 
-         layers=2, lr=0.001, model_type="retnet", heads=4, rand_seed=None, 
-         seq_len=128, splits=[0.7, 0.2, 0.1], val_freq=3, value_embed_dim=12, vocab_size=1000):
+                data_dir=None, dataset_name="wikitext", dataset_subset="wikitext-2-v1", device="cuda",
+         dropout=0.1, embed_dim=76, epochs=1, ffn_dim=12, fsdp=False, heads=4, 
+         layers=2, lr=0.001, model_type="retnet", rand_seed=None, repo_root_dir=None,
+         seq_len=128, splits=[0.7, 0.2, 0.1], tboard_dir=None, val_freq=3, value_embed_dim=12, vocab_size=4000):
     arg_dict = locals()
     print(arg_dict)
 
@@ -249,21 +249,21 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     print("\nModel Summary:")
     total_params = model_summary(
         model,
-        input_data=torch.ones(1, args.seq_len).long()).total_params
+        input_data=torch.ones(1, seq_len).long()).total_params
 
     # Create unique label for model (timestamp, model type, parameter count)
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-        f"{args.model}_{total_params}"
+        f"{model_type}_{total_params}"
 
     # Make sure dataset is pre-downloaded
-    dataset_root_dir = Path(args.dataset_dir)
-    dataset_dir = dataset_root_dir / args.dataset_name
+    dataset_root_dir = Path(dataset_dir)
+    dataset_dir = dataset_root_dir / dataset_name
     assert dataset_dir.exists(), \
         f"The directory with data, {dataset_dir}, doesn't exist!"
     print(f"\nUsing dataset directory {dataset_dir}")
 
     # Initialize model directory for config files, weights, etc.
-    model_dir = Path(args.data_dir) / "models" / model_label
+    model_dir = Path(data_dir) / "models" / model_label
     model_dir.mkdir(parents=True, exist_ok=False)
     print(f"Saving model files in {model_dir}")
 
@@ -273,15 +273,15 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     print(f"Saving weight files in {weights_dir}")
     
     # Initialize tokenizers directory
-    tokenizers_dir = Path(args.data_dir) / "tokenizers"
+    tokenizers_dir = Path(data_dir) / "tokenizers"
     tokenizers_dir.mkdir(parents=False, exist_ok=True)
     print(f"Saving tokenizer files in {tokenizers_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    if args.tboard_dir is None:
+    if tboard_dir is None:
         tboard_log_folder = repo_root_dir / "logs" / model_label
     else:
-        tboard_log_folder = f"{args.tboard_dir}/logs/{model_label}"
+        tboard_log_folder = f"{tboard_dir}/logs/{model_label}"
     writer = SummaryWriter(log_dir=tboard_log_folder)
     print(f"Saving TensorBoard logs in {tboard_log_folder}")
 
@@ -561,18 +561,23 @@ if __name__ == "__main__":
         activation_dropout=args.activation_dropout, 
         batch_size=args.batch_size, 
         checkpoints=args.checkpoints, 
+        data_dir=args.data_dir,
+        dataset_name=args.dataset_name,
+        dataset_subset=args.dataset_subset,
         device=args.device, 
         dropout=args.dropout, 
         embed_dim=args.embed_dim, 
         epochs=args.epochs, 
         ffn_dim=args.ffn_dim, 
         fsdp=args.fsdp, 
+        heads=args.heads, 
         layers=args.layers, 
         lr=args.lr, 
         model_type=args.model, 
-        heads=args.heads, 
         rand_seed=args.rand_seed, 
         seq_len=args.seq_len, 
+        splits=args.splits,
+        tboard_dir=args.tboard_dir,
         val_freq=args.val_freq, 
         value_embed_dim=args.value_embed_dim, 
         vocab_size=args.vocab_size
