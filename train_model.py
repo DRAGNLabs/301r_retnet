@@ -191,7 +191,7 @@ class TransformerModel(nn.Module):
 
 
 def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, 
-                data_dir=None, dataset_feature=None, dataset_name="wikitext", dataset_subset="wikitext-2-v1", device="cuda",
+                data_dir=None, dataset_dir=None, dataset_feature=None, dataset_name="wikitext", dataset_subset="wikitext-2-v1", device="cuda",
          dropout=0.1, embed_dim=76, epochs=1, ffn_dim=12, fsdp=False, heads=4, 
          layers=2, lr=0.001, model_type="retnet", rand_seed=None, repo_root_dir=None,
          seq_len=128, splits=[0.7, 0.2, 0.1], tboard_dir=None, val_freq=3, value_embed_dim=12, vocab_size=4000):
@@ -575,6 +575,7 @@ if __name__ == "__main__":
         batch_size=args.batch_size, 
         checkpoints=args.checkpoints, 
         data_dir=args.data_dir,
+        dataset_dir=args.dataset_dir,
         dataset_feature=args.dataset_feature,
         dataset_name=args.dataset_name,
         dataset_subset=args.dataset_subset,
