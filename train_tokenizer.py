@@ -49,11 +49,11 @@ def train_tokenizer(
     
     # Retrieve iterators for each split of the dataset
     print(f'Data dir: {dataset_dir}')
-
-    entire_dataset = load_ds(
-        "parquet",
-        data_files=str(Path(dataset_dir) / dataset_name / f"{dataset_subset}.parquet"),
-        split="all")
+    data_path = Path(dataset_dir) / dataset_name / (dataset_subset + ".parquet")
+    
+    entire_dataset = load_ds("parquet", 
+                             data_files=str(data_path),
+                             split="train")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
@@ -124,7 +124,9 @@ def train_tokenizer(
         tokenizer_object=tokenizer)
 
     # Save tokenizer to file
-    tokenizer.save_pretrained(tokenizer_folder)
+    tokenizer_save_path = Path(tokenizer_folder) / dataset_name
+    tokenizer_save_path.mkdir(parents=True, exist_ok=True)
+    tokenizer.save_pretrained(tokenizer_save_path)
 
 if __name__ == "__main__":
     # Get arguments
