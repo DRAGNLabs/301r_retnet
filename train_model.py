@@ -244,7 +244,20 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
                 vocab_size=vocab_size,
                 fsdp=fsdp,
                 max_seq_len=seq_len)
-
+        
+    # Print all arguments for recordkeeping
+    print("Arguments:")
+    arg_table = []
+    row = []
+    for i, arg in enumerate(vars(arg_dict)):
+        row.append(f"{arg}: {getattr(arg_dict, arg)}")
+        if (i + 1) % 4 == 0:
+            arg_table.append(row)
+            row = []
+    if row:
+        arg_table.append(row)
+    print(tabulate(arg_table, tablefmt="grid"))
+    
     # Print model info
     print("\nModel Summary:")
     total_params = model_summary(
