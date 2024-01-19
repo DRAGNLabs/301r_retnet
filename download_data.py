@@ -22,19 +22,23 @@ def download_data(
     dataset_dir.mkdir(parents=True)
 
     print("Beginning download")
+    print(f"File path: {dataset_dir}")
+    print(f"Data name: {dataset_name}")
+    print(f"Data subset: {dataset_subset}")
     dataset = datasets.load_dataset(
-            path=args.dataset_name,
-            name=args.dataset_subset,
+            path=dataset_name,
+            name=dataset_subset,
             split="all",
             trust_remote_code=True)
     
     # check if dataset is of type datasets.arrow_dataset.Dataset
     if isinstance(dataset, datasets.arrow_dataset.Dataset):
-        filename = args.dataset_subset + ".parquet"
+        filename = dataset_subset + ".parquet"
         dataset.to_parquet(dataset_dir / filename)
     else:
         raise Exception("Dataset is not of type " + \
             "datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict")
+    print("Download completed.")
 
 
 if __name__ == "__main__":
