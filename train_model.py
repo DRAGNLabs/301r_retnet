@@ -460,17 +460,17 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
         "= = reception ="]
 
     generated_strings = generate_text(
-            model=model,
-            tokenizer=tokenizer,
-            start_string_list=input_starting_strings,
-            device=device,
-            seq_len=seq_len,
-            generation_length=100)
+        model=model,
+        tokenizer=tokenizer,
+        start_string_list=input_starting_strings,
+        device=device,
+        seq_len=seq_len,
+        generation_length=100)
 
     print("Generated strings:")
     for idx, string in enumerate(generated_strings):
         print(f"{idx+1}: {string}\n")
-
+        
     return model, avg_loss
 
 

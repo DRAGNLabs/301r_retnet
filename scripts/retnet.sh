@@ -15,6 +15,12 @@ python3 ../train_model.py \
     --lr 0.001 \
     --model retnet \
     --heads 8 \
+    --seq-len 128 \
+    --value-embed-dim 32 \
+    --vocab-size 28783 \
+    --device cpu \
+    --epochs 10 \
+    --batch-size 128 \
     --rand-seed 42 \
     --seq-len 128 \
     --splits 0.7 0.2 0.1 \
