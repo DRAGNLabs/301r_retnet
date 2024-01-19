@@ -191,7 +191,7 @@ class TransformerModel(nn.Module):
 
 
 def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, 
-                data_dir=None, dataset_name="wikitext", dataset_subset="wikitext-2-v1", device="cuda",
+                data_dir=None, dataset_feature=None, dataset_name="wikitext", dataset_subset="wikitext-2-v1", device="cuda",
          dropout=0.1, embed_dim=76, epochs=1, ffn_dim=12, fsdp=False, heads=4, 
          layers=2, lr=0.001, model_type="retnet", rand_seed=None, repo_root_dir=None,
          seq_len=128, splits=[0.7, 0.2, 0.1], tboard_dir=None, val_freq=3, value_embed_dim=12, vocab_size=4000):
@@ -299,13 +299,13 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     # Get DataLoaders and trained Tokenizer
     print(f"\nNow retrieving '{dataset_name}' and training tokenizer...")
     train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
-        dataset_name=args.dataset_name,
-        seq_len=args.seq_len,
-        batch_size=args.batch_size,
-        vocab_size=args.vocab_size,
+        dataset_name=dataset_name,
+        seq_len=seq_len,
+        batch_size=batch_size,
+        vocab_size=vocab_size,
         dataset_dir=dataset_dir,
-        dataset_config=args.dataset_subset,
-        text_feature=args.dataset_feature,
+        dataset_config=dataset_subset,
+        text_feature=dataset_feature,
         max_token_len=20,
         splits=splits,
         rand_seed=rand_seed)
@@ -562,6 +562,7 @@ if __name__ == "__main__":
         batch_size=args.batch_size, 
         checkpoints=args.checkpoints, 
         data_dir=args.data_dir,
+        dataset_feature=args.dataset_feature,
         dataset_name=args.dataset_name,
         dataset_subset=args.dataset_subset,
         device=args.device, 
