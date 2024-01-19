@@ -1,6 +1,6 @@
 .DS_Store
 .vscode
-.idea
+.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -28,6 +28,3 @@ data/
 
 # Out files
 *.out
-
-# Workplace files
-.idea/workspace.xml
