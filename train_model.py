@@ -229,28 +229,28 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     # Create requested model
     if model_type == "retnet":
         model = RetNetModel(
-                embed_dim=embed_dim,
-                value_embed_dim=value_embed_dim,
-                retention_heads=heads,
-                ffn_dim=ffn_dim,
-                layers=layers,
-                dropout=dropout,
-                activation_dropout=activation_dropout,
-                vocab_size=vocab_size,
-                fsdp=fsdp,
-                max_seq_len=seq_len)
+            embed_dim=embed_dim,
+            value_embed_dim=value_embed_dim,
+            retention_heads=heads,
+            ffn_dim=ffn_dim,
+            layers=layers,
+            dropout=dropout,
+            activation_dropout=activation_dropout,
+            vocab_size=vocab_size,
+            fsdp=fsdp,
+            max_seq_len=seq_len)
     elif model_type == "transformer":
         model = TransformerModel(
-                embed_dim=embed_dim,
-                value_embed_dim=value_embed_dim,
-                attention_heads=heads,
-                ffn_dim=ffn_dim,
-                layers=layers,
-                dropout=dropout,
-                activation_dropout=activation_dropout,
-                vocab_size=vocab_size,
-                fsdp=fsdp,
-                max_seq_len=seq_len)
+            embed_dim=embed_dim,
+            value_embed_dim=value_embed_dim,
+            attention_heads=heads,
+            ffn_dim=ffn_dim,
+            layers=layers,
+            dropout=dropout,
+            activation_dropout=activation_dropout,
+            vocab_size=vocab_size,
+            fsdp=fsdp,
+            max_seq_len=seq_len)
         
     # Print all arguments for recordkeeping
     print("Arguments:")
