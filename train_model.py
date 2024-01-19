@@ -249,8 +249,8 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     print("Arguments:")
     arg_table = []
     row = []
-    for i, arg in enumerate(vars(arg_dict)):
-        row.append(f"{arg}: {getattr(arg_dict, arg)}")
+    for i, arg in enumerate(arg_dict.keys()):
+        row.append(f"{arg}: {arg_dict[arg]}")
         if (i + 1) % 4 == 0:
             arg_table.append(row)
             row = []
