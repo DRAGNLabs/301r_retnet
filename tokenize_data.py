@@ -1,12 +1,8 @@
 from datasets import (
     DatasetDict,
-    get_dataset_infos as get_ds_infos,
-    get_dataset_split_names as get_ds_split_names,
     load_dataset as load_ds)
 from os import environ
-from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
-from tokenizers.models import BPE
-from tokenizers.trainers import BpeTrainer
+from tokenizers import Tokenizer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 from argparse import ArgumentParser
@@ -15,7 +11,7 @@ from pathlib import Path
 # Disable parallelism to avoid errors with DataLoaders later on
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
-def get_loaders_tokenizer(
+def tokenize_data(
         tokenized_data_name: str,
         tokenized_data_folder: str,
         tokenizer_folder: str,
@@ -27,44 +23,13 @@ def get_loaders_tokenizer(
         splits: list[float]=[0.7, 0.2, 0.1],
         rand_seed: int=None) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
-    """ Loads Hugging Face dataset and creates DataLoaders and Tokenizer.
-    Args:
-        dataset_name (str): Name of Hugging Face dataset.
-        seq_len (int): Context window/sequence length.
-        batch_size (int): Batch size.
-        vocab_size (int): Maximum vocabulary size.
-        data_dir (str): Relative path from base of repository to directory in
-            which to download the dataset.
-        dataset_config (str): Configuration/subset of dataset to use.
-        text_feature (str): Name of the feature/column of the dataset to use.
-        max_token_len (int): Prevents tokenizer creating tokens longer than the
-            specified size.
-        splits (list[float]): A list of three floats containing the train,
-            validation, and test splits respectively. Should sum to 1.
-        rand_seed (int): Seed used during dataset shuffling, ignored if None.
-
-    Returns:
-        Tuple with the format: (Training DataLoader, Validation DataLoader,
-        Testing DataLoader, Tokenizer object).
-    """
-    # Test text_feature is actually a feature of the dataset
-
-    # Note from Jay: I can't find any docs on this to make it work offline, seems unnecessary if you've already taken the time and care to download the data
-    """ds_features = get_ds_infos(
-        dataset_name,
-        trust_remote_code=True)[dataset_config].features
-    assert text_feature in ds_features, \
-        f"'{text_feature}' not in '{dataset_name}' features {ds_features}!"
-    """
     
     # Retrieve iterators for each split of the dataset
     print(f'Data dir: {dataset_dir}')
     entire_dataset = load_ds(
-        path=dataset_name,
-        name=dataset_subset,
-        split="all",
-        cache_dir=dataset_dir,
-        trust_remote_code=True)
+        "parquet",
+        data_files=str(Path(dataset_dir) / dataset_name / f"{dataset_subset}.parquet"),
+        split="all")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
@@ -87,57 +52,7 @@ def get_loaders_tokenizer(
         "validation": valid_test["train"],
         "test": valid_test["test"]})
 
-    #! # Create BytePair Encoding tokenizer and trainer
-    # tokenizer = Tokenizer(BPE(unk_token="<unk>"))
-    # trainer = BpeTrainer(
-    #     vocab_size=vocab_size,
-    #     show_progress=True,
-    #     special_tokens=["<pad>", "<bos>", "<unk>"],
-    #     max_token_length=max_token_len)
-
-    # Like GPT-2, we skip the normalizer and go directly to pre-tokenization.
-    # The option we add to ByteLevel here is to not add a space at the beginning
-    # of a sentence (which is the default otherwise)
-
-    #This loads our tokenizer out from the directory its in.
     tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
-
-    # tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
-
-    # # Train tokenizer on only training data
-    # tokenizer.train_from_iterator(
-    #     iter(entire_dataset["train"][text_feature]),
-    #     trainer=trainer,
-    #     length=len(entire_dataset["train"]))
-
-    # # trim_offsets=False tells post-processor to keep spaces as part of tokens
-    # tokenizer.post_processor = processors.TemplateProcessing(
-    #     single="<bos> $A",
-    #     special_tokens=[("<bos>", tokenizer.token_to_id("<bos>"))],
-    # )
-
-    # # Add decoder for converting tokens back to text
-    # tokenizer.decoder = decoders.ByteLevel()
-
-    # # Enable padding
-    # tokenizer.enable_padding(
-    #     direction="right",
-    #     pad_id=0,
-    #     pad_token="<pad>",
-    #     length=seq_len + 1)
-
-    # # Enable truncation
-    # tokenizer.enable_truncation(max_length=seq_len + 1, direction="right")
-
-    # # Wrap tokenizer with transformers library
-    # tokenizer = PreTrainedTokenizerFast(
-    #     model_max_length=seq_len,
-    #     padding_side="right",
-    #     truncation_side="right",
-    #     bos_token="<bos>",
-    #     unk_token="<unk>",
-    #     pad_token="<pad>",
-    #     tokenizer_object=tokenizer)
 
     # Tokenize the datasets
     tokenization = lambda instances_dict : \
@@ -155,77 +70,68 @@ def get_loaders_tokenizer(
     entire_dataset = entire_dataset.remove_columns(column_names=text_feature)
 
     #This code saves the now tokenized dataset as a .parquet folder, making a folder in the data directory called tokenized if one does not already exist.
-    
-    if Path(tokenized_data_folder).exists():
-        filename = args.dataset_subset + ".parquet"
-        entire_dataset.to_parquet(tokenized_data_folder / filename)
-    else:
-        tokenized_data = Path("grp_home/grp_retnet/compute/data") / "tokenized"
-        tokenized_data.mkdir(parents=True)
-        filename = args.tokenized_data_name + ".parquet"
-        entire_dataset.to_parquet(tokenized_data_folder / filename)
+    path = Path(tokenized_data_folder) / f'{tokenized_data_name}.parquet'
+    print(f'Saving tokenized data to {path}')
+    if not path.exists():
+        path.mkdir(parents=True)
+    entire_dataset.to_parquet(path)
 
 
-    if __name__ == "__main__":
+if __name__ == "__main__":
     # Get arguments
-        parser = ArgumentParser()
+    parser = ArgumentParser()
 
-        parser.add_argument(
-            "--tokenized_data_name",
-            type=str,
-            required=True,
-            help="Name of tokenized data.")
+    parser.add_argument(
+        "--tokenized_data_name",
+        type=str,
+        required=True,
+        help="Name of tokenized data.")
 
-        parser.add_argument(
-            "--tokenized_data_folder",
-            type=str,
-            required=True,
-            help="Folder to save tokenizered data to.")
-        parser.add_argument(
-            "--tokenizer_folder",
-            type=str,
-            required=True,
-            help="Folder to save tokenizer to.")
-        parser.add_argument(
-            "--dataset_name",
-            type=str,
-            required=True,
-            help="Name of Hugging Face dataset.")
-        parser.add_argument(
-            "--seq_len",
-            type=int,
-            required=True,
-            help="Context window/sequence length.")
-        parser.add_argument(
-            "--dataset_dir",
-            type=str,
-            required=True,
-            help="Relative path from base of repository to directory in which to download the dataset.")
-        parser.add_argument(
-            "--dataset_subset",
-            type=str,
-            default=None,
-            help="Configuration/subset of dataset to use.")
-        parser.add_argument(
-            "--text_feature",
-            type=str,
-            default="text",
-            help="Name of the feature/column of the dataset to use.")
-        parser.add_argument("--splits", type=float, nargs=3,
-            default=[0.7, 0.2, 0.1],
-            help="Space-separated decimal splits of train, validation, and " + \
-                "test datasets. (Ex: '0.7 0.2 0.1')")
-        parser.add_argument(
-            "--rand_seed",
-            type=int,
-            default=None,
-            help="Seed used during dataset shuffling, ignored if None.")
+    parser.add_argument(
+        "--tokenized_data_folder",
+        type=str,
+        required=True,
+        help="Folder to save tokenizered data to.")
+    parser.add_argument(
+        "--tokenizer_folder",
+        type=str,
+        required=True,
+        help="Folder to save tokenizer to.")
+    parser.add_argument(
+        "--dataset_name",
+        type=str,
+        required=True,
+        help="Name of Hugging Face dataset.")
+    parser.add_argument(
+        "--seq_len",
+        type=int,
+        required=True,
+        help="Context window/sequence length.")
+    parser.add_argument(
+        "--dataset_dir",
+        type=str,
+        required=True,
+        help="Relative path from base of repository to directory in which to download the dataset.")
+    parser.add_argument(
+        "--dataset_subset",
+        type=str,
+        default=None,
+        help="Configuration/subset of dataset to use.")
+    parser.add_argument(
+        "--text_feature",
+        type=str,
+        default="text",
+        help="Name of the feature/column of the dataset to use.")
+    parser.add_argument("--splits", type=float, nargs=3,
+        default=[0.7, 0.2, 0.1],
+        help="Space-separated decimal splits of train, validation, and " + \
+            "test datasets. (Ex: '0.7 0.2 0.1')")
+    parser.add_argument(
+        "--rand_seed",
+        type=int,
+        default=None,
+        help="Seed used during dataset shuffling, ignored if None.")
 
-        args = parser.parse_args()
+    args = parser.parse_args()
 
-        get_loaders_tokenizer(args.tokenized_data_name, args.tokenized_data_folder, args.tokenizer_folder, args.dataset_name, args.seq_len, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)
-
-
-    # Save tokenizer to file
-
-    # Save tokenized data
+    tokenize_data(args.tokenized_data_name, args.tokenized_data_folder, args.tokenizer_folder, args.dataset_name, args.seq_len, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)

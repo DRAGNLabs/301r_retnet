@@ -15,7 +15,7 @@ from pathlib import Path
 # Disable parallelism to avoid errors with DataLoaders later on
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
-def get_loaders_tokenizer(
+def train_tokenizer(
         tokenizer_folder: str,
         dataset_name: str,
         seq_len: int,
@@ -26,34 +26,14 @@ def get_loaders_tokenizer(
         splits: list[float]=[0.7, 0.2, 0.1],
         rand_seed: int=None) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
-    """ Loads Hugging Face dataset and creates DataLoaders and Tokenizer.
-    Args:
-        dataset_name (str): Name of Hugging Face dataset.
-        seq_len (int): Context window/sequence length.
-        batch_size (int): Batch size.
-        vocab_size (int): Maximum vocabulary size.
-        dataset_dir (str): Relative path from base of repository to directory in
-            which to download the dataset.
-        dataset_subset (str): Configuration/subset of dataset to use.
-        text_feature (str): Name of the feature/column of the dataset to use.
-       
-        splits (list[float]): A list of three floats containing the train,
-            validation, and test splits respectively. Should sum to 1.
-        rand_seed (int): Seed used during dataset shuffling, ignored if None.
 
-    Returns:
-        Tuple with the format: (Training DataLoader, Validation DataLoader,
-        Testing DataLoader, Tokenizer object).
-    """
-    # Test text_feature is actually a feature of the dataset
-    
     # Retrieve iterators for each split of the dataset
     print(f'Data dir: {dataset_dir}')
-
-    entire_dataset = load_ds(
-        "parquet",
-        data_files=str(Path(dataset_dir) / dataset_name / f"{dataset_subset}.parquet"),
-        split="all")
+    data_path = Path(dataset_dir) / dataset_name / (dataset_subset + ".parquet")
+    
+    entire_dataset = load_ds("parquet", 
+                             data_files=str(data_path),
+                             split="train")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
@@ -124,7 +104,9 @@ def get_loaders_tokenizer(
         tokenizer_object=tokenizer)
 
     # Save tokenizer to file
-    tokenizer.save_pretrained(tokenizer_folder)
+    tokenizer_save_path = Path(tokenizer_folder) / dataset_name
+    tokenizer_save_path.mkdir(parents=True, exist_ok=True)
+    tokenizer.save_pretrained(tokenizer_save_path)
 
 if __name__ == "__main__":
     # Get arguments
@@ -177,4 +159,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    get_loaders_tokenizer(args.tokenizer_folder, args.dataset_name, args.seq_len, args.vocab_size, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)
+    train_tokenizer(args.tokenizer_folder, args.dataset_name, args.seq_len, args.vocab_size, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)
