@@ -10,6 +10,7 @@ from tokenizers.trainers import BpeTrainer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 from argparse import ArgumentParser
+from pathlib import Path
 
 # Disable parallelism to avoid errors with DataLoaders later on
 environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -48,12 +49,11 @@ def get_loaders_tokenizer(
     
     # Retrieve iterators for each split of the dataset
     print(f'Data dir: {dataset_dir}')
+
     entire_dataset = load_ds(
-        path=dataset_name,
-        name=dataset_subset,
-        split="all",
-        cache_dir=dataset_dir,
-        trust_remote_code=True)
+        "parquet",
+        data_files=str(Path(dataset_dir) / dataset_name / f"{dataset_subset}.parquet"),
+        split="all")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
