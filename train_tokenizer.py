@@ -15,7 +15,7 @@ from pathlib import Path
 # Disable parallelism to avoid errors with DataLoaders later on
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
-def get_loaders_tokenizer(
+def train_tokenizer(
         tokenizer_folder: str,
         dataset_name: str,
         seq_len: int,
@@ -177,4 +177,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    get_loaders_tokenizer(args.tokenizer_folder, args.dataset_name, args.seq_len, args.vocab_size, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)
+    train_tokenizer(args.tokenizer_folder, args.dataset_name, args.seq_len, args.vocab_size, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)

@@ -15,7 +15,7 @@ from pathlib import Path
 # Disable parallelism to avoid errors with DataLoaders later on
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
-def get_loaders_tokenizer(
+def tokenize_data(
         tokenized_data_name: str,
         tokenized_data_folder: str,
         tokenizer_folder: str,
@@ -60,11 +60,9 @@ def get_loaders_tokenizer(
     # Retrieve iterators for each split of the dataset
     print(f'Data dir: {dataset_dir}')
     entire_dataset = load_ds(
-        path=dataset_name,
-        name=dataset_subset,
-        split="all",
-        cache_dir=dataset_dir,
-        trust_remote_code=True)
+        "parquet",
+        data_files=str(Path(dataset_dir) / dataset_name / f"{dataset_subset}.parquet"),
+        split="all")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
@@ -157,7 +155,7 @@ def get_loaders_tokenizer(
     #This code saves the now tokenized dataset as a .parquet folder, making a folder in the data directory called tokenized if one does not already exist.
     
     if Path(tokenized_data_folder).exists():
-        filename = args.dataset_subset + ".parquet"
+        filename = tokenized_data_name + ".parquet"
         entire_dataset.to_parquet(tokenized_data_folder / filename)
     else:
         tokenized_data = Path("grp_home/grp_retnet/compute/data") / "tokenized"
@@ -223,9 +221,4 @@ def get_loaders_tokenizer(
 
         args = parser.parse_args()
 
-        get_loaders_tokenizer(args.tokenized_data_name, args.tokenized_data_folder, args.tokenizer_folder, args.dataset_name, args.seq_len, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)
-
-
-    # Save tokenizer to file
-
-    # Save tokenized data
+        tokenize_data(args.tokenized_data_name, args.tokenized_data_folder, args.tokenizer_folder, args.dataset_name, args.seq_len, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)
