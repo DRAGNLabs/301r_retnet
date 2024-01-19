@@ -247,12 +247,13 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
 
     # Print model info
     print("\nModel Summary:")
-    total_params = model_summary(model, input_data=torch.ones(1, seq_len)\
-            .long()).total_params
+    total_params = model_summary(
+        model,
+        input_data=torch.ones(1, args.seq_len).long()).total_params
 
     # Create unique label for model (timestamp, model type, parameter count)
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-                  f"{model_type}_{total_params}"
+        f"{args.model}_{total_params}"
 
     # Make sure dataset is pre-downloaded
     dataset_root_dir = Path(args.dataset_dir)
