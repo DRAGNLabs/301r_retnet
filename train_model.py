@@ -507,6 +507,10 @@ if __name__ == "__main__":
         help="Batch size.")
     parser.add_argument("-c", "--checkpoints", action="store_true",
         default=False, help="Save model checkpoints while training.")
+    parser.add_argument("--data-dir", type=str, required=True,
+        help="Path to directory where all data except datasets are saved.")
+    parser.add_argument("--dataset-dir", type=str, required=True,
+        help="Path to directory in which Hugging Face datasets are downloaded.")
     parser.add_argument("--dataset-feature", type=str, default="text",
         help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
@@ -542,6 +546,8 @@ if __name__ == "__main__":
         default=[0.7, 0.2, 0.1],
         help="Space-separated decimal splits of train, validation, and " + \
             "test datasets. (Ex: '0.7 0.2 0.1')")
+    parser.add_argument("--tboard-dir", type=str, default=None,
+        help="Path to directory to save TensorBoard logs in.")
     parser.add_argument("--val-freq", type=int, default=3,
         help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
