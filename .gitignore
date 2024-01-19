@@ -27,4 +27,6 @@ data/
 
 # Out files
 *.out
+
+# Workplace files
 .idea/workspace.xml
