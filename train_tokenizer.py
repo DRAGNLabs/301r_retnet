@@ -26,27 +26,7 @@ def train_tokenizer(
         splits: list[float]=[0.7, 0.2, 0.1],
         rand_seed: int=None) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
-    """ Loads Hugging Face dataset and creates DataLoaders and Tokenizer.
-    Args:
-        dataset_name (str): Name of Hugging Face dataset.
-        seq_len (int): Context window/sequence length.
-        batch_size (int): Batch size.
-        vocab_size (int): Maximum vocabulary size.
-        dataset_dir (str): Relative path from base of repository to directory in
-            which to download the dataset.
-        dataset_subset (str): Configuration/subset of dataset to use.
-        text_feature (str): Name of the feature/column of the dataset to use.
-       
-        splits (list[float]): A list of three floats containing the train,
-            validation, and test splits respectively. Should sum to 1.
-        rand_seed (int): Seed used during dataset shuffling, ignored if None.
 
-    Returns:
-        Tuple with the format: (Training DataLoader, Validation DataLoader,
-        Testing DataLoader, Tokenizer object).
-    """
-    # Test text_feature is actually a feature of the dataset
-    
     # Retrieve iterators for each split of the dataset
     print(f'Data dir: {dataset_dir}')
     data_path = Path(dataset_dir) / dataset_name / (dataset_subset + ".parquet")
