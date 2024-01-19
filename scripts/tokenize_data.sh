@@ -1,0 +1,11 @@
+python3 ../tokenize_data.py \
+--tokenized_data_name wikitext-2-v1_tokenized \
+--tokenized_data_folder grp_home/grp_retnet/compute/data/datasets/tokenized\
+--tokenizer_folder grp_home/grp_retnet/compute/data/tokenizers \
+--dataset_name wikitext \
+--seq_len 256 \
+--dataset_dir grp_home/grp_retnet/compute/data/datasets \
+--dataset_subset wikitext-2-v1 \
+--text_feature text \
+--splits 0.7 0.2 0.1 \
+--rand_seed 42 \
