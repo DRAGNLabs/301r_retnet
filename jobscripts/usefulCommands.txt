@@ -1,0 +1,13 @@
+# This is to show the status of a job
+scontrol show job {job_id}
+
+# This is how to run the batch script
+sbatch {batch_script}
+
+# This is how to cancel a job
+scancel {job_id}
+
+# How to see the GPU type
+nvidia-smi
+
+
