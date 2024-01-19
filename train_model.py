@@ -326,7 +326,7 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     device = torch.device(device)
 
     # Compile model and put on device
-    model = (model).to(device)
+    model = torch.compile(model).to(device)
 
     # Train the model
     num_val_runs = 0
