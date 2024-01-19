@@ -19,8 +19,6 @@ from tqdm import tqdm
 from transformers import set_seed
 from utils import generate_text
 
-REPO_ROOT_NAME = "301r_retnet"
-
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -205,8 +203,10 @@ if __name__ == "__main__":
         help="Batch size.")
     parser.add_argument("-c", "--checkpoints", action="store_true",
         default=False, help="Save model checkpoints while training.")
-    parser.add_argument("--dataset-dir", type=str, default=None,
-        help="Path to directory to save dataset in.")
+    parser.add_argument("--data-dir", type=str, required=True,
+        help="Path to directory where all data except datasets are saved.")
+    parser.add_argument("--dataset-dir", type=str, required=True,
+        help="Path to directory in which Hugging Face datasets are downloaded.")
     parser.add_argument("--dataset-feature", type=str, default="text",
         help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
@@ -232,8 +232,6 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--model", required=True,
         choices=["retnet", "transformer"],
         help="Name of model architecture to train.")
-    parser.add_argument("--models-dir", type=str, default=None,
-        help="Path to directory to save files necessary to run models.")
     parser.add_argument("-n", "--heads", type=int, default=3,
         help="Number of heads. Head architecture changes based on model.")
     parser.add_argument("-r", "--rand-seed", type=int, default=None,
@@ -252,8 +250,6 @@ if __name__ == "__main__":
         help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
         help="Maximum number of unique tokens in vocabulary.")
-    parser.add_argument("--weights-dir", type=str, default=None,
-        help="Path to directory to save model weights in.")
 
     args = parser.parse_args()
 
@@ -323,39 +319,31 @@ if __name__ == "__main__":
         model,
         input_data=torch.ones(1, args.seq_len).long()).total_params
 
-    # Get path of repository root folder
-    repo_root_dir = Path(__file__)
-    while REPO_ROOT_NAME not in repo_root_dir.name:
-        repo_root_dir = repo_root_dir.parent
-
     # Create unique label for model (timestamp, model type, parameter count)
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
         f"{args.model}_{total_params}"
 
-    # Initialize dataset folder
-    if args.dataset_dir is None:
-        data_folder = repo_root_dir / "data"
-    else:
-        data_folder = Path(args.dataset_dir)
-    data_folder.mkdir(parents=True, exist_ok=True)
-    print(f"\nUsing dataset cache directory {data_folder}")
+    # Make sure dataset is pre-downloaded
+    dataset_root_dir = Path(args.dataset_dir)
+    dataset_dir = dataset_root_dir / args.dataset_name
+    assert dataset_dir.exists(), \
+        f"The directory with data, {dataset_dir}, doesn't exist!"
+    print(f"\nUsing dataset directory {dataset_dir}")
 
-    # Initialize unique model save folder
-    if args.models_dir is None:
-        root_save_folder = repo_root_dir / "models" / model_label
-    else:
-        root_save_folder = Path(args.models_dir) / model_label
-    root_save_folder.mkdir(parents=True, exist_ok=False)
-    print(f"Saving model files in {root_save_folder}")
+    # Initialize model directory for config files, weights, etc.
+    model_dir = Path(args.data_dir) / "models" / model_label
+    model_dir.mkdir(parents=True, exist_ok=False)
+    print(f"Saving model files in {model_dir}")
 
-    # Initialize weights folder. Shouldn't already exist or else run risk of
-    # previous model's weights being overwritten
-    if args.weights_dir is None:
-        weights_folder = root_save_folder / "weights"
-    else:
-        weights_folder = Path(args.weights_dir)
-    weights_folder.mkdir(parents=True, exist_ok=False)
-    print(f"Saving weight files in {weights_folder}")
+    # Initialize weights directory
+    weights_dir = model_dir / "weights"
+    weights_dir.mkdir(parents=False, exist_ok=False)
+    print(f"Saving weight files in {weights_dir}")
+    
+    # Initialize tokenizers directory
+    tokenizers_dir = Path(args.data_dir) / "tokenizers"
+    tokenizers_dir.mkdir(parents=False, exist_ok=True)
+    print(f"Saving tokenizer files in {tokenizers_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
     if args.tboard_dir is None:
@@ -369,7 +357,7 @@ if __name__ == "__main__":
     arg_dict = vars(args)
     json_string = json.dump(
         obj=arg_dict,
-        fp=open(root_save_folder / "model_args.json", "w"),
+        fp=open(model_dir / "model_args.json", "w"),
         indent=4)
 
     # Print estimated loss if it hasn't learned anything
@@ -384,7 +372,7 @@ if __name__ == "__main__":
         seq_len=args.seq_len,
         batch_size=args.batch_size,
         vocab_size=args.vocab_size,
-        data_dir=data_folder,
+        dataset_dir=dataset_dir,
         dataset_config=args.dataset_subset,
         text_feature=args.dataset_feature,
         max_token_len=20,
@@ -393,9 +381,9 @@ if __name__ == "__main__":
 
     # Save trained tokenizer
     tokenizer.save_pretrained(
-        save_directory=root_save_folder,
+        save_directory=tokenizers_dir,
         filename_prefix="BPE")
-    print(f"Saved trained tokenizer")
+    print(f"Saved trained tokenizer in {tokenizers_dir}")
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
@@ -505,7 +493,7 @@ if __name__ == "__main__":
                         f"{num_val_runs}.pt"
                     torch.save(
                         model.state_dict(),
-                        weights_folder / weight_filename)
+                        weights_dir / weight_filename)
                     print(f"Saved weights as {weight_filename}")
 
                 # Update how many validation runs there have been
@@ -550,7 +538,7 @@ if __name__ == "__main__":
 
     # Save completed model
     weight_filename = "training_completed.pt"
-    torch.save(model.state_dict(), weights_folder / weight_filename)
+    torch.save(model.state_dict(), weights_dir / weight_filename)
     print(f"Saved final weights as {weight_filename}")
 
     # Generate text from the model

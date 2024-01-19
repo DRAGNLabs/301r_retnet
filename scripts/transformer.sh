@@ -2,10 +2,11 @@ python3 ../train_model.py \
     --activation-dropout 0.1 \
     --batch-size 128 \
     --checkpoints \
-    --dataset-dir /tmp/data \
+    --data-dir /tmp/data \
+    --dataset-dir /tmp/data/datasets \
     --dataset-feature text \
-    --dataset-name c4 \
-    --dataset-subset en \
+    --dataset-name wikitext \
+    --dataset-subset wikitext-2-v1 \
     --device cuda \
     --dropout 0.1 \
     --embed-dim 128 \
@@ -16,7 +17,6 @@ python3 ../train_model.py \
     --layers 6 \
     --lr 0.001 \
     --model transformer \
-    --models-dir /tmp/models \
     --rand-seed 42 \
     --seq-len 128 \
     --splits 0.7 0.2 0.1 \
@@ -24,6 +24,3 @@ python3 ../train_model.py \
     --val-freq 3 \
     --value-embed-dim 128 \
     --vocab-size 100000
-# Specify where to save weights. Should be a directory that doesn't exist.
-# Commented out to prevent models overwritting each other's weights.
-#   --weights-dir /tmp/weights \

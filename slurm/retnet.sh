@@ -37,4 +37,4 @@ python3 ../train_model.py \
     --splits 0.7 0.2 0.1 \
     --val-freq 3 \
     --value-embed-dim 128 \
-    --vocab-size 100000 \
+    --vocab-size 30000 \

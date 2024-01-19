@@ -4,6 +4,7 @@ from datasets import (
     get_dataset_split_names as get_ds_split_names,
     load_dataset as load_ds)
 from os import environ
+from pathlib import Path
 from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
@@ -18,7 +19,7 @@ def get_loaders_tokenizer(
         seq_len: int,
         batch_size: int,
         vocab_size: int,
-        data_dir: str,
+        dataset_dir: str,
         dataset_config: str=None,
         text_feature: str="text",
         max_token_len: int=20,
@@ -31,7 +32,7 @@ def get_loaders_tokenizer(
         seq_len (int): Context window/sequence length.
         batch_size (int): Batch size.
         vocab_size (int): Maximum vocabulary size.
-        data_dir (str): Absolute path to directory in which to download the
+        dataset_dir (str): Absolute path to directory in which to download the
             dataset.
         dataset_config (str): Configuration/subset of dataset to use.
         text_feature (str): Name of the feature/column of the dataset to use.
@@ -46,12 +47,13 @@ def get_loaders_tokenizer(
         Testing DataLoader, Tokenizer object).
     """
     # Retrieve iterators for each split of the dataset
+    dataset_dir = Path(dataset_dir)
+    print(f'Dataset dir: {dataset_dir}')
+    
     entire_dataset = load_ds(
-        path=dataset_name,
-        name=dataset_config,
-        split="all",
-        cache_dir=data_dir,
-        trust_remote_code=True)
+        "parquet",
+        data_files=str(dataset_dir / f"{dataset_config}.parquet"),
+        split="all")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
