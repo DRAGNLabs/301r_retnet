@@ -20,24 +20,33 @@ param_combinations = list(itertools.product(learning_rates, embed_dims, batch_si
 def evaluate_models(model1, model2, model1_loss, model2_loss):
     return abs(model1_loss - model2_loss)
 
+
 # Open a CSV file to write the results
 with open('model_training_results.csv', 'w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(['Learning Rate', 'Embedding Dimension', 'Batch Size', 'RetNet Avg Loss', 'Transformer Avg Loss', 'Similarity Score', 'Training Time'])
+    writer.writerow(['Learning Rate', 'Embedding Dimension', 'Batch Size', 
+                     'RetNet Avg Loss', 'Transformer Avg Loss', 'Similarity Score', 
+                     'RetNet Training Time', 'Transformer Training Time', 'Training Time'])
 
     similarity_scores = {}
     counter = 0
     for lr, embed_dim, batch_size in param_combinations:
         start_time = time.time()
-
+        retnet_start_time = time.time()
         retnet_model, avg_loss_retnet = train_model(embed_dim=embed_dim, lr=lr, batch_size=batch_size, model_type="retnet")
+        retnet_training_time = time.time() - retnet_start_time()
+        
+        transformer_start_time = time.time()
         transformer_model, avg_loss_transformer = train_model(embed_dim=embed_dim, lr=lr, batch_size=batch_size, model_type="transformer")
-
+        transformer_training_time = time.time() - transformer_start_time()
+        
         similarity_score = evaluate_models(retnet_model, transformer_model, avg_loss_retnet, avg_loss_transformer)
         
         training_time = time.time() - start_time
 
-        writer.writerow([lr, embed_dim, batch_size, avg_loss_retnet, avg_loss_transformer, similarity_score, training_time])
+        writer.writerow([lr, embed_dim, batch_size, 
+                         avg_loss_retnet, avg_loss_transformer, similarity_score, 
+                         retnet_training_time, transformer_training_time, training_time])
         similarity_scores[(lr, embed_dim, batch_size)] = similarity_score
 
     # Find the most and least similar parameters, just for fun
