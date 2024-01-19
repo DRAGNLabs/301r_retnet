@@ -1,6 +1,11 @@
-from transformers import AutoModel, AutoConfig, AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModel, AutoConfig, AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizerFast
 from hugging_face_model import RetNetModel, TransformerModel
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
+
+
+test = PreTrainedTokenizerFast.from_pretrained('/home/datingey/fsl_groups/grp_retnet/compute/tokenizers/wikitext')
+
+breakpoint()
 
 
 AutoConfig.register('retnet', RetNetConfig)
