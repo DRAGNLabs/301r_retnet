@@ -32,6 +32,7 @@ with open('model_training_results.csv', 'w', newline='') as file:
     counter = 0
     for lr, embed_dim, batch_size in param_combinations:
         start_time = time.time()
+        
         retnet_start_time = time.time()
         retnet_model, avg_loss_retnet = train_model(embed_dim=embed_dim, lr=lr, batch_size=batch_size, model_type="retnet")
         retnet_training_time = time.time() - retnet_start_time()
@@ -40,9 +41,8 @@ with open('model_training_results.csv', 'w', newline='') as file:
         transformer_model, avg_loss_transformer = train_model(embed_dim=embed_dim, lr=lr, batch_size=batch_size, model_type="transformer")
         transformer_training_time = time.time() - transformer_start_time()
         
-        similarity_score = evaluate_models(retnet_model, transformer_model, avg_loss_retnet, avg_loss_transformer)
-        
         training_time = time.time() - start_time
+        similarity_score = evaluate_models(retnet_model, transformer_model, avg_loss_retnet, avg_loss_transformer)
 
         writer.writerow([lr, embed_dim, batch_size, 
                          avg_loss_retnet, avg_loss_transformer, similarity_score, 
