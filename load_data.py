@@ -81,13 +81,13 @@ def get_loaders_tokenizer(
         "validation": valid_test["train"],
         "test": valid_test["test"]})
 
-    # Create BytePair Encoding tokenizer and trainer
-    tokenizer = Tokenizer(BPE(unk_token="<unk>"))
-    trainer = BpeTrainer(
-        vocab_size=vocab_size,
-        show_progress=True,
-        special_tokens=["<pad>", "<bos>", "<unk>"],
-        max_token_length=max_token_len)
+    #! # Create BytePair Encoding tokenizer and trainer
+    # tokenizer = Tokenizer(BPE(unk_token="<unk>"))
+    # trainer = BpeTrainer(
+    #     vocab_size=vocab_size,
+    #     show_progress=True,
+    #     special_tokens=["<pad>", "<bos>", "<unk>"],
+    #     max_token_length=max_token_len)
 
     # Like GPT-2, we skip the normalizer and go directly to pre-tokenization.
     # The option we add to ByteLevel here is to not add a space at the beginning
