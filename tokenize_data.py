@@ -1,6 +1,4 @@
-from datasets import (
-    DatasetDict,
-    load_dataset as load_ds)
+import datasets
 from os import environ
 from tokenizers import Tokenizer
 from torch.utils.data import DataLoader
@@ -26,7 +24,7 @@ def tokenize_data(
     
     # Retrieve iterators for each split of the dataset
     print(f'Data dir: {dataset_dir}')
-    entire_dataset = load_ds(
+    entire_dataset = datasets.load_dataset(
         "parquet",
         data_files=str(Path(dataset_dir) / dataset_name / f"{dataset_subset}.parquet"),
         split="all")
@@ -47,7 +45,7 @@ def tokenize_data(
         train_size=splits[1] / (splits[1] + splits[2]),
         shuffle=True,
         seed=rand_seed)
-    entire_dataset = DatasetDict({
+    entire_dataset = datasets.DatasetDict({
         "train": train_validtest["train"],
         "validation": valid_test["train"],
         "test": valid_test["test"]})
@@ -70,11 +68,19 @@ def tokenize_data(
     entire_dataset = entire_dataset.remove_columns(column_names=text_feature)
 
     #This code saves the now tokenized dataset as a .parquet folder, making a folder in the data directory called tokenized if one does not already exist.
-    path = Path(tokenized_data_folder) / f'{tokenized_data_name}.parquet'
+    path = Path(tokenized_data_folder)
     print(f'Saving tokenized data to {path}')
     if not path.exists():
         path.mkdir(parents=True)
-    entire_dataset.to_parquet(path)
+
+    if isinstance(entire_dataset, datasets.arrow_dataset.Dataset):
+        entire_dataset.to_parquet(path  / f'{tokenized_data_name}.parquet')
+    elif isinstance(entire_dataset, datasets.dataset_dict.DatasetDict):
+        for key, value in entire_dataset.items():
+            filename = key + '.parquet'
+            value.to_parquet(path / filename)
+    else:
+        print('Dataset is not of type datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict')
 
 
 if __name__ == "__main__":
