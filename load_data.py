@@ -4,6 +4,7 @@ from datasets import (
     get_dataset_split_names as get_ds_split_names,
     load_dataset as load_ds)
 from os import environ
+from pathlib import Path
 from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
@@ -18,7 +19,7 @@ def get_loaders_tokenizer(
         seq_len: int,
         batch_size: int,
         vocab_size: int,
-        data_dir: str,
+        dataset_dir: str,
         dataset_config: str=None,
         text_feature: str="text",
         max_token_len: int=20,
@@ -31,8 +32,8 @@ def get_loaders_tokenizer(
         seq_len (int): Context window/sequence length.
         batch_size (int): Batch size.
         vocab_size (int): Maximum vocabulary size.
-        data_dir (str): Relative path from base of repository to directory in
-            which to download the dataset.
+        dataset_dir (str): Absolute path to directory in which to download the
+            dataset.
         dataset_config (str): Configuration/subset of dataset to use.
         text_feature (str): Name of the feature/column of the dataset to use.
         max_token_len (int): Prevents tokenizer creating tokens longer than the
@@ -45,20 +46,14 @@ def get_loaders_tokenizer(
         Tuple with the format: (Training DataLoader, Validation DataLoader,
         Testing DataLoader, Tokenizer object).
     """
-    # Test text_feature is actually a feature of the dataset
-
-    # Note from Jay: I can't find any docs on this to make it work offline, seems unnecessary if you've already taken the time and care to download the data
-    """ds_features = get_ds_infos(
-        dataset_name,
-        trust_remote_code=True)[dataset_config].features
-    assert text_feature in ds_features, \
-        f"'{text_feature}' not in '{dataset_name}' features {ds_features}!"
-    """
-    
     # Retrieve iterators for each split of the dataset
-    print(f'Data dir: {data_dir}')
+    dataset_dir = Path(dataset_dir)
+    print(f'Dataset dir: {dataset_dir}')
     
-    entire_dataset = load_ds("parquet", data_files=str(data_dir) + ".parquet", split="all")
+    entire_dataset = load_ds(
+        "parquet",
+        data_files=str(dataset_dir / f"{dataset_config}.parquet"),
+        split="all")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace

@@ -19,8 +19,6 @@ from tqdm import tqdm
 from transformers import set_seed
 from utils import generate_text
 
-REPO_ROOT_NAME = "301r_retnet"
-
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -205,6 +203,10 @@ if __name__ == "__main__":
         help="Batch size.")
     parser.add_argument("-c", "--checkpoints", action="store_true",
         default=False, help="Save model checkpoints while training.")
+    parser.add_argument("--data-dir", type=str, required=True,
+        help="Path to directory where all data except datasets are saved.")
+    parser.add_argument("--dataset-dir", type=str, required=True,
+        help="Path to directory in which Hugging Face datasets are downloaded.")
     parser.add_argument("--dataset-feature", type=str, default="text",
         help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
@@ -240,6 +242,8 @@ if __name__ == "__main__":
         default=[0.7, 0.2, 0.1],
         help="Space-separated decimal splits of train, validation, and " + \
             "test datasets. (Ex: '0.7 0.2 0.1')")
+    parser.add_argument("--tboard-dir", type=str, default=None,
+        help="Path to directory to save TensorBoard logs in.")
     parser.add_argument("--val-freq", type=int, default=3,
         help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
@@ -315,29 +319,46 @@ if __name__ == "__main__":
         model,
         input_data=torch.ones(1, args.seq_len).long()).total_params
 
-    # Get path of repository root folder
-    repo_root_dir = Path(__file__)
-    while REPO_ROOT_NAME not in repo_root_dir.name:
-        repo_root_dir = repo_root_dir.parent
-
     # Create unique label for model (timestamp, model type, parameter count)
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
         f"{args.model}_{total_params}"
 
-    # Initialize model weights folders
-    save_folder = repo_root_dir / "weights" / model_label
-    save_folder.mkdir(parents=True, exist_ok=True)
-    print(f"\nSaving weights in {save_folder}")
+    # Make sure dataset is pre-downloaded
+    dataset_root_dir = Path(args.dataset_dir)
+    dataset_dir = dataset_root_dir / args.dataset_name
+    assert dataset_dir.exists(), \
+        f"The directory with data, {dataset_dir}, doesn't exist!"
+    print(f"\nUsing dataset directory {dataset_dir}")
+
+    # Initialize model directory for config files, weights, etc.
+    model_dir = Path(args.data_dir) / "models" / model_label
+    model_dir.mkdir(parents=True, exist_ok=False)
+    print(f"Saving model files in {model_dir}")
+
+    # Initialize weights directory
+    weights_dir = model_dir / "weights"
+    weights_dir.mkdir(parents=False, exist_ok=False)
+    print(f"Saving weight files in {weights_dir}")
+    
+    # Initialize tokenizers directory
+    tokenizers_dir = Path(args.data_dir) / "tokenizers"
+    tokenizers_dir.mkdir(parents=False, exist_ok=True)
+    print(f"Saving tokenizer files in {tokenizers_dir}")
+
+    # Create SummaryWriter to record logs for TensorBoard
+    if args.tboard_dir is None:
+        tboard_log_folder = repo_root_dir / "logs" / model_label
+    else:
+        tboard_log_folder = f"{args.tboard_dir}/logs/{model_label}"
+    writer = SummaryWriter(log_dir=tboard_log_folder)
+    print(f"Saving TensorBoard logs in {tboard_log_folder}")
 
     # Save all the variables in args as JSON inside folder
     arg_dict = vars(args)
     json_string = json.dump(
         obj=arg_dict,
-        fp=open(save_folder / "model_args.json", "w"),
+        fp=open(model_dir / "model_args.json", "w"),
         indent=4)
-
-    # Create SummaryWriter to record logs for TensorBoard
-    writer = SummaryWriter(log_dir=repo_root_dir / "logs" / model_label)
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
@@ -351,7 +372,7 @@ if __name__ == "__main__":
         seq_len=args.seq_len,
         batch_size=args.batch_size,
         vocab_size=args.vocab_size,
-        data_dir= Path("/grphome/grp_retnet/compute/data") / args.dataset_name / args.dataset_subset,
+        dataset_dir=dataset_dir,
         dataset_config=args.dataset_subset,
         text_feature=args.dataset_feature,
         max_token_len=20,
@@ -359,8 +380,10 @@ if __name__ == "__main__":
         rand_seed=args.rand_seed)
 
     # Save trained tokenizer
-    tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
-    print(f"Saved trained tokenizer")
+    tokenizer.save_pretrained(
+        save_directory=tokenizers_dir,
+        filename_prefix="BPE")
+    print(f"Saved trained tokenizer in {tokenizers_dir}")
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
@@ -409,12 +432,14 @@ if __name__ == "__main__":
             # Update parameters
             optimizer.step()
 
-            # Run validation args.validation_freq times per epoch. To do this,
-            # we split up the epoch into arg.validation_freq chunks and run
-            # validation after each chunk is finished.
-            progress_through_chunk = args.val_freq * (batch_idx + 1) \
-                                     / len(train_loader) % 1
-            if progress_through_chunk <= (args.val_freq-1) / len(train_loader):
+            # Run validation args.val_freq times per epoch. To do this, we split
+            # up the epoch into arg.val_freq chunks and run validation after
+            # each chunk is finished.
+            avg_val_loss = 0
+            avg_train_loss = 0
+            if args.val_freq > 0 \
+                    and (num_val_runs + 1) / args.val_freq \
+                        <= (batch_idx + 1) / len(train_loader):
                 # Print average train loss
                 avg_train_loss = train_total_loss / train_total_samples
                 print("Average Train Loss Since Last Validation Run: " + \
@@ -468,7 +493,7 @@ if __name__ == "__main__":
                         f"{num_val_runs}.pt"
                     torch.save(
                         model.state_dict(),
-                        save_folder / weight_filename)
+                        weights_dir / weight_filename)
                     print(f"Saved weights as {weight_filename}")
 
                 # Update how many validation runs there have been
@@ -513,7 +538,7 @@ if __name__ == "__main__":
 
     # Save completed model
     weight_filename = "training_completed.pt"
-    torch.save(model.state_dict(), save_folder / weight_filename)
+    torch.save(model.state_dict(), weights_dir / weight_filename)
     print(f"Saved final weights as {weight_filename}")
 
     # Generate text from the model
