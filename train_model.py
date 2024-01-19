@@ -19,8 +19,6 @@ from tqdm import tqdm
 from transformers import set_seed
 from utils import generate_text
 
-REPO_ROOT_NAME = "301r_retnet"
-
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -252,27 +250,46 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     total_params = model_summary(model, input_data=torch.ones(1, seq_len)\
             .long()).total_params
 
-    # Get path of repository root folder
-    repo_root_dir = Path(__file__)
-    while REPO_ROOT_NAME not in repo_root_dir.name:
-        repo_root_dir = repo_root_dir.parent
-
     # Create unique label for model (timestamp, model type, parameter count)
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
                   f"{model_type}_{total_params}"
 
-    # Initialize model weights folders
-    save_folder = repo_root_dir / "weights" / model_label
-    save_folder.mkdir(parents=True, exist_ok=True)
-    print(f"\nSaving weights in {save_folder}")
+    # Make sure dataset is pre-downloaded
+    dataset_root_dir = Path(args.dataset_dir)
+    dataset_dir = dataset_root_dir / args.dataset_name
+    assert dataset_dir.exists(), \
+        f"The directory with data, {dataset_dir}, doesn't exist!"
+    print(f"\nUsing dataset directory {dataset_dir}")
+
+    # Initialize model directory for config files, weights, etc.
+    model_dir = Path(args.data_dir) / "models" / model_label
+    model_dir.mkdir(parents=True, exist_ok=False)
+    print(f"Saving model files in {model_dir}")
+
+    # Initialize weights directory
+    weights_dir = model_dir / "weights"
+    weights_dir.mkdir(parents=False, exist_ok=False)
+    print(f"Saving weight files in {weights_dir}")
     
-    # Save all the variables in args as JSON inside folder
-    json_string = json.dump(obj=arg_dict,
-                            fp=open(save_folder / "model_args.json", "w"),
-                            indent=4)
+    # Initialize tokenizers directory
+    tokenizers_dir = Path(args.data_dir) / "tokenizers"
+    tokenizers_dir.mkdir(parents=False, exist_ok=True)
+    print(f"Saving tokenizer files in {tokenizers_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    writer = SummaryWriter(log_dir=repo_root_dir / "logs" / model_label)
+    if args.tboard_dir is None:
+        tboard_log_folder = repo_root_dir / "logs" / model_label
+    else:
+        tboard_log_folder = f"{args.tboard_dir}/logs/{model_label}"
+    writer = SummaryWriter(log_dir=tboard_log_folder)
+    print(f"Saving TensorBoard logs in {tboard_log_folder}")
+
+    # Save all the variables in args as JSON inside folder
+    arg_dict = vars(args)
+    json_string = json.dump(
+        obj=arg_dict,
+        fp=open(model_dir / "model_args.json", "w"),
+        indent=4)
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
@@ -281,20 +298,22 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     # Get DataLoaders and trained Tokenizer
     print(f"\nNow retrieving '{dataset_name}' and training tokenizer...")
     train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
-        dataset_name=dataset_name,
-        seq_len=seq_len,
-        batch_size=batch_size,
-        vocab_size=vocab_size,
-        data_dir=repo_root_dir / "data", #NOTE(jay): would not hardcode data, add as a parameter for flexibility
-        dataset_config=dataset_subset,
-        text_feature=dataset_feature,
+        dataset_name=args.dataset_name,
+        seq_len=args.seq_len,
+        batch_size=args.batch_size,
+        vocab_size=args.vocab_size,
+        dataset_dir=dataset_dir,
+        dataset_config=args.dataset_subset,
+        text_feature=args.dataset_feature,
         max_token_len=20,
         splits=splits,
         rand_seed=rand_seed)
 
     # Save trained tokenizer
-    tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
-    print(f"Saved trained tokenizer")
+    tokenizer.save_pretrained(
+        save_directory=tokenizers_dir,
+        filename_prefix="BPE")
+    print(f"Saved trained tokenizer in {tokenizers_dir}")
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
@@ -404,7 +423,7 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
                         f"{num_val_runs}.pt"
                     torch.save(
                         model.state_dict(),
-                        save_folder / weight_filename)
+                        weights_dir / weight_filename)
                     print(f"Saved weights as {weight_filename}")
 
                 # Update how many validation runs there have been
@@ -449,7 +468,7 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
 
     # Save completed model
     weight_filename = "training_completed.pt"
-    torch.save(model.state_dict(), save_folder / weight_filename)
+    torch.save(model.state_dict(), weights_dir / weight_filename)
     print(f"Saved final weights as {weight_filename}")
 
     # Generate text from the model
