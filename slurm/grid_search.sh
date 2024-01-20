@@ -13,8 +13,8 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 export TORCHDYNAMO_VERBOSE=1
 
 python3 ../grid_search.py \
+    --data-dir /tmp/data \
+    --dataset-dir /tmp/data/datasets \
+    --dataset-feature text \
     --dataset-name wikitext \
     --dataset-subset wikitext-2-v1 \
-    --dataset-dir /tmp/data/datasets \
-    --data-dir /tmp/data \
-    --dataset-feature text \
