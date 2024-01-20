@@ -212,7 +212,7 @@ def train_model(
         rand_seed=None,
         seq_len=128,
         splits=[0.7, 0.2, 0.1],
-        tboard_dir=None,
+        tboard_dir="/tmp/data",
         val_freq=3,
         value_embed_dim=12,
         vocab_size=4000):
