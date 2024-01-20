@@ -43,7 +43,7 @@ class RetNetModel(PreTrainedModel):
         else:
             raise ValueError("Config must be str or RetNetConfig object.")
 
-        super().__init__(config)
+        super().__init__(self.config)
 
         # Create embeddings with index 0 representing padding
         text_embeddings = nn.Embedding(
@@ -68,7 +68,12 @@ class RetNetModel(PreTrainedModel):
 
     def get_params(self) -> dict:
         """ Get model parameters dictionary. """
-        return self.model_params
+        allowed_types = (int, float, str, bool, Tensor)
+        hparams = self.config.to_dict()
+        for key, value in hparams.items():
+            if not isinstance(value, allowed_types):
+                hparams[key] = str(value)
+        return hparams
 
 
 class TransformerModel(PreTrainedModel):
@@ -130,4 +135,9 @@ class TransformerModel(PreTrainedModel):
 
     def get_params(self) -> dict:
         """ Get model parameters dictionary. """
-        return self.model_params
+        allowed_types = (int, float, str, bool, Tensor)
+        hparams = self.config.to_dict()
+        for key, value in hparams.items():
+            if not isinstance(value, allowed_types):
+                hparams[key] = str(value)
+        return hparams

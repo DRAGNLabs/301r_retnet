@@ -113,7 +113,7 @@ class DecoderConfig(PretrainedConfig):
         self.no_output_layer = kwargs.pop("no_output_layer", False)
         self.layernorm_eps = kwargs.pop("layernorm_eps", 1e-5)
         # Text
-        self.vocab_size = kwargs.pop("vocab_size", -1)
+        self.vocab_size = kwargs.pop("vocab_size", 4000)
         # Fairscale
         self.checkpoint_activations = kwargs.pop("checkpoint_activations", False)
         self.fsdp = kwargs.pop("fsdp", False)
@@ -257,7 +257,7 @@ class RetNetConfig(PretrainedConfig):
         self.chunkwise_recurrent = kwargs.pop("chunkwise_recurrent", False)
         self.recurrent_chunk_size = kwargs.pop("recurrent_chunk_size", 512)
         # Text
-        self.vocab_size = kwargs.pop("vocab_size", -1)
+        self.vocab_size = kwargs.pop("vocab_size", 4000)
         # Fairscale
         self.checkpoint_activations = kwargs.pop("checkpoint_activations", False)
         self.fsdp = kwargs.pop("fsdp", False)
