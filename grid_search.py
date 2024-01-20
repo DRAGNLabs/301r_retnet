@@ -5,6 +5,8 @@ import time
 from train_model import train_model
 from argparse import ArgumentParser
 
+def evaluate_models(model1, model2, model1_loss, model2_loss):
+    return abs(model1_loss - model2_loss)
 def grid_search(dataset_dir, dataset_name, dataset_subset, data_dir, dataset_feature):
     """ Perform grid search on the hyperparameters of the model.
 
@@ -17,15 +19,11 @@ def grid_search(dataset_dir, dataset_name, dataset_subset, data_dir, dataset_fea
 
     # Hyperparameters ranges to test
     learning_rates = [0.01, 0.001, 0.0001]
-    embed_dims = [768, 1023, 1281]
+    embed_dims = [768, 1024, 1282]
     batch_sizes = [16, 32, 64]
 
     # Cartesian product of all hyperparameters
     param_combinations = list(itertools.product(learning_rates, embed_dims, batch_sizes))
-
-    def evaluate_models(model1, model2, model1_loss, model2_loss):
-        return abs(model1_loss - model2_loss)
-
 
     # Open a CSV file to write the results
     with open('model_training_results.csv', 'w', newline='') as file:
@@ -43,15 +41,17 @@ def grid_search(dataset_dir, dataset_name, dataset_subset, data_dir, dataset_fea
             retnet_model, avg_loss_retnet = train_model(embed_dim=embed_dim, lr=lr, batch_size=batch_size, 
                                                         model_type="retnet", dataset_dir=dataset_dir, 
                                                         dataset_name=dataset_name, dataset_subset=dataset_subset,
-                                                        data_dir=data_dir, dataset_feature=dataset_feature)
-            retnet_training_time = time.time() - retnet_start_time()
+                                                        data_dir=data_dir, dataset_feature=dataset_feature,
+                                                        tboard_dir="/tmp/tboard_logs")
+            retnet_training_time = time.time() - retnet_start_time
             
             transformer_start_time = time.time()
             transformer_model, avg_loss_transformer = train_model(embed_dim=embed_dim, lr=lr, batch_size=batch_size, 
                                                                   model_type="transformer", dataset_dir=dataset_dir, 
                                                                   dataset_name=dataset_name, dataset_subset=dataset_subset,
-                                                                  data_dir=data_dir, dataset_feature=dataset_feature)
-            transformer_training_time = time.time() - transformer_start_time()
+                                                                  data_dir=data_dir, dataset_feature=dataset_feature,
+                                                                  tboard_dir="/tmp/tboard_logs")
+            transformer_training_time = time.time() - transformer_start_time
             
             training_time = time.time() - start_time
             similarity_score = evaluate_models(retnet_model, transformer_model, avg_loss_retnet, avg_loss_transformer)
