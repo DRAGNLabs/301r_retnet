@@ -191,31 +191,31 @@ class TransformerModel(nn.Module):
 
 
 def train_model(
-        activation_dropout=0.0,
-        batch_size=8,
-        checkpoints=False,
-        data_dir="/tmp/data",
-        dataset_dir="/tmp/data/datasets",
-        dataset_feature="text",
-        dataset_name="wikitext",
-        dataset_subset="wikitext-2-v1",
-        device="cuda",
-        dropout=0.1,
-        embed_dim=80,
-        epochs=1,
-        ffn_dim=12,
-        fsdp=False,
-        heads=4,
-        layers=2,
-        lr=0.001,
-        model_type="retnet",
-        rand_seed=None,
-        seq_len=128,
-        splits=[0.7, 0.2, 0.1],
-        tboard_dir="/tmp/data",
-        val_freq=3,
-        value_embed_dim=12,
-        vocab_size=4000):
+        activation_dropout: float=0.0,
+        batch_size: int=8,
+        checkpoints: bool=False,
+        data_dir: str="/tmp/data",
+        dataset_dir: str="/tmp/data/datasets",
+        dataset_feature: str="text",
+        dataset_name: str="wikitext",
+        dataset_subset: str="wikitext-2-v1",
+        device: str="cuda",
+        dropout: float=0.1,
+        embed_dim: int=80,
+        epochs: int=1,
+        ffn_dim: int=12,
+        fsdp: bool=False,
+        heads: int=4,
+        layers: int=2,
+        lr: float=0.001,
+        model_type: str="retnet",
+        rand_seed: bool=None,
+        seq_len: int=128,
+        splits: list[float]=[0.7, 0.2, 0.1],
+        tboard_dir: str="/tmp/data",
+        val_freq: int=3,
+        value_embed_dim: int=12,
+        vocab_size: int=4000):
     # Store all the parameters, which are the only locals at this point, as dict
     """ Use parameters to run train_model().
         Args:
@@ -223,31 +223,41 @@ def train_model(
                 during dropout after activation between FFN layers.
             batch_size (int): Batch size.
             checkpoints (bool): Save model checkpoints while training.
-            data_dir (str): Path to directory where all data except datasets are saved.
-            dataset_dir (str): Path to directory in which Hugging Face datasets are downloaded.
+            data_dir (str): Path to directory where all data except datasets are
+                saved.
+            dataset_dir (str): Path to directory in which Hugging Face datasets
+                are downloaded.
             dataset_feature (str): Hugging Face dataset feature/column to use.
-            dataset_name (str): Hugging Face dataset name. Should also set --dataset-subset.
+            dataset_name (str): Hugging Face dataset name. Should also set
+                --dataset-subset.
             dataset_subset (str): Subset/config to use for Hugging Face dataset.
             device (str): Device to use (ex: 'cpu', 'cuda', or 'cuda:0').
-            dropout (float): Probability of an element to be zeroed during dropout.
+            dropout (float): Probability of an element to be zeroed during
+                dropout.
             embed_dim (int): Embedding dimension size of each token.
             epochs (int): Number of epochs to train for.
             ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
             fsdp (bool): Whether to shard Module parameters across data parallel
                 workers or not (with the FairScale library).
-            heads (int): Number of heads. Head architecture changes based on model.
+            heads (int): Number of heads. Head architecture changes based on
+                model.
             layers (int): Number of retention network layers.
             lr (float): Learning rate of model to train.
             model_type (str): Name of model architecture to train.
-            rand_seed (int): Random seed to use, allowing more reproducible results.
+            rand_seed (int): Random seed to use, allowing more reproducible
+                results.
             seq_len (int): Sequence length (context window size).
-            splits (list): Space-separated decimal splits of train, validation, and " + \
-            "test datasets. (Ex: '0.7 0.2 0.1')
+            splits (list[float]): Space-separated decimal splits of train,
+                validation, and test datasets. (Ex: '0.7 0.2 0.1')
             tboard_dir (str): Path to directory to save TensorBoard logs in.
-            val_freq (int): Number of times to run validation per epoch during training.
+            val_freq (int): Number of times to run validation per epoch during
+                training.
             value_embed_dim (int): Value embed dimension size.
             vocab_size (int): Maximum vocabulary size (number of unique tokens
                 in vocabulary.
+
+        Returns:
+            A tuple of the trained model instance and the test average loss.
     """
     arg_dict = locals()
 
