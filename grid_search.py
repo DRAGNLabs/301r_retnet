@@ -1,9 +1,11 @@
-import itertools
-import torch
 import csv
+import itertools
 import time
-from train_model import train_model
+import torch
+
 from argparse import ArgumentParser
+from pathlib import Path
+from train_model import train_model
 
 def evaluate_models(model1, model2, model1_loss, model2_loss):
     return abs(model1_loss - model2_loss)
@@ -15,6 +17,7 @@ def grid_search(dataset_dir, dataset_name, dataset_subset, data_dir, dataset_fea
             downloaded.
         dataset_name (str): Name of Hugging Face dataset.
         dataset_subset (str): Configuration/subset of dataset to use.
+        data_dir (str): Path to directory where all data except datasets are saved.
     """
 
     # Hyperparameters ranges to test
@@ -26,7 +29,7 @@ def grid_search(dataset_dir, dataset_name, dataset_subset, data_dir, dataset_fea
     param_combinations = list(itertools.product(learning_rates, embed_dims, batch_sizes))
 
     # Open a CSV file to write the results
-    with open('model_training_results.csv', 'w', newline='') as file:
+    with open(Path(data_dir) / 'grid_search_results.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['Learning Rate', 'Embedding Dimension', 'Batch Size', 
                         'RetNet Avg Loss', 'Transformer Avg Loss', 'Similarity Score', 
