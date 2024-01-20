@@ -222,17 +222,32 @@ def train_model(
             activation_dropout (float): Probability of an element to be zeroed
                 during dropout after activation between FFN layers.
             batch_size (int): Batch size.
+            checkpoints (bool): Save model checkpoints while training.
+            data_dir (string): Path to directory where all data except datasets are saved.
+            dataset_dir (string): Path to directory in which Hugging Face datasets are downloaded.
+            dataset_feature (string): Hugging Face dataset feature/column to use.
+            dataset_name (string): Hugging Face dataset name. Should also set --dataset-subset.
+            dataset_subset (string): Subset/config to use for Hugging Face dataset.
+            device (string): Device to use (ex: 'cpu', 'cuda', or 'cuda:0').
+            dropout (float): Probability of an element to be zeroed during dropout.
+            embed_dim (int): Embedding dimension size of each token.
+            epochs (int): Number of epochs to train for.
             ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
             fsdp (bool): Whether to shard Module parameters across data parallel
                 workers or not (with the FairScale library).
-            heads (int):
+            heads (int): Number of heads. Head architecture changes based on model.
             layers (int): Number of retention network layers.
-            dropout (float): Probability of an element to be zeroed during
-                dropout.
+            lr (float): Learning rate of model to train.
+            model_type (string): Name of model architecture to train.
+            rand_seed (int): Random seed to use, allowing more reproducible results.
+            seq_len (int): Sequence length (context window size).
+            splits (list): Space-separated decimal splits of train, validation, and " + \
+            "test datasets. (Ex: '0.7 0.2 0.1')
+            tboard_dir (string): Path to directory to save TensorBoard logs in.
+            val_freq (int): Number of times to run validation per epoch during training.
             value_embed_dim (int): Value embed dimension size.
             vocab_size (int): Maximum vocabulary size (number of unique tokens
                 in vocabulary.
-            max_seq_len (int): Size of context window.
     """
     arg_dict = locals()
 
