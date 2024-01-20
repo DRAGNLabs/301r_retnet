@@ -190,122 +190,130 @@ class TransformerModel(nn.Module):
         return self.model_params
 
 
-if __name__ == "__main__":
-    # Initialize, setup, and parse the argument parser
-    parser = ArgumentParser(
-        prog="Model Trainer",
-        description="Used to train comparable RetNet, Transformer models.")
+def train_model(
+        activation_dropout: float=0.0,
+        batch_size: int=8,
+        checkpoints: bool=False,
+        data_dir: str="/tmp/data",
+        dataset_dir: str="/tmp/data/datasets",
+        dataset_feature: str="text",
+        dataset_name: str="wikitext",
+        dataset_subset: str="wikitext-2-v1",
+        device: str="cuda",
+        dropout: float=0.1,
+        embed_dim: int=80,
+        epochs: int=1,
+        ffn_dim: int=12,
+        fsdp: bool=False,
+        heads: int=4,
+        layers: int=2,
+        lr: float=0.001,
+        model_type: str="retnet",
+        rand_seed: bool=None,
+        seq_len: int=128,
+        splits: list[float]=[0.7, 0.2, 0.1],
+        tboard_dir: str="/tmp/data",
+        val_freq: int=3,
+        value_embed_dim: int=12,
+        vocab_size: int=4000):
+    # Store all the parameters, which are the only locals at this point, as dict
+    """ Use parameters to run train_model().
+        Args:
+            activation_dropout (float): Probability of an element to be zeroed
+                during dropout after activation between FFN layers.
+            batch_size (int): Batch size.
+            checkpoints (bool): Save model checkpoints while training.
+            data_dir (str): Path to directory where all data except datasets are
+                saved.
+            dataset_dir (str): Path to directory in which Hugging Face datasets
+                are downloaded.
+            dataset_feature (str): Hugging Face dataset feature/column to use.
+            dataset_name (str): Hugging Face dataset name. Should also set
+                --dataset-subset.
+            dataset_subset (str): Subset/config to use for Hugging Face dataset.
+            device (str): Device to use (ex: 'cpu', 'cuda', or 'cuda:0').
+            dropout (float): Probability of an element to be zeroed during
+                dropout.
+            embed_dim (int): Embedding dimension size of each token.
+            epochs (int): Number of epochs to train for.
+            ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
+            fsdp (bool): Whether to shard Module parameters across data parallel
+                workers or not (with the FairScale library).
+            heads (int): Number of heads. Head architecture changes based on
+                model.
+            layers (int): Number of retention network layers.
+            lr (float): Learning rate of model to train.
+            model_type (str): Name of model architecture to train.
+            rand_seed (int): Random seed to use, allowing more reproducible
+                results.
+            seq_len (int): Sequence length (context window size).
+            splits (list[float]): Space-separated decimal splits of train,
+                validation, and test datasets. (Ex: '0.7 0.2 0.1')
+            tboard_dir (str): Path to directory to save TensorBoard logs in.
+            val_freq (int): Number of times to run validation per epoch during
+                training.
+            value_embed_dim (int): Value embed dimension size.
+            vocab_size (int): Maximum vocabulary size (number of unique tokens
+                in vocabulary.
 
-    parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
-        help="Probability of element to be zeroed in dropout layer after " + \
-            "activation between FFN layers.")
-    parser.add_argument("-b", "--batch-size", type=int, default=32,
-        help="Batch size.")
-    parser.add_argument("-c", "--checkpoints", action="store_true",
-        default=False, help="Save model checkpoints while training.")
-    parser.add_argument("--data-dir", type=str, required=True,
-        help="Path to directory where all data except datasets are saved.")
-    parser.add_argument("--dataset-dir", type=str, required=True,
-        help="Path to directory in which Hugging Face datasets are downloaded.")
-    parser.add_argument("--dataset-feature", type=str, default="text",
-        help="Hugging Face dataset feature/column to use.")
-    parser.add_argument("--dataset-name", type=str, default="wikitext",
-        help="Hugging Face dataset name. Should also set --dataset-subset.")
-    parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
-        help="Subset/config to use for Hugging Face dataset.")
-    parser.add_argument("--device", type=str, default="cuda",
-        help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
-    parser.add_argument("-d", "--dropout", type=float, default=0.1,
-        help="Probability of element to be zeroed in dropout layer.")
-    parser.add_argument("-e", "--embed-dim", type=int, default=768,
-        help="Embedding dimension size of each token.")
-    parser.add_argument("--epochs", type=int, default=10,
-        help="Number of epochs to train for.")
-    parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
-        help="FFN hidden layer size.")
-    parser.add_argument("--fsdp", action="store_true", default=False,
-        help="Module parameters sharded across data parallel workers.")
-    parser.add_argument("-l", "--layers", type=int, default=12,
-        help="Number of stacked layers in model.")
-    parser.add_argument("--lr", type=float, required=True,
-        help="Learning rate of model to train.")
-    parser.add_argument("-m", "--model", required=True,
-        choices=["retnet", "transformer"],
-        help="Name of model architecture to train.")
-    parser.add_argument("-n", "--heads", type=int, default=3,
-        help="Number of heads. Head architecture changes based on model.")
-    parser.add_argument("-r", "--rand-seed", type=int, default=None,
-        help="Random seed to use, allowing more reproducible results.")
-    parser.add_argument("-s", "--seq-len", type=int, default=512,
-        help="Sequence length (context window size).")
-    parser.add_argument("--splits", type=float, nargs=3,
-        default=[0.7, 0.2, 0.1],
-        help="Space-separated decimal splits of train, validation, and " + \
-            "test datasets. (Ex: '0.7 0.2 0.1')")
-    parser.add_argument("--tboard-dir", type=str, default=None,
-        help="Path to directory to save TensorBoard logs in.")
-    parser.add_argument("--val-freq", type=int, default=3,
-        help="Number of times to run validation per epoch during training.")
-    parser.add_argument("--value-embed-dim", type=int, default=1280,
-        help="Value embed dimension size.")
-    parser.add_argument("--vocab-size", type=int, required=True,
-        help="Maximum number of unique tokens in vocabulary.")
-
-    args = parser.parse_args()
+        Returns:
+            A tuple of the trained model instance and the test average loss.
+    """
+    arg_dict = locals()
 
     # Test that the head dimension will be an even, whole number
-    assert args.embed_dim % (args.heads * 2) == 0, \
+    assert embed_dim % (heads * 2) == 0, \
         "Head Dimension must be even to perform Rotary Position Embedding " + \
-        f"({args.embed_dim} / {args.heads} = {args.embed_dim / args.heads} " + \
+        f"({embed_dim} / {heads} = {embed_dim / heads} " + \
         "-- not an even, whole number)! Try changing the Embedding " + \
         "Dimension or number of heads."
 
     # Test that the value embedding dimension is divisible by number of heads
-    assert args.value_embed_dim % args.heads == 0, \
+    assert value_embed_dim % heads == 0, \
         "Value Embed Dimension not divisible by number of heads " + \
-        f"({args.value_embed_dim} % {args.heads} != 0)!"
+        f"({value_embed_dim} % {heads} != 0)!"
 
     # Test the dataset splits add up to 1, using isclose for rounding errors
-    assert isclose(sum(args.splits), 1), \
+    assert isclose(sum(splits), 1), \
         "The dataset splits for the training, validation, and testing " + \
-        f"datasets must sum up to 1 ({' + '.join(map(str, args.splits))} != 1)!"
+        f"datasets must sum up to 1 ({' + '.join(map(str, splits))} != 1)!"
 
     # Set random seeds for torch, numpy, random, etc. with transformers library
-    if args.rand_seed is not None:
-        set_seed(args.rand_seed)
+    if rand_seed is not None:
+        set_seed(rand_seed)
 
     # Create requested model
-    if args.model == "retnet":
+    if model_type == "retnet":
         model = RetNetModel(
-            embed_dim=args.embed_dim,
-            value_embed_dim=args.value_embed_dim,
-            retention_heads=args.heads,
-            ffn_dim=args.ffn_dim,
-            layers=args.layers,
-            dropout=args.dropout,
-            activation_dropout=args.activation_dropout,
-            vocab_size=args.vocab_size,
-            fsdp=args.fsdp,
-            max_seq_len=args.seq_len)
-    elif args.model == "transformer":
+            embed_dim=embed_dim,
+            value_embed_dim=value_embed_dim,
+            retention_heads=heads,
+            ffn_dim=ffn_dim,
+            layers=layers,
+            dropout=dropout,
+            activation_dropout=activation_dropout,
+            vocab_size=vocab_size,
+            fsdp=fsdp,
+            max_seq_len=seq_len)
+    elif model_type == "transformer":
         model = TransformerModel(
-            embed_dim=args.embed_dim,
-            value_embed_dim=args.value_embed_dim,
-            attention_heads=args.heads,
-            ffn_dim=args.ffn_dim,
-            layers=args.layers,
-            dropout=args.dropout,
-            activation_dropout=args.activation_dropout,
-            vocab_size=args.vocab_size,
-            fsdp=args.fsdp,
-            max_seq_len=args.seq_len)
+            embed_dim=embed_dim,
+            value_embed_dim=value_embed_dim,
+            attention_heads=heads,
+            ffn_dim=ffn_dim,
+            layers=layers,
+            dropout=dropout,
+            activation_dropout=activation_dropout,
+            vocab_size=vocab_size,
+            fsdp=fsdp,
+            max_seq_len=seq_len)
 
     # Print all arguments for recordkeeping
     print("Arguments:")
     arg_table = []
     row = []
-    for i, arg in enumerate(vars(args)):
-        row.append(f"{arg}: {getattr(args, arg)}")
+    for i, arg in enumerate(arg_dict.keys()):
+        row.append(f"{arg}: {arg_dict[arg]}")
         if (i + 1) % 4 == 0:
             arg_table.append(row)
             row = []
@@ -317,21 +325,21 @@ if __name__ == "__main__":
     print("\nModel Summary:")
     total_params = model_summary(
         model,
-        input_data=torch.ones(1, args.seq_len).long()).total_params
+        input_data=torch.ones(1, seq_len).long()).total_params
 
     # Create unique label for model (timestamp, model type, parameter count)
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-        f"{args.model}_{total_params}"
+        f"{model_type}_{total_params}"
 
     # Make sure dataset is pre-downloaded
-    dataset_root_dir = Path(args.dataset_dir)
-    dataset_dir = dataset_root_dir / args.dataset_name
+    dataset_root_dir = Path(dataset_dir)
+    dataset_dir = dataset_root_dir / dataset_name
     assert dataset_dir.exists(), \
         f"The directory with data, {dataset_dir}, doesn't exist!"
     print(f"\nUsing dataset directory {dataset_dir}")
 
     # Initialize model directory for config files, weights, etc.
-    model_dir = Path(args.data_dir) / "models" / model_label
+    model_dir = Path(data_dir) / "models" / model_label
     model_dir.mkdir(parents=True, exist_ok=False)
     print(f"Saving model files in {model_dir}")
 
@@ -339,22 +347,21 @@ if __name__ == "__main__":
     weights_dir = model_dir / "weights"
     weights_dir.mkdir(parents=False, exist_ok=False)
     print(f"Saving weight files in {weights_dir}")
-    
+
     # Initialize tokenizers directory
-    tokenizers_dir = Path(args.data_dir) / "tokenizers"
+    tokenizers_dir = Path(data_dir) / "tokenizers"
     tokenizers_dir.mkdir(parents=False, exist_ok=True)
     print(f"Saving tokenizer files in {tokenizers_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    if args.tboard_dir is None:
-        tboard_log_folder = repo_root_dir / "logs" / model_label
+    if tboard_dir is None:
+        tboard_log_dir = Path(data_dir) / "logs" / model_label
     else:
-        tboard_log_folder = f"{args.tboard_dir}/logs/{model_label}"
-    writer = SummaryWriter(log_dir=tboard_log_folder)
-    print(f"Saving TensorBoard logs in {tboard_log_folder}")
+        tboard_log_dir = f"{tboard_dir}/logs/{model_label}"
+    writer = SummaryWriter(log_dir=tboard_log_dir)
+    print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
     # Save all the variables in args as JSON inside folder
-    arg_dict = vars(args)
     json_string = json.dump(
         obj=arg_dict,
         fp=open(model_dir / "model_args.json", "w"),
@@ -362,22 +369,21 @@ if __name__ == "__main__":
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
-    print(f"-log(1 / {args.vocab_size}) = " + \
-        f"{-torch.log(torch.tensor(1 / args.vocab_size))}")
+    print(f"-log(1 / {vocab_size}) = {-torch.log(torch.tensor(1 / vocab_size))}")
 
     # Get DataLoaders and trained Tokenizer
-    print(f"\nNow retrieving '{args.dataset_name}' and training tokenizer...")
+    print(f"\nNow retrieving '{dataset_name}' and training tokenizer...")
     train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
-        dataset_name=args.dataset_name,
-        seq_len=args.seq_len,
-        batch_size=args.batch_size,
-        vocab_size=args.vocab_size,
+        dataset_name=dataset_name,
+        seq_len=seq_len,
+        batch_size=batch_size,
+        vocab_size=vocab_size,
         dataset_dir=dataset_dir,
-        dataset_config=args.dataset_subset,
-        text_feature=args.dataset_feature,
+        dataset_config=dataset_subset,
+        text_feature=dataset_feature,
         max_token_len=20,
-        splits=args.splits,
-        rand_seed=args.rand_seed)
+        splits=splits,
+        rand_seed=rand_seed)
 
     # Save trained tokenizer
     tokenizer.save_pretrained(
@@ -389,17 +395,17 @@ if __name__ == "__main__":
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
 
     # Define optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # Define the device to use
-    device = torch.device(args.device)
+    device = torch.device(device)
 
     # Compile model and put on device
     model = torch.compile(model).to(device)
 
     # Train the model
     num_val_runs = 0
-    for num_epoch in range(args.epochs):
+    for num_epoch in range(epochs):
         print(f"\nEpoch #{num_epoch}")
 
         model.train()
@@ -432,13 +438,13 @@ if __name__ == "__main__":
             # Update parameters
             optimizer.step()
 
-            # Run validation args.val_freq times per epoch. To do this, we split
-            # up the epoch into arg.val_freq chunks and run validation after
-            # each chunk is finished.
+            # Run validation val_freq times per epoch. To do this, we split up
+            # the epoch into val_freq chunks and run validation after each chunk
+            # is finished.
             avg_val_loss = 0
             avg_train_loss = 0
-            if args.val_freq > 0 \
-                    and (num_val_runs + 1) / args.val_freq \
+            if val_freq > 0 \
+                    and (num_val_runs + 1) / val_freq \
                         <= (batch_idx + 1) / len(train_loader):
                 # Print average train loss
                 avg_train_loss = train_total_loss / train_total_samples
@@ -487,7 +493,7 @@ if __name__ == "__main__":
                     global_step=num_val_runs)
 
                 # If checkpoints are to be saved
-                if args.checkpoints:
+                if checkpoints:
                     # Save current weights of the model
                     weight_filename = f"epoch_{num_epoch}_validation_" + \
                         f"{num_val_runs}.pt"
@@ -541,21 +547,69 @@ if __name__ == "__main__":
     torch.save(model.state_dict(), weights_dir / weight_filename)
     print(f"Saved final weights as {weight_filename}")
 
-    # Generate text from the model
-    print("\nGenerating text...")
-    input_starting_strings = [
-        "<pad>",
-        "= valkyria",
-        "= = reception ="]
+    return model, avg_loss
 
-    generated_strings = generate_text(
-        model=model,
-        tokenizer=tokenizer,
-        start_string_list=input_starting_strings,
-        device=device,
-        seq_len=args.seq_len,
-        generation_length=100)
 
-    print("Generated strings:")
-    for idx, string in enumerate(generated_strings):
-        print(f"{idx+1}: {string}\n")
+if __name__ == "__main__":
+    # Initialize, setup, and parse the argument parser
+    parser = ArgumentParser(
+            prog="Model Trainer",
+            description="Used to train comparable RetNet, Transformer models.")
+
+    parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
+        help="Probability of element to be zeroed in dropout layer after " + \
+            "activation between FFN layers.")
+    parser.add_argument("-b", "--batch-size", type=int, default=32,
+        help="Batch size.")
+    parser.add_argument("-c", "--checkpoints", action="store_true",
+        default=False, help="Save model checkpoints while training.")
+    parser.add_argument("--data-dir", type=str, required=True,
+        help="Path to directory where all data except datasets are saved.")
+    parser.add_argument("--dataset-dir", type=str, required=True,
+        help="Path to directory in which Hugging Face datasets are downloaded.")
+    parser.add_argument("--dataset-feature", type=str, default="text",
+        help="Hugging Face dataset feature/column to use.")
+    parser.add_argument("--dataset-name", type=str, default="wikitext",
+        help="Hugging Face dataset name. Should also set --dataset-subset.")
+    parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
+        help="Subset/config to use for Hugging Face dataset.")
+    parser.add_argument("--device", type=str, default="cuda",
+        help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
+    parser.add_argument("-d", "--dropout", type=float, default=0.1,
+        help="Probability of element to be zeroed in dropout layer.")
+    parser.add_argument("-e", "--embed-dim", type=int, default=768,
+        help="Embedding dimension size of each token.")
+    parser.add_argument("--epochs", type=int, default=10,
+        help="Number of epochs to train for.")
+    parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
+        help="FFN hidden layer size.")
+    parser.add_argument("--fsdp", action="store_true", default=False,
+        help="Module parameters sharded across data parallel workers.")
+    parser.add_argument("-l", "--layers", type=int, default=12,
+        help="Number of stacked layers in model.")
+    parser.add_argument("--lr", type=float, required=True,
+        help="Learning rate of model to train.")
+    parser.add_argument("-m", "--model", required=True, dest="model_type",
+        choices=["retnet", "transformer"],
+        help="Name of model architecture to train.")
+    parser.add_argument("-n", "--heads", type=int, default=3,
+        help="Number of heads. Head architecture changes based on model.")
+    parser.add_argument("-r", "--rand-seed", type=int, default=None,
+        help="Random seed to use, allowing more reproducible results.")
+    parser.add_argument("-s", "--seq-len", type=int, default=512,
+        help="Sequence length (context window size).")
+    parser.add_argument("--splits", type=float, nargs=3,
+        default=[0.7, 0.2, 0.1],
+        help="Space-separated decimal splits of train, validation, and " + \
+            "test datasets. (Ex: '0.7 0.2 0.1')")
+    parser.add_argument("--tboard-dir", type=str, default=None,
+        help="Path to directory to save TensorBoard logs in.")
+    parser.add_argument("--val-freq", type=int, default=3,
+        help="Number of times to run validation per epoch during training.")
+    parser.add_argument("--value-embed-dim", type=int, default=1280,
+        help="Value embed dimension size.")
+    parser.add_argument("--vocab-size", type=int, required=True,
+        help="Maximum number of unique tokens in vocabulary.")
+
+    args = parser.parse_args()
+    train_model(**vars(args))
