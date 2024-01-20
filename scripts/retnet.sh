@@ -1,4 +1,4 @@
-python3 train_model.py \
+python3 ../train_model.py \
     --activation-dropout 0.1 \
     --batch-size 128 \
     --checkpoints \
