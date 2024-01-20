@@ -2,8 +2,8 @@ python3 ../train_model.py \
     --activation-dropout 0.1 \
     --batch-size 128 \
     --checkpoints \
-    --data-dir /tmp/data \
-    --dataset-dir /tmp/data/datasets \
+    --data-dir /home/jo288/compute/retnet/data \
+    --dataset-dir /home/jo288/compute/retnet/data/dataset\
     --dataset-feature text \
     --dataset-name wikitext \
     --dataset-subset wikitext-2-v1 \
@@ -24,6 +24,5 @@ python3 ../train_model.py \
     --val-freq 3 \
     --value-embed-dim 128 \
     --vocab-size 100000 \
-    --tokenizer-folder /home/searlejj/CS301R/301r_retnet/data/tokenizers/my_cool_tokenizer \
-    --dataset-dir /home/searlejj/fsl_groups/grp_retnet/compute/data \
-    --dataset-subset wikitext-2-v1-tokenized \
+    --tokenizer-folder /home/jo288/compute/retnet/data/tokenizers/wikitext \
+    --num-devices 1 \

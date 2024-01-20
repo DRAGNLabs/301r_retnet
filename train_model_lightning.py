@@ -18,15 +18,13 @@ from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
 from tqdm import tqdm
-from transformers import set_seed
+from transformers import set_seed, PreTrainedTokenizerFast
 from utils import generate_text
 from pytorch_lightning import LightningModule
 from pytorch_lightning import Trainer
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from pytorch_lightning.callbacks import ModelCheckpoint
 from dataset import DataModule
-
-REPO_ROOT_NAME = "301r_retnet"
 
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
@@ -116,7 +114,6 @@ class RetNetModel(LightningModule):
         return preds
     
     def training_step(self, batch, batch_idx):
-        # TODO: this may not work, need to check
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
@@ -128,7 +125,7 @@ class RetNetModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
-        self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
         
         return loss
     
@@ -138,7 +135,7 @@ class RetNetModel(LightningModule):
         val_targets = batch[:, 1:]
 
         # Get validation predictions
-        val_predictions = model(val_inputs)
+        val_predictions, _ = self.decoder_stack(val_inputs)
 
         # Reshape the model predictions for Cross Entropy
         val_predictions = val_predictions.transpose(-2, -1)
@@ -146,7 +143,7 @@ class RetNetModel(LightningModule):
         # Calculate validation loss
         val_loss = self.loss_fn(val_predictions, val_targets)
 
-        self.log('val_loss', val_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        self.log('val_loss', val_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
 
         return val_loss
     
@@ -156,7 +153,7 @@ class RetNetModel(LightningModule):
         test_targets = batch[:, 1:]
 
         # Get validation predictions
-        test_predictions = model(test_inputs)
+        test_predictions, _ = self.decoder_stack(test_inputs)
 
         # Reshape the model predictions for Cross Entropy
         test_predictions = test_predictions.transpose(-2, -1)
@@ -164,7 +161,7 @@ class RetNetModel(LightningModule):
         # Calculate validation loss
         test_loss = self.loss_fn(test_predictions, test_targets)
 
-        self.log('val_loss', test_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        self.log('test_loss', test_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
         
         return test_loss
 
@@ -174,8 +171,8 @@ class RetNetModel(LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.decoder_stack.parameters(), lr=self.model_params["lr"])
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
-        return [optimizer], [lr_scheduler]
+        #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma) # TODO: Implement this
+        return [optimizer]#, [lr_scheduler]
 
 
 class TransformerModel(LightningModule):
@@ -190,7 +187,8 @@ class TransformerModel(LightningModule):
             activation_dropout: float,
             vocab_size: int,
             fsdp: bool,
-            max_seq_len: int):
+            max_seq_len: int,
+            lr: float):
         """ Use parameters to create corresponding Transformer model.
         Args:
             embed_dim (int): Dimension size of each embedded token.
@@ -221,7 +219,8 @@ class TransformerModel(LightningModule):
             "activation_dropout": activation_dropout,
             "vocab_size": vocab_size,
             "fsdp": fsdp,
-            "max_seq_len": max_seq_len}
+            "max_seq_len": max_seq_len,
+            "lr": lr}
 
         # Create Transformer Decoder configuration
         config = DecoderConfig(
@@ -243,6 +242,8 @@ class TransformerModel(LightningModule):
 
         self.decoder_stack = Decoder(config, embed_tokens=text_embeddings)
 
+        self.loss_fn = nn.CrossEntropyLoss(reduction="mean")
+
     def forward(self, x: Tensor) -> Tensor:
         """
         Args:
@@ -257,7 +258,6 @@ class TransformerModel(LightningModule):
         return preds
     
     def training_step(self, batch, batch_idx):
-        # TODO: this may not work, need to check
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
@@ -268,8 +268,8 @@ class TransformerModel(LightningModule):
 
         # Calculate loss
         loss = self.loss_fn(preds, targets)
-        train_total_loss += loss * len(inputs)
-        train_total_samples += len(inputs)
+
+        self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
 
         return loss
     
@@ -279,7 +279,7 @@ class TransformerModel(LightningModule):
         val_targets = batch[:, 1:]
 
         # Get validation predictions
-        val_predictions = model(val_inputs)
+        val_predictions, _ = self.decoder_stack(val_inputs)
 
         # Reshape the model predictions for Cross Entropy
         val_predictions = val_predictions.transpose(-2, -1)
@@ -287,7 +287,27 @@ class TransformerModel(LightningModule):
         # Calculate validation loss
         val_loss = self.loss_fn(val_predictions, val_targets)
 
+        self.log('val_loss', val_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
+
         return val_loss
+    
+    def test_step(self, batch, batch_idx):
+        # Put validation inputs and targets on device
+        test_inputs = batch[:, :-1]
+        test_targets = batch[:, 1:]
+
+        # Get validation predictions
+        test_predictions, _ = self.decoder_stack(test_inputs)
+
+        # Reshape the model predictions for Cross Entropy
+        test_predictions = test_predictions.transpose(-2, -1)
+
+        # Calculate validation loss
+        test_loss = self.loss_fn(test_predictions, test_targets)
+
+        self.log('test_loss', test_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
+        
+        return test_loss
 
     def get_params(self) -> dict:
         """ Get model parameters dictionary. """
@@ -295,15 +315,200 @@ class TransformerModel(LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.decoder_stack.parameters(), lr=self.model_params["lr"])
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
-        return [optimizer], [lr_scheduler]
+        #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
+        return [optimizer]#, [lr_scheduler]
 
+def train_model(activation_dropout=0.0, 
+                batch_size=8, 
+                checkpoints=False, 
+                data_dir=None,
+                dataset_dir=None,
+                dataset_feature=None, 
+                dataset_name="wikitext", 
+                dataset_subset="wikitext-2-v1", 
+                device="cuda",
+                dropout=0.1, 
+                embed_dim=76, 
+                epochs=1, 
+                ffn_dim=12, 
+                fsdp=False, 
+                heads=4, 
+                layers=2, 
+                lr=0.001, 
+                model_type="retnet", 
+                rand_seed=None, 
+                repo_root_dir=None,
+                seq_len=128, 
+                splits=[0.7, 0.2, 0.1], 
+                tboard_dir=None, 
+                val_freq=1, 
+                value_embed_dim=12, 
+                vocab_size=4000,
+                num_devices=1,
+                tokenizer_folder=None):
+    arg_dict = locals()
+    print(arg_dict)
+
+    # Test that the head dimension will be an even, whole number
+    assert embed_dim % (heads * 2) == 0, \
+        "Head Dimension must be even to perform Rotary Position Embedding " + \
+        f"({embed_dim} / {heads} = {embed_dim / heads} " + \
+        "-- not an even, whole number)! Try changing the Embedding " + \
+        "Dimension or number of heads."
+
+    # Test that the value embedding dimension is divisible by number of heads
+    assert value_embed_dim % heads == 0, \
+        "Value Embed Dimension not divisible by number of heads " + \
+        f"({value_embed_dim} % {heads} != 0)!"
+
+    # Test the dataset splits add up to 1, using isclose for rounding errors
+    assert isclose(sum(splits), 1), \
+        "The dataset splits for the training, validation, and testing " + \
+        f"datasets must sum up to 1 ({' + '.join(map(str, splits))} != 1)!"
+
+    # Set random seeds for torch, numpy, random, etc. with transformers library
+    if rand_seed is not None:
+        set_seed(rand_seed)
+
+    # Create requested model
+    if model_type == "retnet":
+        model = RetNetModel(
+            embed_dim=embed_dim,
+            value_embed_dim=value_embed_dim,
+            retention_heads=heads,
+            ffn_dim=ffn_dim,
+            layers=layers,
+            dropout=dropout,
+            activation_dropout=activation_dropout,
+            vocab_size=vocab_size,
+            fsdp=fsdp,
+            max_seq_len=seq_len,
+            lr=lr)
+    elif model_type == "transformer":
+        model = TransformerModel(
+            embed_dim=embed_dim,
+            value_embed_dim=value_embed_dim,
+            attention_heads=heads,
+            ffn_dim=ffn_dim,
+            layers=layers,
+            dropout=dropout,
+            activation_dropout=activation_dropout,
+            vocab_size=vocab_size,
+            fsdp=fsdp,
+            max_seq_len=seq_len,
+            lr=lr)
+
+    # Print all arguments for recordkeeping
+    print("Arguments:")
+    arg_table = []
+    row = []
+    for i, arg in enumerate(vars(args)):
+        row.append(f"{arg}: {getattr(args, arg)}")
+        if (i + 1) % 4 == 0:
+            arg_table.append(row)
+            row = []
+    if row:
+        arg_table.append(row)
+    print(tabulate(arg_table, tablefmt="grid"))
+
+    # Print model info
+    print("\nModel Summary:")
+    total_params = model_summary(
+        model,
+        input_data=torch.ones(1, seq_len).long()).total_params
+    
+    # Create unique label for model (timestamp, model type, parameter count)
+    model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
+        f"{model_type}_{total_params}"
+
+    # Initialize model weights folders
+    save_folder = Path(data_dir) / "weights" / model_label
+    save_folder.mkdir(parents=True, exist_ok=True)
+    print(f"\nSaving weights in {save_folder}")
+
+    # Save all the variables in args as JSON inside folder
+    arg_dict = vars(args)
+    json_string = json.dump(
+        obj=arg_dict,
+        fp=open(save_folder / "model_args.json", "w"),
+        indent=4)
+
+    # Print estimated loss if it hasn't learned anything
+    print("\nEstimated Loss if guessing:")
+    print(f"-log(1 / {vocab_size}) = " + \
+        f"{-torch.log(torch.tensor(1 / vocab_size))}")
+
+    # Get DataLoaders and trained Tokenizer
+    # Get Tokenizer from local directory
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
+
+    # Loads Tokenized data
+    train_tokenized_dataset_path = str(Path(dataset_dir) / dataset_name / "tokenized" / "train.parquet")
+    test_tokenized_dataset_path = str(Path(dataset_dir) / dataset_name / "tokenized" / "test.parquet")
+    validation_tokenized_dataset_path = str(Path(dataset_dir) / dataset_name / "tokenized" / "validation.parquet")
+
+    print(f"\nNow retrieving '{dataset_name}' and tokenizer...")
+    dm = DataModule(train_tokenized_dataset_path, 
+                    test_tokenized_dataset_path,
+                    validation_tokenized_dataset_path,
+                    batch_size)
+
+    #model = torch.compile(model) #TODO: this doesn't work with lightning, says something about logging in validation twice, need to figure out how to compile the model
+
+    # Implement callbacks
+    model_checkpoint = ModelCheckpoint(
+        dirpath=save_folder,
+        filename='epoch_{epoch}_validation_{num_val_runs}', # TODO: where are we getting num val runs?
+        save_top_k=3, # TODO: implement this argument
+        monitor='val_loss',
+        mode='max')
+    
+    trainer = Trainer(
+        default_root_dir=data_dir, # main directory for run
+        accelerator='gpu', # gpu or cpu
+        num_nodes=1, # TODO: implement this as an argument
+        devices=num_devices,
+        strategy="ddp",
+        max_epochs=epochs,
+        accumulate_grad_batches=1, #TODO: implement this argument
+        sync_batchnorm=True,
+        plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
+        callbacks=[model_checkpoint],
+        #val_check_interval=val_freq #TODO: need to set this properly-> default is 1? But doesn't make sense.
+        )
+    
+    trainer.fit(model, datamodule=dm)
+
+    print("\nDone training! Now testing model...")
+    trainer.test(datamodule=dm) # Automatically loads best checkpoint, and tests with test dataloader
+
+    # Generate text from the model
+    print("\nGenerating text...")
+    input_starting_strings = [
+        "<pad>",
+        "= valkyria",
+        "= = reception ="]
+
+    # Define the device to use
+    device = torch.device(device)
+
+    generated_strings = generate_text(
+        model=model,
+        tokenizer=tokenizer,
+        start_string_list=input_starting_strings,
+        device=device,
+        seq_len=seq_len,
+        generation_length=100)
+
+    print("Generated strings:")
+    for idx, string in enumerate(generated_strings):
+        print(f"{idx+1}: {string}\n")
 
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
     parser = ArgumentParser(
-        prog="Model Trainer",
-        description="Used to train comparable RetNet, Transformer models.")
+            prog="Model Trainer",
+            description="Used to train comparable RetNet, Transformer models.")
 
     parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
         help="Probability of element to be zeroed in dropout layer after " + \
@@ -312,6 +517,10 @@ if __name__ == "__main__":
         help="Batch size.")
     parser.add_argument("-c", "--checkpoints", action="store_true",
         default=False, help="Save model checkpoints while training.")
+    parser.add_argument("--data-dir", type=str, required=True,
+        help="Path to directory where all data except datasets are saved.")
+    parser.add_argument("--dataset-dir", type=str, required=True,
+        help="Path to directory in which Hugging Face datasets are downloaded.")
     parser.add_argument("--dataset-feature", type=str, default="text",
         help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
@@ -347,168 +556,48 @@ if __name__ == "__main__":
         default=[0.7, 0.2, 0.1],
         help="Space-separated decimal splits of train, validation, and " + \
             "test datasets. (Ex: '0.7 0.2 0.1')")
+    parser.add_argument("--tboard-dir", type=str, default=None,
+        help="Path to directory to save TensorBoard logs in.")
     parser.add_argument("--val-freq", type=int, default=3,
         help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
         help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
         help="Maximum number of unique tokens in vocabulary.")
+    parser.add_argument("--tokenizer-folder", type= str, required=True,
+        help="Path to the file where the tokenizer will be saved")
+    parser.add_argument("--num-devices", type= str, required=True,
+        help="Number of gpus to train on")
+    
 
     args = parser.parse_args()
 
-    # Test that the head dimension will be an even, whole number
-    assert args.embed_dim % (args.heads * 2) == 0, \
-        "Head Dimension must be even to perform Rotary Position Embedding " + \
-        f"({args.embed_dim} / {args.heads} = {args.embed_dim / args.heads} " + \
-        "-- not an even, whole number)! Try changing the Embedding " + \
-        "Dimension or number of heads."
-
-    # Test that the value embedding dimension is divisible by number of heads
-    assert args.value_embed_dim % args.heads == 0, \
-        "Value Embed Dimension not divisible by number of heads " + \
-        f"({args.value_embed_dim} % {args.heads} != 0)!"
-
-    # Test the dataset splits add up to 1, using isclose for rounding errors
-    assert isclose(sum(args.splits), 1), \
-        "The dataset splits for the training, validation, and testing " + \
-        f"datasets must sum up to 1 ({' + '.join(map(str, args.splits))} != 1)!"
-
-    # Set random seeds for torch, numpy, random, etc. with transformers library
-    if args.rand_seed is not None:
-        set_seed(args.rand_seed)
-
-    # Create requested model
-    if args.model == "retnet":
-        model = RetNetModel(
-            embed_dim=args.embed_dim,
-            value_embed_dim=args.value_embed_dim,
-            retention_heads=args.heads,
-            ffn_dim=args.ffn_dim,
-            layers=args.layers,
-            dropout=args.dropout,
-            activation_dropout=args.activation_dropout,
-            vocab_size=args.vocab_size,
-            fsdp=args.fsdp,
-            max_seq_len=args.seq_len)
-    elif args.model == "transformer":
-        model = TransformerModel(
-            embed_dim=args.embed_dim,
-            value_embed_dim=args.value_embed_dim,
-            attention_heads=args.heads,
-            ffn_dim=args.ffn_dim,
-            layers=args.layers,
-            dropout=args.dropout,
-            activation_dropout=args.activation_dropout,
-            vocab_size=args.vocab_size,
-            fsdp=args.fsdp,
-            max_seq_len=args.seq_len)
-
-    # Print all arguments for recordkeeping
-    print("Arguments:")
-    arg_table = []
-    row = []
-    for i, arg in enumerate(vars(args)):
-        row.append(f"{arg}: {getattr(args, arg)}")
-        if (i + 1) % 4 == 0:
-            arg_table.append(row)
-            row = []
-    if row:
-        arg_table.append(row)
-    print(tabulate(arg_table, tablefmt="grid"))
-
-    # Print model info
-    print("\nModel Summary:")
-    total_params = model_summary(
-        model,
-        input_data=torch.ones(1, args.seq_len).long()).total_params
-
-    # Get path of repository root folder
-    repo_root_dir = Path(__file__)
-    while REPO_ROOT_NAME not in repo_root_dir.name:
-        repo_root_dir = repo_root_dir.parent
-
-    # Create unique label for model (timestamp, model type, parameter count)
-    model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-        f"{args.model}_{total_params}"
-
-    # Initialize model weights folders
-    save_folder = repo_root_dir / "weights" / model_label
-    save_folder.mkdir(parents=True, exist_ok=True)
-    print(f"\nSaving weights in {save_folder}")
-
-    # Save all the variables in args as JSON inside folder
-    arg_dict = vars(args)
-    json_string = json.dump(
-        obj=arg_dict,
-        fp=open(save_folder / "model_args.json", "w"),
-        indent=4)
-
-    # Print estimated loss if it hasn't learned anything
-    print("\nEstimated Loss if guessing:")
-    print(f"-log(1 / {args.vocab_size}) = " + \
-        f"{-torch.log(torch.tensor(1 / args.vocab_size))}")
-
-    # Get DataLoaders and trained Tokenizer
-    print(f"\nNow retrieving '{args.dataset_name}' and training tokenizer...")
-    dm = DataModule(args.data_dir, args.batch_size)
-
-    model = torch.compile(model)
-
-    # Implement callbacks
-    model_checkpoint = ModelCheckpoint(
-        dirpath=save_folder,
-        filename='epoch_{epoch}_validation_{num_val_runs}', # TODO: where are we getting num val runs?
-        save_top_k=args.save_top_k,
-        monitor='val_loss',
-        mode='max')
-    
-    # TODO: make sure these args exist
-    trainer = Trainer(
-        default_root_dir=args.default_root_dir, # main directory for run
-        accelerator=args.accelerator, # gpu or cpu
-        num_nodes=args.num_nodes,
-        devices=args.devices,
-        strategy="ddp",
-        max_epochs=args.num_epochs,
-        accumulate_grad_batches=args.gradient_accumulation_steps,
-        sync_batchnorm=True,
-        plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
-        callbacks=[model_checkpoint],
-        val_check_interval=args.val_freq
-        )
-    
-    trainer.fit(model, datamodule=dm)
-
-    print("\nDone training! Now testing model...")
-    trainer.test() # Automatically loads best checkpoint, and tests with test dataloader
-
-    # Save hyperparameters and metrics in logs TODO: I don't think this is necessary, we just log in step
-    # writer.add_hparams(
-    #     hparam_dict=model.get_params(),
-    #     metric_dict={
-    #         "Loss/train": avg_train_loss,
-    #         "Loss/validation": avg_val_loss,
-    #         "Loss/test": avg_loss})
-
-
-    # Generate text from the model
-    print("\nGenerating text...")
-    input_starting_strings = [
-        "<pad>",
-        "= valkyria",
-        "= = reception ="]
-
-    # Define the device to use
-    device = torch.device(args.device)
-
-    generated_strings = generate_text(
-        model=model,
-        tokenizer=tokenizer,
-        start_string_list=input_starting_strings,
-        device=device,
-        seq_len=args.seq_len,
-        generation_length=100)
-
-    print("Generated strings:")
-    for idx, string in enumerate(generated_strings):
-        print(f"{idx+1}: {string}\n")
+    train_model(
+        activation_dropout=args.activation_dropout, 
+        batch_size=args.batch_size, 
+        checkpoints=args.checkpoints, 
+        data_dir=args.data_dir,
+        dataset_dir=args.dataset_dir,
+        dataset_feature=args.dataset_feature,
+        dataset_name=args.dataset_name,
+        dataset_subset=args.dataset_subset,
+        device=args.device, 
+        dropout=args.dropout, 
+        embed_dim=args.embed_dim, 
+        epochs=args.epochs, 
+        ffn_dim=args.ffn_dim, 
+        fsdp=args.fsdp, 
+        heads=args.heads, 
+        layers=args.layers, 
+        lr=args.lr, 
+        model_type=args.model, 
+        rand_seed=args.rand_seed, 
+        seq_len=args.seq_len, 
+        splits=args.splits,
+        tboard_dir=args.tboard_dir,
+        val_freq=args.val_freq, 
+        value_embed_dim=args.value_embed_dim, 
+        vocab_size=args.vocab_size,
+        num_devices=args.num_devices,
+        tokenizer_folder=args.tokenizer_folder
+    )

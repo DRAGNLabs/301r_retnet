@@ -38,10 +38,6 @@ def download_data(
         raise Exception("Dataset is not of type " + \
             "datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict")
 
-        raise Exception("Dataset is not of type " + \
-            "datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict")
-
-
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
     parser = ArgumentParser(prog="Data Downloader")
