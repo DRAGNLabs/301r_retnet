@@ -537,25 +537,6 @@ def train_model(
     torch.save(model.state_dict(), weights_dir / weight_filename)
     print(f"Saved final weights as {weight_filename}")
 
-    # Generate text from the model
-    print("\nGenerating text...")
-    input_starting_strings = [
-        "<pad>",
-        "= valkyria",
-        "= = reception ="]
-
-    generated_strings = generate_text(
-        model=model,
-        tokenizer=tokenizer,
-        start_string_list=input_starting_strings,
-        device=device,
-        seq_len=seq_len,
-        generation_length=100)
-
-    print("Generated strings:")
-    for idx, string in enumerate(generated_strings):
-        print(f"{idx+1}: {string}\n")
-
     return model, avg_loss
 
 
