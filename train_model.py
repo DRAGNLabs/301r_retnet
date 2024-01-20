@@ -190,20 +190,35 @@ class TransformerModel(nn.Module):
         return self.model_params
 
 
-def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False, 
-                data_dir="/tmp/data", dataset_dir="/tmp/data/datasets", 
-                dataset_feature="text", dataset_name="wikitext", 
-                dataset_subset="wikitext-2-v1", device="cuda",
-                dropout=0.1, embed_dim=76, 
-                epochs=1, ffn_dim=12, 
-                fsdp=False, heads=4, 
-                layers=2, lr=0.001, 
-                model_type="retnet", rand_seed=None, 
-                repo_root_dir=None, seq_len=128,
-                splits=[0.7, 0.2, 0.1], tboard_dir=None, 
-                val_freq=3, value_embed_dim=12, vocab_size=4000):
+def train_model(
+        activation_dropout=0.0,
+        batch_size=8,
+        checkpoints=False,
+        data_dir="/tmp/data",
+        dataset_dir="/tmp/data/datasets",
+        dataset_feature="text",
+        dataset_name="wikitext",
+        dataset_subset="wikitext-2-v1",
+        device="cuda",
+        dropout=0.1,
+        embed_dim=76,
+        epochs=1,
+        ffn_dim=12,
+        fsdp=False,
+        heads=4,
+        layers=2,
+        lr=0.001,
+        model_type="retnet",
+        rand_seed=None,
+        repo_root_dir=None,
+        seq_len=128,
+        splits=[0.7, 0.2, 0.1],
+        tboard_dir=None,
+        val_freq=3,
+        value_embed_dim=12,
+        vocab_size=4000):
+    # Store all the parameters, which are the only locals at this point, as dict
     arg_dict = locals()
-    print(arg_dict)
 
     # Test that the head dimension will be an even, whole number
     assert embed_dim % (heads * 2) == 0, \
@@ -251,7 +266,7 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
             vocab_size=vocab_size,
             fsdp=fsdp,
             max_seq_len=seq_len)
-        
+
     # Print all arguments for recordkeeping
     print("Arguments:")
     arg_table = []
@@ -264,7 +279,7 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     if row:
         arg_table.append(row)
     print(tabulate(arg_table, tablefmt="grid"))
-    
+
     # Print model info
     print("\nModel Summary:")
     total_params = model_summary(
@@ -291,7 +306,7 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     weights_dir = model_dir / "weights"
     weights_dir.mkdir(parents=False, exist_ok=False)
     print(f"Saving weight files in {weights_dir}")
-    
+
     # Initialize tokenizers directory
     tokenizers_dir = Path(data_dir) / "tokenizers"
     tokenizers_dir.mkdir(parents=False, exist_ok=True)
@@ -299,11 +314,11 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
 
     # Create SummaryWriter to record logs for TensorBoard
     if tboard_dir is None:
-        tboard_log_folder = repo_root_dir / "logs" / model_label
+        tboard_log_dir = Path(data_dir) / "logs" / model_label
     else:
-        tboard_log_folder = f"{tboard_dir}/logs/{model_label}"
-    writer = SummaryWriter(log_dir=tboard_log_folder)
-    print(f"Saving TensorBoard logs in {tboard_log_folder}")
+        tboard_log_dir = f"{tboard_dir}/logs/{model_label}"
+    writer = SummaryWriter(log_dir=tboard_log_dir)
+    print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
     # Save all the variables in args as JSON inside folder
     json_string = json.dump(
@@ -382,9 +397,9 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
             # Update parameters
             optimizer.step()
 
-            # Run validation val_freq times per epoch. To do this, we split
-            # up the epoch into val_freq chunks and run validation after
-            # each chunk is finished.
+            # Run validation val_freq times per epoch. To do this, we split up
+            # the epoch into val_freq chunks and run validation after each chunk
+            # is finished.
             avg_val_loss = 0
             avg_train_loss = 0
             if val_freq > 0 \
@@ -509,7 +524,7 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     print("Generated strings:")
     for idx, string in enumerate(generated_strings):
         print(f"{idx+1}: {string}\n")
-        
+
     return model, avg_loss
 
 
@@ -577,29 +592,29 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     train_model(
-        activation_dropout=args.activation_dropout, 
-        batch_size=args.batch_size, 
-        checkpoints=args.checkpoints, 
+        activation_dropout=args.activation_dropout,
+        batch_size=args.batch_size,
+        checkpoints=args.checkpoints,
         data_dir=args.data_dir,
         dataset_dir=args.dataset_dir,
         dataset_feature=args.dataset_feature,
         dataset_name=args.dataset_name,
         dataset_subset=args.dataset_subset,
-        device=args.device, 
-        dropout=args.dropout, 
-        embed_dim=args.embed_dim, 
-        epochs=args.epochs, 
-        ffn_dim=args.ffn_dim, 
-        fsdp=args.fsdp, 
-        heads=args.heads, 
-        layers=args.layers, 
-        lr=args.lr, 
-        model_type=args.model, 
-        rand_seed=args.rand_seed, 
-        seq_len=args.seq_len, 
+        device=args.device,
+        dropout=args.dropout,
+        embed_dim=args.embed_dim,
+        epochs=args.epochs,
+        ffn_dim=args.ffn_dim,
+        fsdp=args.fsdp,
+        heads=args.heads,
+        layers=args.layers,
+        lr=args.lr,
+        model_type=args.model,
+        rand_seed=args.rand_seed,
+        seq_len=args.seq_len,
         splits=args.splits,
         tboard_dir=args.tboard_dir,
-        val_freq=args.val_freq, 
-        value_embed_dim=args.value_embed_dim, 
+        val_freq=args.val_freq,
+        value_embed_dim=args.value_embed_dim,
         vocab_size=args.vocab_size
     )
