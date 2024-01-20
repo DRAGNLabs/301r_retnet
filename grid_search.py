@@ -9,15 +9,15 @@ from train_model import train_model
 
 def evaluate_models(model1, model2, model1_loss, model2_loss):
     return abs(model1_loss - model2_loss)
-def grid_search(dataset_dir, dataset_name, dataset_subset, data_dir, dataset_feature):
+def grid_search(data_dir, dataset_dir, dataset_feature, dataset_name, dataset_subset):
     """ Perform grid search on the hyperparameters of the model.
 
     Args:
-        dataset_dir (str): Path to directory in which Hugging Face datasets are
-            downloaded.
-        dataset_name (str): Name of Hugging Face dataset.
-        dataset_subset (str): Configuration/subset of dataset to use.
         data_dir (str): Path to directory where all data except datasets are saved.
+        dataset_dir (str): Path to directory in which Hugging Face datasets are downloaded.
+        dataset_feature (str): Hugging Face dataset feature/column to use.
+        dataset_name (str): Hugging Face dataset name. Should also set --dataset-subset.
+        dataset_subset (str): Subset/config to use for Hugging Face dataset.
     """
 
     # Hyperparameters ranges to test
@@ -36,7 +36,6 @@ def grid_search(dataset_dir, dataset_name, dataset_subset, data_dir, dataset_fea
                         'RetNet Training Time', 'Transformer Training Time', 'Training Time'])
 
         similarity_scores = {}
-        counter = 0
         for lr, embed_dim, batch_size in param_combinations:
             start_time = time.time()
             
@@ -76,17 +75,16 @@ if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
     parser = ArgumentParser(prog="Grid Search")
 
+    parser.add_argument("--data-dir", type=str, required=True,
+        help="Path to directory where all data except datasets are saved.")
     parser.add_argument("--dataset-dir", type=str, required=True,
         help="Path to directory in which Hugging Face datasets are downloaded.")
-    parser.add_argument("--dataset-name", type=str, required=True,
+    parser.add_argument("--dataset-feature", type=str, default="text",
+        help="Hugging Face dataset feature/column to use.")
+    parser.add_argument("--dataset-name", type=str, default="wikitext",
         help="Hugging Face dataset name. Should also set --dataset-subset.")
-    parser.add_argument("--dataset-subset", type=str, required=True,
+    parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
         help="Subset/config to use for Hugging Face dataset.")
-    parser.add_argument("--data-dir", type=str, required=True,
-        help="No clue what this is for.")
-    parser.add_argument("--dataset-feature", type=str, required=True,
-        help="No clue what this is for.")
 
     args = parser.parse_args()
-
-    grid_search(args.dataset_dir, args.dataset_name, args.dataset_subset, args.data_dir, args.dataset_feature)
+    grid_search(**vars(args))
