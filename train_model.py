@@ -210,7 +210,6 @@ def train_model(
         lr=0.001,
         model_type="retnet",
         rand_seed=None,
-        repo_root_dir=None,
         seq_len=128,
         splits=[0.7, 0.2, 0.1],
         tboard_dir=None,
@@ -223,13 +222,14 @@ def train_model(
             activation_dropout (float): Probability of an element to be zeroed
                 during dropout after activation between FFN layers.
             batch_size (int): Batch size.
-            value_embed_dim (int): Value embed dimension size.
             ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
             fsdp (bool): Whether to shard Module parameters across data parallel
                 workers or not (with the FairScale library).
+            heads (int):
             layers (int): Number of retention network layers.
             dropout (float): Probability of an element to be zeroed during
                 dropout.
+            value_embed_dim (int): Value embed dimension size.
             vocab_size (int): Maximum vocabulary size (number of unique tokens
                 in vocabulary.
             max_seq_len (int): Size of context window.
