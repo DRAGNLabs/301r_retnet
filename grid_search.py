@@ -56,10 +56,8 @@ def grid_search(
 
     # Open a CSV file to write the results
     with open(Path(data_dir) / "grid_search_results.csv", "w") as results_file:
-        writer = csv.writer(results_file)
-
         # Write header to CSV file
-        writer.writerow([
+        results_file.write(",".join([
             "Learning Rate",
             "Embedding Dimension",
             "Batch Size",
@@ -68,55 +66,57 @@ def grid_search(
             "Similarity Score",
             "RetNet Training Time",
             "Transformer Training Time",
-            "Training Time"])
+            "Training Time"]) + "\n")
 
-        # Train models with each different permutation of hyperparameters
-        similarity_scores = {}
-        for lr, embed_dim, batch_size in param_combinations:
-            start_time = time.time()
+    # Train models with each different permutation of hyperparameters
+    similarity_scores = {}
+    for lr, embed_dim, batch_size in param_combinations:
+        start_time = time.time()
 
-            # Train RetNet model
-            retnet_start_time = time.time()
-            retnet_model, avg_loss_retnet = train_model(
-                embed_dim=embed_dim,
-                lr=lr,
-                batch_size=batch_size,
-                model_type="retnet",
-                dataset_dir=dataset_dir,
-                dataset_name=dataset_name,
-                dataset_subset=dataset_subset,
-                data_dir=data_dir,
-                dataset_feature=dataset_feature,
-                tboard_dir="/tmp/tboard_logs")
-            retnet_training_time = time.time() - retnet_start_time
+        # Train RetNet model
+        retnet_start_time = time.time()
+        retnet_model, avg_loss_retnet = train_model(
+            embed_dim=embed_dim,
+            lr=lr,
+            batch_size=batch_size,
+            model_type="retnet",
+            dataset_dir=dataset_dir,
+            dataset_name=dataset_name,
+            dataset_subset=dataset_subset,
+            data_dir=data_dir,
+            dataset_feature=dataset_feature,
+            tboard_dir="/tmp/tboard_logs")
+        retnet_training_time = time.time() - retnet_start_time
 
-            # Train Transformer model with same hyperparameters as RetNet model
-            transformer_start_time = time.time()
-            transformer_model, avg_loss_transformer = train_model(
-                embed_dim=embed_dim,
-                lr=lr,
-                batch_size=batch_size,
-                model_type="transformer",
-                dataset_dir=dataset_dir,
-                dataset_name=dataset_name,
-                dataset_subset=dataset_subset,
-                data_dir=data_dir,
-                dataset_feature=dataset_feature,
-                tboard_dir="/tmp/tboard_logs")
-            transformer_training_time = time.time() - transformer_start_time
+        # Train Transformer model with same hyperparameters as RetNet model
+        transformer_start_time = time.time()
+        transformer_model, avg_loss_transformer = train_model(
+            embed_dim=embed_dim,
+            lr=lr,
+            batch_size=batch_size,
+            model_type="transformer",
+            dataset_dir=dataset_dir,
+            dataset_name=dataset_name,
+            dataset_subset=dataset_subset,
+            data_dir=data_dir,
+            dataset_feature=dataset_feature,
+            tboard_dir="/tmp/tboard_logs")
+        transformer_training_time = time.time() - transformer_start_time
 
-            # Track how much time both models combined took to train
-            total_time = time.time() - start_time
+        # Track how much time both models combined took to train
+        total_time = time.time() - start_time
 
-            # Compare both models
-            similarity_score = evaluate_models(
-                model1=retnet_model,
-                model2=transformer_model,
-                model1_loss=avg_loss_retnet,
-                model2_loss=avg_loss_transformer)
+        # Compare both models
+        similarity_score = evaluate_models(
+            model1=retnet_model,
+            model2=transformer_model,
+            model1_loss=avg_loss_retnet,
+            model2_loss=avg_loss_transformer)
 
-            # Record results in CSV
-            writer.writerow([
+        # Record results in CSV
+        with open(Path(data_dir) / "grid_search_results.csv",
+                "a") as results_file:
+            results_file.write(",".join(map(str, [
                 lr,
                 embed_dim,
                 batch_size,
@@ -125,24 +125,25 @@ def grid_search(
                 similarity_score,
                 retnet_training_time,
                 transformer_training_time,
-                total_time])
+                total_time])) + "\n")
 
-            # Store similarity score for comparison later
-            similarity_scores[(lr, embed_dim, batch_size)] = similarity_score
+    # Store similarity score for comparison later
+    similarity_scores[(lr, embed_dim, batch_size)] = similarity_score
 
-        # Find the most and least similar parameters, just for fun
-        most_similar_params = min(similarity_scores, key=similarity_scores.get)
-        most_diff_params = max(similarity_scores, key=similarity_scores.get)
+    # Find the most and least similar parameters, just for fun
+    most_similar_params = min(similarity_scores, key=similarity_scores.get)
+    most_diff_params = max(similarity_scores, key=similarity_scores.get)
 
-        # Save comparison of similarity results
-        writer.writerow([
+    # Save comparison of similarity results
+    with open(Path(data_dir) / "grid_search_results.csv", "a") as results_file:
+        results_file.write(",".join(map(str, [
             "Most Similar Parameters",
             *most_similar_params,
-            similarity_scores[most_similar_params]])
-        writer.writerow([
+            similarity_scores[most_similar_params]])) + "\n")
+        results_file.write(",".join(map(str, [
             "Most Different Parameters",
             *most_diff_params,
-            similarity_scores[most_diff_params]])
+            similarity_scores[most_diff_params]])) + "\n")
 
 
 if __name__ == "__main__":
