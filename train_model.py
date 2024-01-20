@@ -306,7 +306,6 @@ def train_model(activation_dropout=0.0, batch_size=8, checkpoints=False,
     print(f"Saving TensorBoard logs in {tboard_log_folder}")
 
     # Save all the variables in args as JSON inside folder
-    arg_dict = vars(args)
     json_string = json.dump(
         obj=arg_dict,
         fp=open(model_dir / "model_args.json", "w"),
