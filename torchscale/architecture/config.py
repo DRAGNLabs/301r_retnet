@@ -264,6 +264,7 @@ class RetNetConfig(PretrainedConfig):
         self.ddp_rank = kwargs.pop("ddp_rank", 0)
         self.xpos_rel_pos = kwargs.pop("xpos_rel_pos", False)
         self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
+        self.lr = kwargs.pop("lr", 0.0001)
 
         if self.deepnorm:
             self.decoder_normalize_before = False

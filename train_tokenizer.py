@@ -4,56 +4,36 @@ from datasets import (
     get_dataset_split_names as get_ds_split_names,
     load_dataset as load_ds)
 from os import environ
-from pathlib import Path
 from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
+from argparse import ArgumentParser
+from pathlib import Path
 
 # Disable parallelism to avoid errors with DataLoaders later on
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
-def get_loaders_tokenizer(
+def train_tokenizer(
+        tokenizer_folder: str,
         dataset_name: str,
         seq_len: int,
-        batch_size: int,
         vocab_size: int,
         dataset_dir: str,
-        dataset_config: str=None,
+        dataset_subset: str=None,
         text_feature: str="text",
-        max_token_len: int=20,
         splits: list[float]=[0.7, 0.2, 0.1],
         rand_seed: int=None) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
-    """ Loads Hugging Face dataset and creates DataLoaders and Tokenizer.
-    Args:
-        dataset_name (str): Name of Hugging Face dataset.
-        seq_len (int): Context window/sequence length.
-        batch_size (int): Batch size.
-        vocab_size (int): Maximum vocabulary size.
-        dataset_dir (str): Absolute path to directory in which to download the
-            dataset.
-        dataset_config (str): Configuration/subset of dataset to use.
-        text_feature (str): Name of the feature/column of the dataset to use.
-        max_token_len (int): Prevents tokenizer creating tokens longer than the
-            specified size.
-        splits (list[float]): A list of three floats containing the train,
-            validation, and test splits respectively. Should sum to 1.
-        rand_seed (int): Seed used during dataset shuffling, ignored if None.
 
-    Returns:
-        Tuple with the format: (Training DataLoader, Validation DataLoader,
-        Testing DataLoader, Tokenizer object).
-    """
     # Retrieve iterators for each split of the dataset
-    dataset_dir = Path(dataset_dir)
-    print(f'Dataset dir: {dataset_dir}')
+    print(f'Data dir: {dataset_dir}')
+    data_path = Path(dataset_dir) / dataset_name / (dataset_subset + ".parquet")
     
-    entire_dataset = load_ds(
-        "parquet",
-        data_files=str(dataset_dir / f"{dataset_config}.parquet"),
-        split="all")
+    entire_dataset = load_ds("parquet", 
+                             data_files=str(data_path),
+                             split="train")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
@@ -76,13 +56,12 @@ def get_loaders_tokenizer(
         "validation": valid_test["train"],
         "test": valid_test["test"]})
 
-    #! # Create BytePair Encoding tokenizer and trainer
-    # tokenizer = Tokenizer(BPE(unk_token="<unk>"))
-    # trainer = BpeTrainer(
-    #     vocab_size=vocab_size,
-    #     show_progress=True,
-    #     special_tokens=["<pad>", "<bos>", "<unk>"],
-    #     max_token_length=max_token_len)
+    # Create BytePair Encoding tokenizer and trainer
+    tokenizer = Tokenizer(BPE(unk_token="<unk>"))
+    trainer = BpeTrainer(
+        vocab_size=vocab_size,
+        show_progress=True,
+        special_tokens=["<pad>", "<bos>", "<unk>"])
 
     # Like GPT-2, we skip the normalizer and go directly to pre-tokenization.
     # The option we add to ByteLevel here is to not add a space at the beginning
@@ -124,31 +103,60 @@ def get_loaders_tokenizer(
         pad_token="<pad>",
         tokenizer_object=tokenizer)
 
-    # Tokenize the datasets
-    tokenization = lambda instances_dict : \
-        tokenizer(
-            instances_dict[text_feature],
-            padding="max_length",
-            truncation=True,
-            max_length=seq_len + 1,
-            return_token_type_ids=False,
-            return_attention_mask=False)
+    # Save tokenizer to file
+    tokenizer_save_path = Path(tokenizer_folder) / dataset_name
+    tokenizer_save_path.mkdir(parents=True, exist_ok=True)
+    tokenizer.save_pretrained(tokenizer_save_path)
 
-    entire_dataset = entire_dataset.map(tokenization, batched=True)
+if __name__ == "__main__":
+    # Get arguments
+    parser = ArgumentParser()
 
-    # Drop now unnecessary text_feature column
-    entire_dataset = entire_dataset.remove_columns(column_names=text_feature)
+    parser.add_argument(
+        "--tokenizer_folder",
+        type=str,
+        required=True,
+        help="Folder to save tokenizer to.")
+    parser.add_argument(
+        "--dataset_name",
+        type=str,
+        required=True,
+        help="Name of Hugging Face dataset.")
+    parser.add_argument(
+        "--seq_len",
+        type=int,
+        required=True,
+        help="Context window/sequence length.")
+    parser.add_argument(
+        "--vocab_size",
+        type=int,
+        required=True,
+        help="Maximum vocabulary size.")
+    parser.add_argument(
+        "--dataset_dir",
+        type=str,
+        required=True,
+        help="Relative path from base of repository to directory in which to download the dataset.")
+    parser.add_argument(
+        "--dataset_subset",
+        type=str,
+        default=None,
+        help="Configuration/subset of dataset to use.")
+    parser.add_argument(
+        "--text_feature",
+        type=str,
+        default="text",
+        help="Name of the feature/column of the dataset to use.")
+    parser.add_argument("--splits", type=float, nargs=3,
+        default=[0.7, 0.2, 0.1],
+        help="Space-separated decimal splits of train, validation, and " + \
+            "test datasets. (Ex: '0.7 0.2 0.1')")
+    parser.add_argument(
+        "--rand_seed",
+        type=int,
+        default=None,
+        help="Seed used during dataset shuffling, ignored if None.")
 
-    # Create DataLoaders
-    train_loader = DataLoader(
-        entire_dataset["train"].with_format("torch")["input_ids"],
-        batch_size=batch_size,
-        shuffle=True)
-    valid_loader = DataLoader(
-        entire_dataset["validation"].with_format("torch")["input_ids"],
-        batch_size=batch_size)
-    test_loader = DataLoader(
-        entire_dataset["test"].with_format("torch")["input_ids"],
-        batch_size=batch_size)
+    args = parser.parse_args()
 
-    return train_loader, valid_loader, test_loader, tokenizer
+    train_tokenizer(args.tokenizer_folder, args.dataset_name, args.seq_len, args.vocab_size, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)

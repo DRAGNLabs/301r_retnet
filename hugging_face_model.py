@@ -7,7 +7,7 @@ from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
 from transformers import PreTrainedModel, AutoModel, AutoConfig
 
-class RetNetModel(PreTrainedModel):
+class RetNetModelHF(PreTrainedModel):
     """ Create model with RetNet architecture. """
     config_class = RetNetConfig
 
@@ -76,7 +76,7 @@ class RetNetModel(PreTrainedModel):
         return hparams
 
 
-class TransformerModel(PreTrainedModel):
+class TransformerModelHF(PreTrainedModel):
     config_class = DecoderConfig
 
     def __init__(

@@ -12,10 +12,14 @@ from tabulate import tabulate
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
 from tqdm import tqdm
-from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM
+from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
 from utils import generate_text
 from hugging_face_model import RetNetModel, TransformerModel
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
+from datasets import (load_dataset as load_ds)
+from torch.utils.data import DataLoader
+
+REPO_ROOT_NAME = "301r_retnet"
 
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
@@ -209,27 +213,47 @@ def train_model(
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
-    print(f"-log(1 / {vocab_size}) = {-torch.log(torch.tensor(1 / vocab_size))}")
+    print(f"-log(1 / {args.vocab_size}) = " + \
+        f"{-torch.log(torch.tensor(1 / args.vocab_size))}")
+    
+    # Get Tokenizer from local directory
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(args.tokenizer_folder)
+
+    # Loads Tokenized data
+    tokenized_dataset = load_ds(
+        "parquet",
+        data_files=str(Path(args.dataset_dir) / args.dataset_name / f"{args.dataset_subset}.parquet"),
+        split="all")
+
+    train_loader = DataLoader(
+        tokenized_dataset["train"].with_format("torch")["input_ids"],
+        batch_size=args.batch_size,
+        shuffle=True)
+    valid_loader = DataLoader(
+        tokenized_dataset["validation"].with_format("torch")["input_ids"],
+        batch_size=args.batch_size)
+    test_loader = DataLoader(
+        tokenized_dataset["test"].with_format("torch")["input_ids"],
+        batch_size=args.batch_size)
+
 
     # Get DataLoaders and trained Tokenizer
-    print(f"\nNow retrieving '{dataset_name}' and training tokenizer...")
-    train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
-        dataset_name=dataset_name,
-        seq_len=seq_len,
-        batch_size=batch_size,
-        vocab_size=vocab_size,
-        dataset_dir=dataset_dir,
-        dataset_config=dataset_subset,
-        text_feature=dataset_feature,
-        max_token_len=20,
-        splits=splits,
-        rand_seed=rand_seed)
+    # print(f"\nNow retrieving '{args.dataset_name}' and training tokenizer...")
+    # train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
+    #     dataset_name=args.dataset_name,
+    #     seq_len=args.seq_len,
+    #     batch_size=args.batch_size,
+    #     vocab_size=args.vocab_size,
+    #     data_dir= Path("/grphome/grp_retnet/compute/data") / args.dataset_name, #NOTE(jay): would not hardcode data, add as a parameter for flexibility
+    #     dataset_config=args.dataset_subset,
+    #     text_feature=args.dataset_feature,
+    #     max_token_len=20,
+    #     splits=args.splits,
+    #     rand_seed=args.rand_seed)
 
     # Save trained tokenizer
-    tokenizer.save_pretrained(
-        save_directory=tokenizers_dir,
-        filename_prefix="BPE")
-    print(f"Saved trained tokenizer in {tokenizers_dir}")
+    # tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
+    # print(f"Saved trained tokenizer")
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
@@ -452,6 +476,13 @@ if __name__ == "__main__":
         help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
         help="Maximum number of unique tokens in vocabulary.")
+    parser.add_argument("--tokenizer-folder", type= str, required=True,
+        help="Path to the file where the tokenizer will be saved")
+    parser.add_argument("--dataset-dir", type= str, required=True,
+        help="Path to the datasets directory")
+    parser.add_argument("--dataset-subset", type= str, required=True,
+        help="Specific name of Tokenized dataset")
+    
 
     args = parser.parse_args()
     train_model(**vars(args))
