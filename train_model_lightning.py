@@ -125,7 +125,7 @@ class RetNetModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
+        self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
         
         return loss
     
