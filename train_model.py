@@ -201,7 +201,7 @@ def train_model(
         dataset_subset="wikitext-2-v1",
         device="cuda",
         dropout=0.1,
-        embed_dim=76,
+        embed_dim=80,
         epochs=1,
         ffn_dim=12,
         fsdp=False,
@@ -218,6 +218,22 @@ def train_model(
         value_embed_dim=12,
         vocab_size=4000):
     # Store all the parameters, which are the only locals at this point, as dict
+    """ Use parameters to run train_model().
+        Args:
+            activation_dropout (float): Probability of an element to be zeroed
+                during dropout after activation between FFN layers.
+            batch_size (int): Batch size.
+            value_embed_dim (int): Value embed dimension size.
+            ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
+            fsdp (bool): Whether to shard Module parameters across data parallel
+                workers or not (with the FairScale library).
+            layers (int): Number of retention network layers.
+            dropout (float): Probability of an element to be zeroed during
+                dropout.
+            vocab_size (int): Maximum vocabulary size (number of unique tokens
+                in vocabulary.
+            max_seq_len (int): Size of context window.
+    """
     arg_dict = locals()
 
     # Test that the head dimension will be an even, whole number
@@ -567,7 +583,7 @@ if __name__ == "__main__":
         help="Number of stacked layers in model.")
     parser.add_argument("--lr", type=float, required=True,
         help="Learning rate of model to train.")
-    parser.add_argument("-m", "--model", required=True,
+    parser.add_argument("-m", "--model", required=True, dest="model_type",
         choices=["retnet", "transformer"],
         help="Name of model architecture to train.")
     parser.add_argument("-n", "--heads", type=int, default=3,
@@ -590,31 +606,4 @@ if __name__ == "__main__":
         help="Maximum number of unique tokens in vocabulary.")
 
     args = parser.parse_args()
-
-    train_model(
-        activation_dropout=args.activation_dropout,
-        batch_size=args.batch_size,
-        checkpoints=args.checkpoints,
-        data_dir=args.data_dir,
-        dataset_dir=args.dataset_dir,
-        dataset_feature=args.dataset_feature,
-        dataset_name=args.dataset_name,
-        dataset_subset=args.dataset_subset,
-        device=args.device,
-        dropout=args.dropout,
-        embed_dim=args.embed_dim,
-        epochs=args.epochs,
-        ffn_dim=args.ffn_dim,
-        fsdp=args.fsdp,
-        heads=args.heads,
-        layers=args.layers,
-        lr=args.lr,
-        model_type=args.model,
-        rand_seed=args.rand_seed,
-        seq_len=args.seq_len,
-        splits=args.splits,
-        tboard_dir=args.tboard_dir,
-        val_freq=args.val_freq,
-        value_embed_dim=args.value_embed_dim,
-        vocab_size=args.vocab_size
-    )
+    train_model(**vars(args))
