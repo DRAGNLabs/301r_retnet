@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from typing import Any
 import torch
 import torch.nn as nn
@@ -599,11 +600,14 @@ if __name__ == "__main__":
         help="Direct path to tokenized validation data")
     parser.add_argument("--test-data", type= str, required=True,
         help="Direct path to tokenized test data")
+    parser.add_argument("--grid-search-out-file", type=str, default=None)
     
 
     args = parser.parse_args()
 
-    train_model(
+    start_time = time.time()
+
+    model, test_loss = train_model(
         activation_dropout=args.activation_dropout, 
         batch_size=args.batch_size, 
         checkpoints=args.checkpoints, 
@@ -635,3 +639,19 @@ if __name__ == "__main__":
         validation_data = args.validation_data,
         test_data = args.test_data
     )
+
+    end_time = time.time()
+
+    if args.grid_search_out_file is not None:
+        with open(args.grid_search_out_file, "a") as results_file:
+            results_file.write(",".join(map(str, [
+                args.lr,
+                args.embed_dim,
+                args.batch_size,
+                args.model,
+                test_loss,
+                end_time - start_time])) + "\n")
+    print(f"GRID SEARCH PARAMS: Learning Rate: {args.lr}, Embedding Dimension: {args.embed_dim}, Batch Size: {args.batch_size}, Model Type: {args.model} Avg Loss: {test_loss}, Training Time: {end_time - start_time} \n")
+
+
+    

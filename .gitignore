@@ -36,3 +36,4 @@ data/
 *.out
 **/test.json
 *.csv
+core.*
