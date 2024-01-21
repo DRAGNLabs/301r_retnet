@@ -1,10 +1,10 @@
 #!/bin/bash --login
 
-#SBATCH --time=1-00:00:00   # walltime
-#SBATCH --ntasks-per-node=1 # number of processor cores (i.e. tasks)
+#SBATCH --time=00:10:00   # walltime
+#SBATCH --ntasks-per-node=2 # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem=128G   # memory per CPU core
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:2
 #SBATCH --qos=cs
 #SBATCH -J "retnet"   # job name
 #SBATCH --output=%x_%j.out
@@ -42,7 +42,7 @@ srun python3 ../train_model_lightning.py \
     --value-embed-dim 128 \
     --vocab-size 20000 \
     --tokenizer-folder /grphome/grp_retnet/compute/tokenizers/wikitext \
-    --num-devices 1 \
+    --num-devices 2 \
     --train-data /grphome/grp_retnet/compute/data/wikitext/tokenized/train.parquet \
     --validation-data /grphome/grp_retnet/compute/data/wikitext/tokenized/validation.parquet \
     --test-data /grphome/grp_retnet/compute/data/wikitext/tokenized/test.parquet \

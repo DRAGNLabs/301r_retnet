@@ -1,6 +1,6 @@
 #!/bin/bash --login
 
-#SBATCH --time=00:10:00   # walltime
+#SBATCH --time=1-00:00:00   # walltime
 #SBATCH --ntasks-per-node=2 # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem=128G   # memory per CPU core
@@ -8,7 +8,7 @@
 #SBATCH --qos=cs
 #SBATCH -J "gridsearch"   # job name
 #SBATCH --output=./data/out_files/retnet/%x_%j_%a.out    # you can change the path to the data_dir/model_type here
-#SBATCH --array=0
+#SBATCH --array=0-26
 
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn. Does nothing if the program doesn't use OpenMP.
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
@@ -27,9 +27,12 @@ fi
 model_type=$1
 
 # set up grid search across the following hyper parameters (in order):
-# learning_rates = [0.01, 0.001, 0.0001]
+# learning_rates = [0.001, 0.0005, 0.0001]
 # embed_dims = [768, 1024, 1280]
-# batch_sizes = [16, 32, 64]
+# ffn_dim = [1024, 2048]
+# heads = [4, 8]
+# seq-len = [256, 512]
+
 
 LEARNING_RATES=(0.01 0.001 0.0001)
 EMBED_DIMS=(768 1024 1280)
@@ -56,7 +59,7 @@ echo "BS: $BS"
 
 srun python3 ../train_model_lightning.py \
     --activation-dropout 0.1 \
-    --batch-size ${BS} \
+    --batch-size 32 \
     --checkpoints \
     --data-dir ./data/${model_type} \
     --dataset-dir /grphome/grp_retnet/compute/data \
@@ -66,7 +69,7 @@ srun python3 ../train_model_lightning.py \
     --device cuda \
     --dropout 0.1 \
     --embed-dim ${ED} \
-    --epochs 1 \
+    --epochs 20 \
     --ffn-dim 512 \
     --fsdp \
     --heads 8 \
@@ -79,7 +82,7 @@ srun python3 ../train_model_lightning.py \
     --tboard-dir /tmp/tboard_logs \
     --val-freq 1 \
     --value-embed-dim 128 \
-    --vocab-size 4000 \
+    --vocab-size 20000 \
     --tokenizer-folder /grphome/grp_retnet/compute/tokenizers/wikitext \
     --num-devices 2 \
     --train-data /grphome/grp_retnet/compute/data/wikitext/tokenized/train.parquet \
