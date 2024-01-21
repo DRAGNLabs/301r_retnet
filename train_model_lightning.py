@@ -43,7 +43,6 @@ class CustomCheckpoint(ModelCheckpoint):
         self.num_ckpts += 1
 
 
-
 class RetNetModel(LightningModule):
     """ Create model with RetNet architecture. """
     def __init__(
@@ -196,9 +195,6 @@ class RetNetModel(LightningModule):
     #     model.model_hf = RetNetModelHF.from_pretrained(load_folder)
     #     return model
 
-
-
-
 class TransformerModel(LightningModule):
     def __init__(
             self,
@@ -258,15 +254,10 @@ class TransformerModel(LightningModule):
             vocab_size=vocab_size,
             fsdp=fsdp)
 
-        # Create embeddings with index 0 representing padding
-        text_embeddings = nn.Embedding(
-            num_embeddings=vocab_size,
-            embedding_dim=embed_dim,
-            padding_idx=0)
-
-        self.decoder_stack = Decoder(config, embed_tokens=text_embeddings)
+        self.model_hf = TransformerModelHF(config)
 
         self.loss_fn = nn.CrossEntropyLoss(reduction="mean")
+
 
     def forward(self, x: Tensor) -> Tensor:
         """
@@ -278,14 +269,14 @@ class TransformerModel(LightningModule):
             A tensor of dimensions: (batch size, sequence length, vocabulary
                 size).
         """
-        preds = self.decoder_stack(x)
+        preds = self.model_hf(x)
         return preds
     
     def training_step(self, batch, batch_idx):
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
-        preds = self.decoder_stack(inputs)
+        preds = self.model_hf(inputs)
 
         # Reshape the model predictions for Cross Entropy
         preds = preds.transpose(-2, -1)
@@ -303,7 +294,7 @@ class TransformerModel(LightningModule):
         val_targets = batch[:, 1:]
 
         # Get validation predictions
-        val_predictions = self.decoder_stack(val_inputs)
+        val_predictions = self.model_hf(val_inputs)
 
         # Reshape the model predictions for Cross Entropy
         val_predictions = val_predictions.transpose(-2, -1)
@@ -321,7 +312,7 @@ class TransformerModel(LightningModule):
         test_targets = batch[:, 1:]
 
         # Get validation predictions
-        test_predictions = self.decoder_stack(test_inputs)
+        test_predictions = self.model_hf(test_inputs)
 
         # Reshape the model predictions for Cross Entropy
         test_predictions = test_predictions.transpose(-2, -1)
@@ -338,9 +329,13 @@ class TransformerModel(LightningModule):
         return self.model_params
     
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.decoder_stack.parameters(), lr=self.model_params["lr"])
+        optimizer = torch.optim.Adam(self.model_hf.parameters(), lr=self.model_params["lr"])
         #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
         return [optimizer]#, [lr_scheduler]
+    
+    def save_pretrained(self, save_folder: str):
+        """ Save model weights and parameters to folder. """
+        self.model_hf.save_pretrained(save_folder)
 
 def train_model(activation_dropout=0.0, 
                 batch_size=8, 
@@ -369,7 +364,10 @@ def train_model(activation_dropout=0.0,
                 value_embed_dim=12, 
                 vocab_size=4000,
                 num_devices=1,
-                tokenizer_folder=None):
+                tokenizer_folder=None,
+                train_data=None,
+                validation_data=None,
+                test_data=None):
     arg_dict = locals()
     print(arg_dict)
 
@@ -423,7 +421,7 @@ def train_model(activation_dropout=0.0,
             lr=lr)
 
     # Print all arguments for recordkeeping
-    print("Arguments:")
+    """print("Arguments:")
     arg_table = []
     row = []
     for i, arg in enumerate(vars(args)):
@@ -433,7 +431,7 @@ def train_model(activation_dropout=0.0,
             row = []
     if row:
         arg_table.append(row)
-    print(tabulate(arg_table, tablefmt="grid"))
+    print(tabulate(arg_table, tablefmt="grid"))"""
 
     # Print model info
     print("\nModel Summary:")
@@ -451,11 +449,11 @@ def train_model(activation_dropout=0.0,
     print(f"\nSaving weights in {save_folder}")
 
     # Save all the variables in args as JSON inside folder
-    arg_dict = vars(args)
+    """arg_dict = vars(args)
     json_string = json.dump(
         obj=arg_dict,
         fp=open(save_folder / "model_args.json", "w"),
-        indent=4)
+        indent=4)"""
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
@@ -467,17 +465,17 @@ def train_model(activation_dropout=0.0,
     tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
 
     # Loads Tokenized data
-    train_tokenized_dataset_path = str(Path(dataset_dir) / dataset_name / "tokenized" / "train.parquet")
-    test_tokenized_dataset_path = str(Path(dataset_dir) / dataset_name / "tokenized" / "test.parquet")
-    validation_tokenized_dataset_path = str(Path(dataset_dir) / dataset_name / "tokenized" / "validation.parquet")
+    # train_tokenized_dataset_path = str(Path(dataset_dir) / dataset_name / "tokenized" / "train.parquet")
+    # test_tokenized_dataset_path = str(Path(dataset_dir) / dataset_name / "tokenized" / "test.parquet")
+    # validation_tokenized_dataset_path = str(Path(dataset_dir) / dataset_name / "tokenized" / "validation.parquet")
 
     print(f"\nNow retrieving '{dataset_name}' and tokenizer...")
-    dm = DataModule(train_tokenized_dataset_path, 
-                    test_tokenized_dataset_path,
-                    validation_tokenized_dataset_path,
+    dm = DataModule(train_data, 
+                    test_data,
+                    validation_data,
                     batch_size)
 
-    #model = torch.compile(model) #TODO: this doesn't work with lightning, says something about logging in validation twice, need to figure out how to compile the model
+    #model = torch.compile(model) #TODO: this doesn't work with lightning, says something about logging in validation twice: need to use a different version of python?
 
     # Implement callbacks
     model_checkpoint = CustomCheckpoint(
@@ -486,7 +484,6 @@ def train_model(activation_dropout=0.0,
         save_top_k=3, # TODO: implement this argument
         monitor='val_loss',
         mode='max')
-    
     
     trainer = Trainer(
         default_root_dir=data_dir, # main directory for run
@@ -528,6 +525,9 @@ def train_model(activation_dropout=0.0,
     print("Generated strings:")
     for idx, string in enumerate(generated_strings):
         print(f"{idx+1}: {string}\n")
+
+    # TODO: implement this loss value better for grid search.
+    return model, trainer.callback_metrics['test_loss'].item()
 
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
@@ -593,6 +593,12 @@ if __name__ == "__main__":
         help="Path to the file where the tokenizer will be saved")
     parser.add_argument("--num-devices", type= str, required=True,
         help="Number of gpus to train on")
+    parser.add_argument("--train-data", type= str, required=True,
+        help="Direct path to tokenized train data")
+    parser.add_argument("--validation-data", type= str, required=True,
+        help="Direct path to tokenized validation data")
+    parser.add_argument("--test-data", type= str, required=True,
+        help="Direct path to tokenized test data")
     
 
     args = parser.parse_args()
@@ -624,5 +630,8 @@ if __name__ == "__main__":
         value_embed_dim=args.value_embed_dim, 
         vocab_size=args.vocab_size,
         num_devices=args.num_devices,
-        tokenizer_folder=args.tokenizer_folder
+        tokenizer_folder=args.tokenizer_folder,
+        train_data = args.train_data,
+        validation_data = args.validation_data,
+        test_data = args.test_data
     )
