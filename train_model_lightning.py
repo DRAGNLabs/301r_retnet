@@ -642,16 +642,24 @@ if __name__ == "__main__":
 
     end_time = time.time()
 
+# set up grid search across the following hyper parameters (in order):
+# learning_rates = [0.001, 0.0005, 0.0001]
+# embed_dims = [768, 1024, 1280]
+# ffn_dim = [1024, 2048]
+# heads = [4, 8]
+# seq_len = [256, 512]
+
     if args.grid_search_out_file is not None:
         with open(args.grid_search_out_file, "a") as results_file:
             results_file.write(",".join(map(str, [
                 args.lr,
                 args.embed_dim,
-                args.batch_size,
-                args.model,
+                args.ffn_dim,
+                args.heads,
+                args.seq_len,
                 test_loss,
                 end_time - start_time])) + "\n")
-    print(f"GRID SEARCH PARAMS: Learning Rate: {args.lr}, Embedding Dimension: {args.embed_dim}, Batch Size: {args.batch_size}, Model Type: {args.model} Avg Loss: {test_loss}, Training Time: {end_time - start_time} \n")
+    print(f"\nGRID SEARCH PARAMS: Learning Rate: {args.lr}, Embedding Dimension: {args.embed_dim}, FFN Dimension: {args.ffn_dim}, Heads: {args.heads}, Sequence Length: {args.seq_len}, Test Loss: {test_loss}, Training Time: {end_time - start_time} \n")
 
 
     
