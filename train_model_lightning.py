@@ -330,7 +330,7 @@ class TransformerModel(LightningModule):
         return self.model_params
     
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.model_hf.parameters(), lr=self.model_params["lr"])
+        optimizer = torch.optim.Adam(self.model_hf.decoder_stack.parameters(), lr=self.model_params["lr"])
         #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
         return [optimizer]#, [lr_scheduler]
     
@@ -641,13 +641,6 @@ if __name__ == "__main__":
     )
 
     end_time = time.time()
-
-# set up grid search across the following hyper parameters (in order):
-# learning_rates = [0.001, 0.0005, 0.0001]
-# embed_dims = [768, 1024, 1280]
-# ffn_dim = [1024, 2048]
-# heads = [4, 8]
-# seq_len = [256, 512]
 
     if args.grid_search_out_file is not None:
         with open(args.grid_search_out_file, "a") as results_file:
