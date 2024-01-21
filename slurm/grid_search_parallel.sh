@@ -15,7 +15,7 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 nvidia-smi
-mamba activate new_retnet
+mamba activate retnet
 
 # check that the model type is specified
 if [ -z "$1" ]
