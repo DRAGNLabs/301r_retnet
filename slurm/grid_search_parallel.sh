@@ -1,13 +1,13 @@
 #!/bin/bash --login
 
-#SBATCH --time=05:00:00   # walltime
+#SBATCH --time=04:00:00   # walltime
 #SBATCH --ntasks-per-node=8 # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem=128G   # memory per CPU core
 #SBATCH --gres=gpu:8
 #SBATCH --qos=cs
-#SBATCH -J "gridsearch"   # job name
-#SBATCH --output=/grphome/grp_retnet/compute/data/data_run/out_files/retnet/%x_%j_%a.out    # you can change the path to the data_dir/model_type here
+#SBATCH -J "gridsearch_parallel"   # job name
+#SBATCH --output=/grphome/grp_retnet/compute/data/data_run/retnet/out_files/retnet_%x_%j_%a.out    # you can change the path to the data_dir/model_type here 
 #SBATCH --array=0-71
 
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn. Does nothing if the program doesn't use OpenMP.
@@ -72,7 +72,7 @@ srun python3 ../train_model_lightning.py \
     --activation-dropout 0.1 \
     --batch-size 32 \
     --checkpoints \
-    --data-dir /grphome/grp_retnet/compute/data/data_run \
+    --data-dir /grphome/grp_retnet/compute/data/data_run/retnet \
     --dataset-dir /grphome/grp_retnet/compute/data \
     --dataset-feature text \
     --dataset-name wikitext \
@@ -80,7 +80,7 @@ srun python3 ../train_model_lightning.py \
     --device cuda \
     --dropout 0.1 \
     --embed-dim ${ED} \
-    --epochs 5 \
+    --epochs 10 \
     --ffn-dim ${FFN} \
     --fsdp \
     --heads ${HEADS} \
@@ -93,10 +93,11 @@ srun python3 ../train_model_lightning.py \
     --tboard-dir /tmp/tboard_logs \
     --val-freq 1 \
     --value-embed-dim 128 \
-    --vocab-size 32768 \
+    --vocab-size 32786 \
     --tokenizer-folder /grphome/grp_retnet/compute/tokenizers/wikitext \
     --num-devices 8 \
     --train-data /grphome/grp_retnet/compute/data/wikitext/tokenized/train.parquet \
     --validation-data /grphome/grp_retnet/compute/data/wikitext/tokenized/validation.parquet \
     --test-data /grphome/grp_retnet/compute/data/wikitext/tokenized/test.parquet \
-    --grid-search-out-file /grphome/grp_retnet/compute/data/data_run/out_files/${model_type}_grid_search_results.csv \
+    --grid-search-out-file /grphome/grp_retnet/compute/data/data_run/retnet/out_files/${model_type}_grid_search_results.csv \
+
