@@ -2,6 +2,8 @@ import json
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import yaml
+import sys
 
 from argparse import ArgumentParser
 from datetime import datetime
@@ -552,6 +554,17 @@ def train_model(
 
 if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
+    args = sys.argv
+    config_path =args[1]
+
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    config = struct(**config)
+
+
+
+
     parser = ArgumentParser(
             prog="Model Trainer",
             description="Used to train comparable RetNet, Transformer models.")
