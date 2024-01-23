@@ -23,4 +23,7 @@ python3 ../train_model.py \
     --tboard-dir /tmp/tboard_logs \
     --val-freq 3 \
     --value-embed-dim 128 \
-    --vocab-size 100000
+    --vocab-size 100000 \
+    --tokenizer-folder /home/searlejj/CS301R/301r_retnet/data/tokenizers/my_cool_tokenizer \
+    --dataset-dir /home/searlejj/fsl_groups/grp_retnet/compute/data \
+    --dataset-subset wikitext-2-v1-tokenized \

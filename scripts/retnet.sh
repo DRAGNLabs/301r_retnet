@@ -2,8 +2,8 @@ python3 ../train_model.py \
     --activation-dropout 0.1 \
     --batch-size 128 \
     --checkpoints \
-    --data-dir /tmp/data \
-    --dataset-dir /tmp/data/datasets \
+    --data-dir /home/jo288/compute/retnet/data \
+    --dataset-dir /home/jo288/compute/retnet/data/dataset\
     --dataset-feature text \
     --dataset-name wikitext \
     --dataset-subset wikitext-2-v1 \
@@ -23,4 +23,6 @@ python3 ../train_model.py \
     --tboard-dir /tmp/tboard_logs \
     --val-freq 3 \
     --value-embed-dim 128 \
-    --vocab-size 100000
+    --vocab-size 100000 \
+    --tokenizer-folder /home/jo288/compute/retnet/data/tokenizers/wikitext \
+    --num-devices 1 \

@@ -11,186 +11,21 @@ from load_data import get_loaders_tokenizer
 from math import isclose
 from pathlib import Path
 from tabulate import tabulate
-from torch import Tensor
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
-from torchscale.architecture.config import DecoderConfig, RetNetConfig
-from torchscale.architecture.decoder import Decoder
-from torchscale.architecture.retnet import RetNetDecoder
 from tqdm import tqdm
-from transformers import set_seed
+from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
 from utils import generate_text
+from hugging_face_model import RetNetModel, TransformerModel
+from torchscale.architecture.config import RetNetConfig, DecoderConfig
+from datasets import (load_dataset as load_ds)
+from torch.utils.data import DataLoader
+
+REPO_ROOT_NAME = "301r_retnet"
 
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
-
-class RetNetModel(nn.Module):
-    """ Create model with RetNet architecture. """
-    def __init__(
-            self,
-            embed_dim: int,
-            value_embed_dim: int,
-            retention_heads: int,
-            ffn_dim: int,
-            layers: int,
-            dropout: float,
-            activation_dropout: float,
-            vocab_size: int,
-            fsdp: bool,
-            max_seq_len: int):
-        """ Use parameters to create corresponding RetNet model.
-        Args:
-            embed_dim (int): Dimension size of each embedded token.
-            value_embed_dim (int): Value embed dimension size.
-            retention_heads (int): Number of retention heads in MSR module.
-            ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
-            layers (int): Number of retention network layers.
-            dropout (float): Probability of an element to be zeroed during
-                dropout.
-            activation_dropout (float): Probability of an element to be zeroed
-                during dropout after activation between FFN layers.
-            vocab_size (int): Maximum vocabulary size (number of unique tokens
-                in vocabulary.
-            fsdp (bool): Whether to shard Module parameters across data parallel
-                workers or not (with the FairScale library).
-            max_seq_len (int): Size of context window.
-        """
-        super().__init__()
-
-        # Store hyperparameters
-        self.model_params = {
-            "embed_dim": embed_dim,
-            "value_embed_dim": value_embed_dim,
-            "retention_heads": retention_heads,
-            "ffn_dim": ffn_dim,
-            "layers": layers,
-            "dropout": dropout,
-            "activation_dropout": activation_dropout,
-            "vocab_size": vocab_size,
-            "fsdp": fsdp,
-            "max_seq_len": max_seq_len}
-
-        # Create RetNet configuration
-        config = RetNetConfig(
-            decoder_embed_dim=embed_dim,
-            decoder_value_embed_dim=value_embed_dim,
-            decoder_retention_heads=retention_heads,
-            decoder_ffn_embed_dim=ffn_dim,
-            decoder_layers=layers,
-            dropout=dropout,
-            activation_dropout=activation_dropout,
-            vocab_size=vocab_size,
-            fsdp=fsdp)
-
-        # Create embeddings with index 0 representing padding
-        text_embeddings = nn.Embedding(
-            num_embeddings=vocab_size,
-            embedding_dim=embed_dim,
-            padding_idx=0)
-
-        self.decoder_stack = RetNetDecoder(config, embed_tokens=text_embeddings)
-
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        Args:
-            x (Tensor): Long tensor of dimensions: (batch size, sequence
-                length).
-
-        Returns:
-            A tensor of dimensions: (batch size, sequence length, vocabulary
-                size).
-        """
-        preds, _ = self.decoder_stack(x)
-        return preds
-
-    def get_params(self) -> dict:
-        """ Get model parameters dictionary. """
-        return self.model_params
-
-
-class TransformerModel(nn.Module):
-    def __init__(
-            self,
-            embed_dim: int,
-            value_embed_dim: int,
-            attention_heads: int,
-            ffn_dim: int,
-            layers: int,
-            dropout: float,
-            activation_dropout: float,
-            vocab_size: int,
-            fsdp: bool,
-            max_seq_len: int):
-        """ Use parameters to create corresponding Transformer model.
-        Args:
-            embed_dim (int): Dimension size of each embedded token.
-            value_embed_dim (int): Value embed dimension size.
-            attention_heads (int): Number of attention heads in MHA module.
-            ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
-            layers (int): Number of retention network layers.
-            dropout (float): Probability of an element to be zeroed during
-                dropout.
-            activation_dropout (float): Probability of an element to be zeroed
-                during dropout after activation between FFN layers.
-            vocab_size (int): Maximum vocabulary size (number of unique tokens
-                in vocabulary.
-            fsdp (bool): Whether to shard Module parameters across data parallel
-                workers or not (with the FairScale library).
-            max_seq_len (int): Size of context window.
-        """
-        super().__init__()
-
-        # Store hyperparameters
-        self.model_params = {
-            "embed_dim": embed_dim,
-            "value_embed_dim": value_embed_dim,
-            "attention_heads": attention_heads,
-            "ffn_dim": ffn_dim,
-            "layers": layers,
-            "dropout": dropout,
-            "activation_dropout": activation_dropout,
-            "vocab_size": vocab_size,
-            "fsdp": fsdp,
-            "max_seq_len": max_seq_len}
-
-        # Create Transformer Decoder configuration
-        config = DecoderConfig(
-            decoder_embed_dim=embed_dim,
-            decoder_value_embed_dim=value_embed_dim,
-            decoder_attention_heads=attention_heads,
-            decoder_ffn_embed_dim=ffn_dim,
-            decoder_layers=layers,
-            dropout=dropout,
-            activation_dropout=activation_dropout,
-            vocab_size=vocab_size,
-            fsdp=fsdp)
-
-        # Create embeddings with index 0 representing padding
-        text_embeddings = nn.Embedding(
-            num_embeddings=vocab_size,
-            embedding_dim=embed_dim,
-            padding_idx=0)
-
-        self.decoder_stack = Decoder(config, embed_tokens=text_embeddings)
-
-    def forward(self, x: Tensor) -> Tensor:
-        """
-        Args:
-            x (Tensor): Long tensor of dimensions: (batch size, sequence
-                length).
-
-        Returns:
-            A tensor of dimensions: (batch size, sequence length, vocabulary
-                size).
-        """
-        preds, _ = self.decoder_stack(x)
-        return preds
-
-    def get_params(self) -> dict:
-        """ Get model parameters dictionary. """
-        return self.model_params
-
 
 def train_model(
         activation_dropout: float=0.0,
@@ -286,29 +121,38 @@ def train_model(
 
     # Create requested model
     if model_type == "retnet":
-        model = RetNetModel(
-            embed_dim=embed_dim,
-            value_embed_dim=value_embed_dim,
-            retention_heads=heads,
-            ffn_dim=ffn_dim,
-            layers=layers,
+        AutoConfig.register("retnet", RetNetConfig)
+        AutoModel.register(RetNetConfig, RetNetModel)
+        AutoModelForCausalLM.register(RetNetConfig, RetNetModel)
+        config = RetNetConfig(
+            decoder_embed_dim=embed_dim,
+            decoder_value_embed_dim=value_embed_dim,
+            decoder_retention_heads=heads,
+            decoder_ffn_embed_dim=ffn_dim,
+            decoder_layers=layers,
             dropout=dropout,
             activation_dropout=activation_dropout,
             vocab_size=vocab_size,
             fsdp=fsdp,
             max_seq_len=seq_len)
+        model = RetNetModel(config)
+        
     elif model_type == "transformer":
-        model = TransformerModel(
-            embed_dim=embed_dim,
-            value_embed_dim=value_embed_dim,
-            attention_heads=heads,
-            ffn_dim=ffn_dim,
-            layers=layers,
+        AutoConfig.register("custom_transformer", DecoderConfig)
+        AutoModel.register(DecoderConfig, TransformerModel)
+        AutoModelForCausalLM.register(DecoderConfig, TransformerModel)
+        config = DecoderConfig(
+            decoder_embed_dim=embed_dim,
+            decoder_value_embed_dim=value_embed_dim,
+            decoder_attention_heads=heads,
+            decoder_ffn_embed_dim=ffn_dim,
+            decoder_layers=layers,
             dropout=dropout,
             activation_dropout=activation_dropout,
             vocab_size=vocab_size,
             fsdp=fsdp,
             max_seq_len=seq_len)
+        model = TransformerModel(config)
 
     # Print all arguments for recordkeeping
     print("Arguments:")
@@ -371,27 +215,47 @@ def train_model(
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
-    print(f"-log(1 / {vocab_size}) = {-torch.log(torch.tensor(1 / vocab_size))}")
+    print(f"-log(1 / {args.vocab_size}) = " + \
+        f"{-torch.log(torch.tensor(1 / args.vocab_size))}")
+    
+    # Get Tokenizer from local directory
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(args.tokenizer_folder)
+
+    # Loads Tokenized data
+    tokenized_dataset = load_ds(
+        "parquet",
+        data_files=str(Path(args.dataset_dir) / args.dataset_name / f"{args.dataset_subset}.parquet"),
+        split="all")
+
+    train_loader = DataLoader(
+        tokenized_dataset["train"].with_format("torch")["input_ids"],
+        batch_size=args.batch_size,
+        shuffle=True)
+    valid_loader = DataLoader(
+        tokenized_dataset["validation"].with_format("torch")["input_ids"],
+        batch_size=args.batch_size)
+    test_loader = DataLoader(
+        tokenized_dataset["test"].with_format("torch")["input_ids"],
+        batch_size=args.batch_size)
+
 
     # Get DataLoaders and trained Tokenizer
-    print(f"\nNow retrieving '{dataset_name}' and training tokenizer...")
-    train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
-        dataset_name=dataset_name,
-        seq_len=seq_len,
-        batch_size=batch_size,
-        vocab_size=vocab_size,
-        dataset_dir=dataset_dir,
-        dataset_config=dataset_subset,
-        text_feature=dataset_feature,
-        max_token_len=20,
-        splits=splits,
-        rand_seed=rand_seed)
+    # print(f"\nNow retrieving '{args.dataset_name}' and training tokenizer...")
+    # train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
+    #     dataset_name=args.dataset_name,
+    #     seq_len=args.seq_len,
+    #     batch_size=args.batch_size,
+    #     vocab_size=args.vocab_size,
+    #     data_dir= Path("/grphome/grp_retnet/compute/data") / args.dataset_name, #NOTE(jay): would not hardcode data, add as a parameter for flexibility
+    #     dataset_config=args.dataset_subset,
+    #     text_feature=args.dataset_feature,
+    #     max_token_len=20,
+    #     splits=args.splits,
+    #     rand_seed=args.rand_seed)
 
     # Save trained tokenizer
-    tokenizer.save_pretrained(
-        save_directory=tokenizers_dir,
-        filename_prefix="BPE")
-    print(f"Saved trained tokenizer in {tokenizers_dir}")
+    # tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
+    # print(f"Saved trained tokenizer")
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
@@ -545,6 +409,8 @@ def train_model(
     writer.close()
 
     # Save completed model
+    model.save_pretrained(model_dir)
+    print(f"Saved completed model in {model_dir}")
     weight_filename = "training_completed.pt"
     torch.save(model.state_dict(), weights_dir / weight_filename)
     print(f"Saved final weights as {weight_filename}")
@@ -623,6 +489,13 @@ if __name__ == "__main__":
         help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
         help="Maximum number of unique tokens in vocabulary.")
+    parser.add_argument("--tokenizer-folder", type= str, required=True,
+        help="Path to the file where the tokenizer will be saved")
+    parser.add_argument("--dataset-dir", type= str, required=True,
+        help="Path to the datasets directory")
+    parser.add_argument("--dataset-subset", type= str, required=True,
+        help="Specific name of Tokenized dataset")
+    
 
     args = parser.parse_args()
     train_model(**vars(args))

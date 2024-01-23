@@ -5,7 +5,7 @@ import torch
 
 from argparse import ArgumentParser
 from pathlib import Path
-from train_model import train_model
+from train_model_lightning import train_model
 
 def evaluate_models(
         model1: torch.nn.Module,
@@ -30,7 +30,12 @@ def grid_search(
         dataset_dir: str,
         dataset_feature: str,
         dataset_name: str,
-        dataset_subset: str):
+        dataset_subset: str,
+        tokenizer_folder: str,
+        num_devices: str,
+        train_data: str,
+        validation_data: str,
+        test_data: str):
     """ Perform grid search on the hyperparameters of the model.
 
     Args:
@@ -85,7 +90,12 @@ def grid_search(
             dataset_subset=dataset_subset,
             data_dir=data_dir,
             dataset_feature=dataset_feature,
-            tboard_dir="/tmp/tboard_logs")
+            tboard_dir="/tmp/tboard_logs",
+            num_devices=num_devices,
+            tokenizer_folder=tokenizer_folder,
+            train_data = train_data,
+            validation_data = validation_data,
+            test_data = test_data)
         retnet_training_time = time.time() - retnet_start_time
 
         # Train Transformer model with same hyperparameters as RetNet model
@@ -100,7 +110,12 @@ def grid_search(
             dataset_subset=dataset_subset,
             data_dir=data_dir,
             dataset_feature=dataset_feature,
-            tboard_dir="/tmp/tboard_logs")
+            tboard_dir="/tmp/tboard_logs",
+            num_devices=num_devices,
+            tokenizer_folder=tokenizer_folder,
+            train_data = train_data,
+            validation_data = validation_data,
+            test_data = test_data)
         transformer_training_time = time.time() - transformer_start_time
 
         # Track how much time both models combined took to train
@@ -160,6 +175,16 @@ if __name__ == "__main__":
         help="Hugging Face dataset name. Should also set --dataset-subset.")
     parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
         help="Subset/config to use for Hugging Face dataset.")
-
+    parser.add_argument("--tokenizer-folder", type= str, required=True,
+        help="Path to the file where the tokenizer will be saved")
+    parser.add_argument("--num-devices", type= str, required=True,
+        help="Number of gpus to train on")
+    parser.add_argument("--train-data", type= str, required=True,
+        help="Direct path to tokenized train data")
+    parser.add_argument("--validation-data", type= str, required=True,
+        help="Direct path to tokenized validation data")
+    parser.add_argument("--test-data", type= str, required=True,
+        help="Direct path to tokenized test data")
+    
     args = parser.parse_args()
     grid_search(**vars(args))

@@ -35,13 +35,31 @@ def download_data(
     if isinstance(dataset, datasets.arrow_dataset.Dataset):
         filename = dataset_subset + ".parquet"
         dataset.to_parquet(dataset_dir / filename)
+        filename = args.dataset_subset + ".parquet"
+        dataset.to_parquet(dataset_dir / filename)
     else:
         raise Exception("Dataset is not of type " + \
             "datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict")
     print("Download completed.")
 
-
 if __name__ == "__main__":
+    # Initialize, setup, and parse the argument parser
+    parser = ArgumentParser(prog="Data Downloader")
+
+    parser.add_argument("--dataset-name", type=str, required=True,
+        help="Hugging Face dataset name. Should also set --dataset-subset.")
+    parser.add_argument("--dataset-subset", type=str, required=True,
+        help="Subset/config to use for Hugging Face dataset.")
+    parser.add_argument("--dataset-dir", type=str, required=True,
+        help="Path to directory in which Hugging Face datasets are downloaded.")
+
+    args = parser.parse_args()
+
+    download_data(
+        dataset_name=args.dataset_name,
+        dataset_subset=args.dataset_subset,
+        dataset_root_dir=args.dataset_dir)
+
     # Initialize, setup, and parse the argument parser
     parser = ArgumentParser(prog="Data Downloader")
 

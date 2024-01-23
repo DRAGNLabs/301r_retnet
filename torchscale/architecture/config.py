@@ -1,5 +1,6 @@
 # Copyright (c) 2022 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
+from transformers import PretrainedConfig
 
 
 class EncoderConfig(object):
@@ -71,7 +72,9 @@ class EncoderConfig(object):
                 self.__dict__[hp] = getattr(args, hp, None)
 
 
-class DecoderConfig(object):
+class DecoderConfig(PretrainedConfig):
+    model_type = "custom_transformer"
+
     def __init__(self, **kwargs):
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
         self.decoder_attention_heads = kwargs.pop("decoder_attention_heads", 12)
@@ -110,7 +113,7 @@ class DecoderConfig(object):
         self.no_output_layer = kwargs.pop("no_output_layer", False)
         self.layernorm_eps = kwargs.pop("layernorm_eps", 1e-5)
         # Text
-        self.vocab_size = kwargs.pop("vocab_size", -1)
+        self.vocab_size = kwargs.pop("vocab_size", 4000)
         # Fairscale
         self.checkpoint_activations = kwargs.pop("checkpoint_activations", False)
         self.fsdp = kwargs.pop("fsdp", False)
@@ -208,9 +211,12 @@ class EncoderDecoderConfig(object):
             if getattr(args, hp, None) is not None:
                 self.__dict__[hp] = getattr(args, hp, None)
                 
-                
-class RetNetConfig(object):
+
+class RetNetConfig(PretrainedConfig):
+    model_type = 'retnet'
+
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
         self.decoder_value_embed_dim = kwargs.pop("decoder_value_embed_dim", 1280)
         self.decoder_retention_heads = kwargs.pop("decoder_retention_heads", 3)
@@ -223,6 +229,7 @@ class RetNetConfig(object):
         self.activation_dropout = kwargs.pop("activation_dropout", 0.0)
         self.no_scale_embedding = kwargs.pop("no_scale_embedding", True)
         self.layernorm_embedding = kwargs.pop("layernorm_embedding", False)
+        self.max_seq_len = kwargs.pop("max_seq_len", 512)
         self.moe_freq = kwargs.pop("moe_freq", 0)
         self.moe_top1_expert = kwargs.pop("moe_top1_expert", False)
         self.moe_expert_count = kwargs.pop("moe_expert_count", 0)
@@ -250,13 +257,14 @@ class RetNetConfig(object):
         self.chunkwise_recurrent = kwargs.pop("chunkwise_recurrent", False)
         self.recurrent_chunk_size = kwargs.pop("recurrent_chunk_size", 512)
         # Text
-        self.vocab_size = kwargs.pop("vocab_size", -1)
+        self.vocab_size = kwargs.pop("vocab_size", 4000)
         # Fairscale
         self.checkpoint_activations = kwargs.pop("checkpoint_activations", False)
         self.fsdp = kwargs.pop("fsdp", False)
         self.ddp_rank = kwargs.pop("ddp_rank", 0)
         self.xpos_rel_pos = kwargs.pop("xpos_rel_pos", False)
         self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
+        self.lr = kwargs.pop("lr", 0.0001)
 
         if self.deepnorm:
             self.decoder_normalize_before = False
