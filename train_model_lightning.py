@@ -474,7 +474,8 @@ def train_model(activation_dropout=0.0,
     dm = DataModule(train_data, 
                     test_data,
                     validation_data,
-                    batch_size)
+                    batch_size,
+                    num_workers=1)
 
     #model = torch.compile(model) #TODO: this doesn't work with lightning, says something about logging in validation twice: need to use a different version of python?
 
@@ -484,7 +485,7 @@ def train_model(activation_dropout=0.0,
         filename='epoch_{epoch}_validation_{num_val_runs}', # TODO: where are we getting num val runs?
         save_top_k=3, # TODO: implement this argument
         monitor='val_loss',
-        mode='max')
+        mode='min')
     
     trainer = Trainer(
         default_root_dir=data_dir, # main directory for run
