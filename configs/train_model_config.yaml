@@ -21,6 +21,15 @@ vocab_size: 4000
 dataset_feature: "text"
 dataset_name: "wikitext"
 dataset_subset: "wikitext-2-v1"
+raw_dataset_dir: "/Users/jtappen/301R/301r_retnet/scripts/data/wikitext"
+
+#Train Tokenizer
+tokenizer_path: "/Users/jtappen/CS301R/301r_retnet/data/tokenizers/wikitext_tokenizer"
+
+#Tokenize Data
+tokenized_data_name: "wikitext-2-v1-tokenized"
+tokenized_data_dir: "/Users/jtappen/301R/301r_retnet/scripts/data/wikitext/tokenized_data_wikitext"
+
 splits:
   - 0.7
   - 0.2
@@ -35,5 +44,5 @@ tensorboard_directory: "/tmp/data/logs" # tboard-dir
 device: "cuda" # Options: "cpu", "cuda"
 
 # Training Configuration
-random_seed: 42 # rand-seed
+rand_seed: 42 # rand-seed
 validation_frequency: 3 # val-freq

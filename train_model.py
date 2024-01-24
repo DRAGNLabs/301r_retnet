@@ -20,6 +20,7 @@ from hugging_face_model import RetNetModel, TransformerModel
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from datasets import (load_dataset as load_ds)
 from torch.utils.data import DataLoader
+from utils import Struct
 
 REPO_ROOT_NAME = "301r_retnet"
 
@@ -426,7 +427,8 @@ if __name__ == "__main__":
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
 
-    config = struct(**config)
+    config = Struct(**config)
+
 
 
 
@@ -435,67 +437,67 @@ if __name__ == "__main__":
             prog="Model Trainer",
             description="Used to train comparable RetNet, Transformer models.")
 
-    parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
-        help="Probability of element to be zeroed in dropout layer after " + \
-            "activation between FFN layers.")
-    parser.add_argument("-b", "--batch-size", type=int, default=32,
-        help="Batch size.")
-    parser.add_argument("-c", "--checkpoints", action="store_true",
-        default=False, help="Save model checkpoints while training.")
-    parser.add_argument("--data-dir", type=str, required=True,
-        help="Path to directory where all data except datasets are saved.")
-    parser.add_argument("--dataset-dir", type=str, required=True,
-        help="Path to directory in which Hugging Face datasets are downloaded.")
-    parser.add_argument("--dataset-feature", type=str, default="text",
-        help="Hugging Face dataset feature/column to use.")
-    parser.add_argument("--dataset-name", type=str, default="wikitext",
-        help="Hugging Face dataset name. Should also set --dataset-subset.")
-    parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
-        help="Subset/config to use for Hugging Face dataset.")
-    parser.add_argument("--device", type=str, default="cuda",
-        help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
-    parser.add_argument("-d", "--dropout", type=float, default=0.1,
-        help="Probability of element to be zeroed in dropout layer.")
-    parser.add_argument("-e", "--embed-dim", type=int, default=768,
-        help="Embedding dimension size of each token.")
-    parser.add_argument("--epochs", type=int, default=10,
-        help="Number of epochs to train for.")
-    parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
-        help="FFN hidden layer size.")
-    parser.add_argument("--fsdp", action="store_true", default=False,
-        help="Module parameters sharded across data parallel workers.")
-    parser.add_argument("-l", "--layers", type=int, default=12,
-        help="Number of stacked layers in model.")
-    parser.add_argument("--lr", type=float, required=True,
-        help="Learning rate of model to train.")
-    parser.add_argument("-m", "--model", required=True, dest="model_type",
-        choices=["retnet", "transformer"],
-        help="Name of model architecture to train.")
-    parser.add_argument("-n", "--heads", type=int, default=3,
-        help="Number of heads. Head architecture changes based on model.")
-    parser.add_argument("-r", "--rand-seed", type=int, default=None,
-        help="Random seed to use, allowing more reproducible results.")
-    parser.add_argument("-s", "--seq-len", type=int, default=512,
-        help="Sequence length (context window size).")
-    parser.add_argument("--splits", type=float, nargs=3,
-        default=[0.7, 0.2, 0.1],
-        help="Space-separated decimal splits of train, validation, and " + \
-            "test datasets. (Ex: '0.7 0.2 0.1')")
-    parser.add_argument("--tboard-dir", type=str, default=None,
-        help="Path to directory to save TensorBoard logs in.")
-    parser.add_argument("--val-freq", type=int, default=3,
-        help="Number of times to run validation per epoch during training.")
-    parser.add_argument("--value-embed-dim", type=int, default=1280,
-        help="Value embed dimension size.")
-    parser.add_argument("--vocab-size", type=int, required=True,
-        help="Maximum number of unique tokens in vocabulary.")
-    parser.add_argument("--tokenizer-folder", type= str, required=True,
-        help="Path to the file where the tokenizer will be saved")
-    parser.add_argument("--dataset-dir", type= str, required=True,
-        help="Path to the datasets directory")
-    parser.add_argument("--dataset-subset", type= str, required=True,
-        help="Specific name of Tokenized dataset")
+    # parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
+    #     help="Probability of element to be zeroed in dropout layer after " + \
+    #         "activation between FFN layers.")
+    # parser.add_argument("-b", "--batch-size", type=int, default=32,
+    #     help="Batch size.")
+    # parser.add_argument("-c", "--checkpoints", action="store_true",
+    #     default=False, help="Save model checkpoints while training.")
+    # parser.add_argument("--data-dir", type=str, required=True,
+    #     help="Path to directory where all data except datasets are saved.")
+    # parser.add_argument("--dataset-dir", type=str, required=True,
+    #     help="Path to directory in which Hugging Face datasets are downloaded.")
+    # parser.add_argument("--dataset-feature", type=str, default="text",
+    #     help="Hugging Face dataset feature/column to use.")
+    # parser.add_argument("--dataset-name", type=str, default="wikitext",
+    #     help="Hugging Face dataset name. Should also set --dataset-subset.")
+    # parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
+    #     help="Subset/config to use for Hugging Face dataset.")
+    # parser.add_argument("--device", type=str, default="cuda",
+    #     help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
+    # parser.add_argument("-d", "--dropout", type=float, default=0.1,
+    #     help="Probability of element to be zeroed in dropout layer.")
+    # parser.add_argument("-e", "--embed-dim", type=int, default=768,
+    #     help="Embedding dimension size of each token.")
+    # parser.add_argument("--epochs", type=int, default=10,
+    #     help="Number of epochs to train for.")
+    # parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
+    #     help="FFN hidden layer size.")
+    # parser.add_argument("--fsdp", action="store_true", default=False,
+    #     help="Module parameters sharded across data parallel workers.")
+    # parser.add_argument("-l", "--layers", type=int, default=12,
+    #     help="Number of stacked layers in model.")
+    # parser.add_argument("--lr", type=float, required=True,
+    #     help="Learning rate of model to train.")
+    # parser.add_argument("-m", "--model", required=True, dest="model_type",
+    #     choices=["retnet", "transformer"],
+    #     help="Name of model architecture to train.")
+    # parser.add_argument("-n", "--heads", type=int, default=3,
+    #     help="Number of heads. Head architecture changes based on model.")
+    # parser.add_argument("-r", "--rand-seed", type=int, default=None,
+    #     help="Random seed to use, allowing more reproducible results.")
+    # parser.add_argument("-s", "--seq-len", type=int, default=512,
+    #     help="Sequence length (context window size).")
+    # parser.add_argument("--splits", type=float, nargs=3,
+    #     default=[0.7, 0.2, 0.1],
+    #     help="Space-separated decimal splits of train, validation, and " + \
+    #         "test datasets. (Ex: '0.7 0.2 0.1')")
+    # parser.add_argument("--tboard-dir", type=str, default=None,
+    #     help="Path to directory to save TensorBoard logs in.")
+    # parser.add_argument("--val-freq", type=int, default=3,
+    #     help="Number of times to run validation per epoch during training.")
+    # parser.add_argument("--value-embed-dim", type=int, default=1280,
+    #     help="Value embed dimension size.")
+    # parser.add_argument("--vocab-size", type=int, required=True,
+    #     help="Maximum number of unique tokens in vocabulary.")
+    # parser.add_argument("--tokenizer-folder", type= str, required=True,
+    #     help="Path to the file where the tokenizer will be saved")
+    # parser.add_argument("--dataset-dir", type= str, required=True,
+    #     help="Path to the datasets directory")
+    # parser.add_argument("--dataset-subset", type= str, required=True,
+    #     help="Specific name of Tokenized dataset")
     
 
-    args = parser.parse_args()
-    train_model(**vars(args))
+    # args = parser.parse_args()
+    train_model(config)

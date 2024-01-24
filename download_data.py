@@ -1,11 +1,15 @@
 import datasets
+import sys
+import yaml
+
+from utils import Struct
 from argparse import ArgumentParser
 from pathlib import Path
 
 def download_data(
         dataset_name: str,
         dataset_subset: str,
-        dataset_root_dir: str):
+        raw_dataset_dir: str):
     """ Download dataset from Hugging Face.
 
     It is useful to download the dataset before trying to train the model when
@@ -18,9 +22,10 @@ def download_data(
             Face datasets are downloaded.
     """
     # Create folder to save this dataset's files in
-    dataset_dir = Path(dataset_root_dir) / dataset_name
-    dataset_dir.mkdir(parents=True)
+    dataset_dir = Path(raw_dataset_dir)
+    dataset_dir.mkdir(parents=True, exist_ok=True)
 
+    
     print("Beginning download")
     print(f"File path: {dataset_dir}")
     print(f"Data name: {dataset_name}")
@@ -35,7 +40,7 @@ def download_data(
     if isinstance(dataset, datasets.arrow_dataset.Dataset):
         filename = dataset_subset + ".parquet"
         dataset.to_parquet(dataset_dir / filename)
-        filename = args.dataset_subset + ".parquet"
+        filename = dataset_subset + ".parquet"
         dataset.to_parquet(dataset_dir / filename)
     else:
         raise Exception("Dataset is not of type " + \
@@ -43,36 +48,13 @@ def download_data(
     print("Download completed.")
 
 if __name__ == "__main__":
-    # Initialize, setup, and parse the argument parser
-    parser = ArgumentParser(prog="Data Downloader")
 
-    parser.add_argument("--dataset-name", type=str, required=True,
-        help="Hugging Face dataset name. Should also set --dataset-subset.")
-    parser.add_argument("--dataset-subset", type=str, required=True,
-        help="Subset/config to use for Hugging Face dataset.")
-    parser.add_argument("--dataset-dir", type=str, required=True,
-        help="Path to directory in which Hugging Face datasets are downloaded.")
+    args = sys.argv
+    config_path =args[1]
 
-    args = parser.parse_args()
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
 
-    download_data(
-        dataset_name=args.dataset_name,
-        dataset_subset=args.dataset_subset,
-        dataset_root_dir=args.dataset_dir)
+    config = Struct(**config)
 
-    # Initialize, setup, and parse the argument parser
-    parser = ArgumentParser(prog="Data Downloader")
-
-    parser.add_argument("--dataset-name", type=str, required=True,
-        help="Hugging Face dataset name. Should also set --dataset-subset.")
-    parser.add_argument("--dataset-subset", type=str, required=True,
-        help="Subset/config to use for Hugging Face dataset.")
-    parser.add_argument("--dataset-dir", type=str, required=True,
-        help="Path to directory in which Hugging Face datasets are downloaded.")
-
-    args = parser.parse_args()
-
-    download_data(
-        dataset_name=args.dataset_name,
-        dataset_subset=args.dataset_subset,
-        dataset_root_dir=args.dataset_dir)
+    download_data(config.dataset_name, config.dataset_subset, config.raw_dataset_dir)

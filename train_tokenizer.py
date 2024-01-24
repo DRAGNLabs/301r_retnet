@@ -1,3 +1,7 @@
+import sys
+import yaml
+
+from utils import Struct
 from datasets import (
     DatasetDict,
     get_dataset_infos as get_ds_infos,
@@ -17,19 +21,18 @@ environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def train_tokenizer(
         tokenizer_folder: str,
-        dataset_name: str,
         seq_len: int,
         vocab_size: int,
         dataset_dir: str,
-        dataset_subset: str=None,
-        text_feature: str="text",
-        splits: list[float]=[0.7, 0.2, 0.1],
-        rand_seed: int=None) -> \
+        dataset_subset: str,
+        text_feature: str,
+        splits: list[float],
+        rand_seed: int) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
 
     # Retrieve iterators for each split of the dataset
     print(f'Data dir: {dataset_dir}')
-    data_path = Path(dataset_dir) / dataset_name / (dataset_subset + ".parquet")
+    data_path = Path(dataset_dir) / (dataset_subset + ".parquet")
     
     entire_dataset = load_ds("parquet", 
                              data_files=str(data_path),
@@ -104,59 +107,20 @@ def train_tokenizer(
         tokenizer_object=tokenizer)
 
     # Save tokenizer to file
-    tokenizer_save_path = Path(tokenizer_folder) / dataset_name
+    tokenizer_save_path = Path(tokenizer_folder)
     tokenizer_save_path.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(tokenizer_save_path)
 
 if __name__ == "__main__":
     # Get arguments
-    parser = ArgumentParser()
 
-    parser.add_argument(
-        "--tokenizer_folder",
-        type=str,
-        required=True,
-        help="Folder to save tokenizer to.")
-    parser.add_argument(
-        "--dataset_name",
-        type=str,
-        required=True,
-        help="Name of Hugging Face dataset.")
-    parser.add_argument(
-        "--seq_len",
-        type=int,
-        required=True,
-        help="Context window/sequence length.")
-    parser.add_argument(
-        "--vocab_size",
-        type=int,
-        required=True,
-        help="Maximum vocabulary size.")
-    parser.add_argument(
-        "--dataset_dir",
-        type=str,
-        required=True,
-        help="Relative path from base of repository to directory in which to download the dataset.")
-    parser.add_argument(
-        "--dataset_subset",
-        type=str,
-        default=None,
-        help="Configuration/subset of dataset to use.")
-    parser.add_argument(
-        "--text_feature",
-        type=str,
-        default="text",
-        help="Name of the feature/column of the dataset to use.")
-    parser.add_argument("--splits", type=float, nargs=3,
-        default=[0.7, 0.2, 0.1],
-        help="Space-separated decimal splits of train, validation, and " + \
-            "test datasets. (Ex: '0.7 0.2 0.1')")
-    parser.add_argument(
-        "--rand_seed",
-        type=int,
-        default=None,
-        help="Seed used during dataset shuffling, ignored if None.")
 
-    args = parser.parse_args()
+    args = sys.argv
+    config_path =args[1]
 
-    train_tokenizer(args.tokenizer_folder, args.dataset_name, args.seq_len, args.vocab_size, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    config = Struct(**config)
+
+    train_tokenizer(config.tokenizer_path, config.seq_len, config.vocab_size, config.raw_dataset_dir, config.dataset_subset, config.dataset_feature, config.splits, config.rand_seed)
