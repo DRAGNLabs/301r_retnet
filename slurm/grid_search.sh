@@ -16,13 +16,7 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 nvidia-smi
 mamba activate retnet
 srun python3 ../grid_search.py \
-    --data-dir /grphome/grp_retnet/compute/data \
-    --dataset-dir /grphome/grp_retnet/compute/data \
-    --dataset-feature text \
+    --data-dir /tmp/data \
     --dataset-name wikitext \
-    --dataset-subset wikitext-2-v1 \
-    --train-data /grphome/grp_retnet/compute/data/wikitext/tokenized/train.parquet \
-    --validation-data /grphome/grp_retnet/compute/data/wikitext/tokenized/validation.parquet \
-    --test-data /grphome/grp_retnet/compute/data/wikitext/tokenized/test.parquet \
-    --tokenizer-folder /grphome/grp_retnet/compute/tokenizers/wikitext \
-    
+    --datasets-dir /tmp/data/datasets \
+    --tokenizer-folder /tmp/data/tokenizers/BPE_wikitext-2-v1_32768 \
