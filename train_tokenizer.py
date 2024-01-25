@@ -1,8 +1,6 @@
 from argparse import ArgumentParser
 from datasets import (
     DatasetDict,
-    get_dataset_infos as get_ds_infos,
-    get_dataset_split_names as get_ds_split_names,
     load_dataset as load_ds)
 from os import environ
 from pathlib import Path

@@ -5,7 +5,7 @@ from typing import Optional, Union
 from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
-from transformers import PreTrainedModel, AutoModel, AutoConfig
+from transformers import PreTrainedModel
 
 class RetNetModelHF(PreTrainedModel):
     """ Create model with RetNet architecture. """

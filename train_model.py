@@ -27,7 +27,6 @@ def train_model(
         data_dir: str="/tmp/data",
         datasets_dir: str="/tmp/data/datasets",
         dataset_name: str="wikitext",
-        dataset_subset: str="wikitext-2-v1",
         device: str="cuda",
         dropout: float=0.1,
         embed_dim: int=80,
@@ -55,9 +54,7 @@ def train_model(
                 saved.
             datasets_dir (str): Path to directory in which Hugging Face datasets
                 are downloaded.
-            dataset_name (str): Hugging Face dataset name. Should also set
-                --dataset-subset.
-            dataset_subset (str): Subset/config to use for Hugging Face dataset.
+            dataset_name (str): Hugging Face dataset name.
             device (str): Device to use (ex: 'cpu', 'cuda', or 'cuda:0').
             dropout (float): Probability of an element to be zeroed during
                 dropout.
@@ -407,9 +404,7 @@ if __name__ == "__main__":
     parser.add_argument("--data-dir", type=str, required=True,
         help="Path to directory where all data except datasets are saved.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
-        help="Hugging Face dataset name. Should also set --dataset-subset.")
-    parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
-        help="Specific name of Tokenized dataset.")
+        help="Hugging Face dataset name.")
     parser.add_argument("--datasets-dir", type=str, required=True,
         help="Path to the datasets directory.")
     parser.add_argument("--device", type=str, default="cuda",

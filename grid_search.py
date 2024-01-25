@@ -1,4 +1,3 @@
-import csv
 import itertools
 import time
 import torch
