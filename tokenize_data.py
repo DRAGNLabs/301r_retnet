@@ -1,6 +1,7 @@
 import datasets
 
 from argparse import ArgumentParser
+from math import isclose
 from os import environ
 from pathlib import Path
 from tokenizers import Tokenizer
@@ -22,6 +23,11 @@ def tokenize_data(
         splits: list[float]=[0.7, 0.2, 0.1],
         text_feature: str="text") -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
+    
+    # Test the dataset splits add up to 1, using isclose for rounding errors
+    assert isclose(sum(splits), 1), \
+        "The dataset splits for the training, validation, and testing " + \
+        f"datasets must sum up to 1 ({' + '.join(map(str, splits))} != 1)!"
     
     # Retrieve iterators for each split of the dataset
     print(f"Datasets dir: {datasets_dir}")
