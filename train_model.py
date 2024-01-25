@@ -16,8 +16,6 @@ from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from tqdm import tqdm
 from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
 
-REPO_ROOT_NAME = "301r_retnet"
-
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -28,7 +26,6 @@ def train_model(
         checkpoints: bool=False,
         data_dir: str="/tmp/data",
         datasets_dir: str="/tmp/data/datasets",
-        dataset_feature: str="text",
         dataset_name: str="wikitext",
         dataset_subset: str="wikitext-2-v1",
         device: str="cuda",
@@ -43,11 +40,11 @@ def train_model(
         model_type: str="retnet",
         rand_seed: bool=None,
         seq_len: int=128,
-        tboard_dir: str="/tmp/data",
+        tboard_dir: str="/tmp/tboard_logs",
         tokenizer_folder: str=None,
         val_freq: int=3,
         value_embed_dim: int=12,
-        vocab_size: int=4000):
+        vocab_size: int=32768):
     """ Use parameters to run train_model().
         Args:
             activation_dropout (float): Probability of an element to be zeroed
@@ -58,7 +55,6 @@ def train_model(
                 saved.
             datasets_dir (str): Path to directory in which Hugging Face datasets
                 are downloaded.
-            dataset_feature (str): Hugging Face dataset feature/column to use.
             dataset_name (str): Hugging Face dataset name. Should also set
                 --dataset-subset.
             dataset_subset (str): Subset/config to use for Hugging Face dataset.
@@ -166,11 +162,10 @@ def train_model(
         f"{model_type}_{total_params}"
 
     # Make sure dataset is pre-downloaded
-    dataset_root_dir = Path(datasets_dir)
-    datasets_dir = dataset_root_dir / dataset_name
-    assert datasets_dir.exists(), \
-        f"The directory with data, {datasets_dir}, doesn't exist!"
-    print(f"\nUsing dataset directory {datasets_dir}")
+    dataset_dir = Path(datasets_dir) / dataset_name
+    assert dataset_dir.exists(), \
+        f"The directory with data, {dataset_dir}, doesn't exist!"
+    print(f"\nUsing dataset directory {dataset_dir}")
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(data_dir) / "models" / model_label
@@ -210,20 +205,28 @@ def train_model(
     tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
 
     # Loads Tokenized data
-    tokenized_dataset = load_ds(
+    tokenized_train = load_ds(
         "parquet",
-        data_files=str(Path(datasets_dir) / dataset_name / f"{dataset_subset}.parquet"),
+        data_files=str(Path(data_dir) / "tokenized_datasets" / dataset_name / "train.parquet"),
+        split="all")
+    tokenized_val = load_ds(
+        "parquet",
+        data_files=str(Path(data_dir) / "tokenized_datasets" / dataset_name / "validation.parquet"),
+        split="all")
+    tokenized_test = load_ds(
+        "parquet",
+        data_files=str(Path(data_dir) / "tokenized_datasets" / dataset_name / "test.parquet"),
         split="all")
 
     train_loader = DataLoader(
-        tokenized_dataset["train"].with_format("torch")["input_ids"],
+        tokenized_train.with_format("torch")["input_ids"],
         batch_size=batch_size,
         shuffle=True)
     valid_loader = DataLoader(
-        tokenized_dataset["validation"].with_format("torch")["input_ids"],
+        tokenized_val.with_format("torch")["input_ids"],
         batch_size=batch_size)
     test_loader = DataLoader(
-        tokenized_dataset["test"].with_format("torch")["input_ids"],
+        tokenized_test.with_format("torch")["input_ids"],
         batch_size=batch_size)
 
 
@@ -403,8 +406,6 @@ if __name__ == "__main__":
         default=False, help="Save model checkpoints while training.")
     parser.add_argument("--data-dir", type=str, required=True,
         help="Path to directory where all data except datasets are saved.")
-    parser.add_argument("--dataset-feature", type=str, default="text",
-        help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
         help="Hugging Face dataset name. Should also set --dataset-subset.")
     parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
