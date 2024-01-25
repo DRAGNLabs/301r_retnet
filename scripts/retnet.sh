@@ -5,7 +5,7 @@ python3 ../train_model.py \
     --data-dir /tmp/data \
     --dataset-feature text \
     --dataset-name wikitext \
-    --dataset-subset wikitext-2-v1 \
+    --dataset-subset wikitext-2-v1-tokenized \
     --datasets-dir /tmp/data/datasets \
     --device cuda \
     --dropout 0.1 \
@@ -21,7 +21,7 @@ python3 ../train_model.py \
     --seq-len 128 \
     --splits 0.7 0.2 0.1 \
     --tboard-dir /tmp/tboard_logs \
-    --tokenizer-folder /tmp/data/tokenizers/wikitext \
+    --tokenizer-folder /tmp/data/tokenizers/BPE_wikitext-2-v1_32768 \
     --val-freq 3 \
     --value-embed-dim 128 \
     --vocab-size 32768 \

@@ -104,7 +104,7 @@ def train_tokenizer(
         tokenizer_object=tokenizer)
 
     # Save tokenizer to file
-    tokenizer_save_path = Path(tokenizer_folder) / dataset_name
+    tokenizer_save_path = Path(tokenizer_folder)
     tokenizer_save_path.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(tokenizer_save_path)
 
