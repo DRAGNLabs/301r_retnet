@@ -25,5 +25,4 @@ srun python3 ../grid_search.py \
     --validation-data /grphome/grp_retnet/compute/data/wikitext/tokenized/validation.parquet \
     --test-data /grphome/grp_retnet/compute/data/wikitext/tokenized/test.parquet \
     --tokenizer-folder /grphome/grp_retnet/compute/tokenizers/wikitext \
-    --num-devices 1 \
     
