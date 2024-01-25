@@ -21,7 +21,6 @@ python3 ../train_model.py \
     --checkpoints \
     --dataset-feature text \
     --dataset-name c4 \
-    --dataset-subset en \
     --device cuda \
     --dropout 0.1 \
     --embed-dim 128 \

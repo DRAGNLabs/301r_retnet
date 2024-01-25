@@ -4,7 +4,6 @@ python3 ../train_model.py \
     --checkpoints \
     --data-dir /tmp/data \
     --dataset-name wikitext \
-    --dataset-subset wikitext-2-v1-tokenized \
     --datasets-dir /tmp/data/datasets \
     --device cuda \
     --dropout 0.1 \
