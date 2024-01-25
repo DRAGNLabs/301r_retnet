@@ -30,7 +30,6 @@ def grid_search(
         dataset_name: str,
         dataset_subset: str,
         datasets_dir: str,
-        num_devices: str,
         test_data: str,
         tokenizer_folder: str,
         train_data: str,
@@ -90,7 +89,6 @@ def grid_search(
             data_dir=data_dir,
             dataset_feature=dataset_feature,
             tboard_dir="/tmp/tboard_logs",
-            num_devices=num_devices,
             tokenizer_folder=tokenizer_folder,
             train_data=train_data,
             validation_data=validation_data,
@@ -110,7 +108,6 @@ def grid_search(
             data_dir=data_dir,
             dataset_feature=dataset_feature,
             tboard_dir="/tmp/tboard_logs",
-            num_devices=num_devices,
             tokenizer_folder=tokenizer_folder,
             train_data=train_data,
             validation_data=validation_data,
@@ -176,8 +173,6 @@ if __name__ == "__main__":
         help="Path to directory in which Hugging Face datasets are downloaded.")
     parser.add_argument("--tokenizer-folder", type= str, required=True,
         help="Path to the file where the tokenizer will be saved")
-    parser.add_argument("--num-devices", type= str, required=True,
-        help="Number of gpus to train on")
     parser.add_argument("--train-data", type= str, required=True,
         help="Direct path to tokenized train data")
     parser.add_argument("--validation-data", type= str, required=True,
