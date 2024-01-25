@@ -4,18 +4,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from argparse import ArgumentParser
+from datasets import (load_dataset as load_ds)
 from datetime import datetime
+from hugging_face_model import RetNetModel, TransformerModel
 from math import isclose
 from pathlib import Path
 from tabulate import tabulate
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
+from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from tqdm import tqdm
 from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
-from hugging_face_model import RetNetModel, TransformerModel
-from torchscale.architecture.config import RetNetConfig, DecoderConfig
-from datasets import (load_dataset as load_ds)
-from torch.utils.data import DataLoader
 
 REPO_ROOT_NAME = "301r_retnet"
 
