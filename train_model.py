@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from argparse import ArgumentParser
 from datasets import (load_dataset as load_ds)
 from datetime import datetime
-from hugging_face_model import RetNetModel, TransformerModel
+from hugging_face_model import RetNetModelHF, TransformerModelHF
 from math import isclose
 from pathlib import Path
 from tabulate import tabulate
@@ -119,8 +119,8 @@ def train_model(
     # Create requested model
     if model_type == "retnet":
         AutoConfig.register("retnet", RetNetConfig)
-        AutoModel.register(RetNetConfig, RetNetModel)
-        AutoModelForCausalLM.register(RetNetConfig, RetNetModel)
+        AutoModel.register(RetNetConfig, RetNetModelHF)
+        AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
         config = RetNetConfig(
             decoder_embed_dim=embed_dim,
             decoder_value_embed_dim=value_embed_dim,
@@ -132,12 +132,12 @@ def train_model(
             vocab_size=vocab_size,
             fsdp=fsdp,
             max_seq_len=seq_len)
-        model = RetNetModel(config)
+        model = RetNetModelHF(config)
         
     elif model_type == "transformer":
         AutoConfig.register("custom_transformer", DecoderConfig)
-        AutoModel.register(DecoderConfig, TransformerModel)
-        AutoModelForCausalLM.register(DecoderConfig, TransformerModel)
+        AutoModel.register(DecoderConfig, TransformerModelHF)
+        AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
         config = DecoderConfig(
             decoder_embed_dim=embed_dim,
             decoder_value_embed_dim=value_embed_dim,
@@ -149,7 +149,7 @@ def train_model(
             vocab_size=vocab_size,
             fsdp=fsdp,
             max_seq_len=seq_len)
-        model = TransformerModel(config)
+        model = TransformerModelHF(config)
 
     # Print all arguments for recordkeeping
     print("Arguments:")

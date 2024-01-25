@@ -3,10 +3,10 @@ python3 ../train_model.py \
     --batch-size 128 \
     --checkpoints \
     --data-dir /tmp/data \
-    --dataset-dir /tmp/data/datasets \
     --dataset-feature text \
     --dataset-name wikitext \
-    --dataset-subset wikitext-2-v1 \
+    --dataset-subset wikitext-2-v1-tokenized \
+    --datasets-dir /tmp/data/datasets \
     --device cuda \
     --dropout 0.1 \
     --embed-dim 128 \
@@ -21,9 +21,7 @@ python3 ../train_model.py \
     --seq-len 128 \
     --splits 0.7 0.2 0.1 \
     --tboard-dir /tmp/tboard_logs \
+    --tokenizer-folder /tmp/data/tokenizers/BPE_wikitext-2-v1_32768 \
     --val-freq 3 \
     --value-embed-dim 128 \
-    --vocab-size 100000 \
-    --tokenizer-folder /home/searlejj/CS301R/301r_retnet/data/tokenizers/my_cool_tokenizer \
-    --dataset-dir /home/searlejj/fsl_groups/grp_retnet/compute/data \
-    --dataset-subset wikitext-2-v1-tokenized \
+    --vocab-size 32768 \
