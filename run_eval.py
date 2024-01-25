@@ -1,13 +1,12 @@
-import json
 import argparse
-from pathlib import Path
+import json
 import lm_eval
-from typing import Optional, List
-from transformers import AutoModel, AutoConfig, AutoModelForCausalLM
+
 from hugging_face_model import RetNetModel, TransformerModel
+from pathlib import Path
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
-
-
+from transformers import AutoModel, AutoConfig, AutoModelForCausalLM
+from typing import Optional, List
 
 def run_eval(model_path_dir: str, tokenizer_path_dir: Optional[str] = None, tasks: List[str] = ['hellaswag'], device: str = 'cuda:0', results_out_path: Optional[str] = None):
     """
