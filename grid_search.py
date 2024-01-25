@@ -92,10 +92,10 @@ def grid_search(
             tboard_dir="/tmp/tboard_logs",
             num_devices=num_devices,
             tokenizer_folder=tokenizer_folder,
-            train_data = train_data,
-            validation_data = validation_data,
-            test_data = test_data)
-        retnet_training_time = time.time() - retnet_start_time
+            train_data=train_data,
+            validation_data=validation_data,
+            test_data=test_data)
+        retnet_training_time=time.time() - retnet_start_time
 
         # Train Transformer model with same hyperparameters as RetNet model
         transformer_start_time = time.time()
@@ -112,9 +112,9 @@ def grid_search(
             tboard_dir="/tmp/tboard_logs",
             num_devices=num_devices,
             tokenizer_folder=tokenizer_folder,
-            train_data = train_data,
-            validation_data = validation_data,
-            test_data = test_data)
+            train_data=train_data,
+            validation_data=validation_data,
+            test_data=test_data)
         transformer_training_time = time.time() - transformer_start_time
 
         # Track how much time both models combined took to train
