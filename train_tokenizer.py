@@ -16,15 +16,15 @@ from transformers import PreTrainedTokenizerFast
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def train_tokenizer(
-        tokenizer_folder: str,
         dataset_name: str,
-        seq_len: int,
-        vocab_size: int,
         datasets_dir: str,
+        seq_len: int,
+        tokenizer_folder: str,
+        vocab_size: int,
         dataset_subset: str=None,
-        text_feature: str="text",
+        rand_seed: int=None,
         splits: list[float]=[0.7, 0.2, 0.1],
-        rand_seed: int=None) -> \
+        text_feature: str="text") -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
 
     # Retrieve iterators for each split of the dataset

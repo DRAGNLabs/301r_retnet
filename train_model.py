@@ -50,7 +50,6 @@ def train_model(
         val_freq: int=3,
         value_embed_dim: int=12,
         vocab_size: int=4000):
-    # Store all the parameters, which are the only locals at this point, as dict
     """ Use parameters to run train_model().
         Args:
             activation_dropout (float): Probability of an element to be zeroed
@@ -93,6 +92,7 @@ def train_model(
         Returns:
             A tuple of the trained model instance and the test average loss.
     """
+    # Store all the parameters, which are the only locals at this point, as dict
     arg_dict = locals()
 
     # Test that the head dimension will be an even, whole number
