@@ -212,8 +212,8 @@ def train_model(
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
-    print(f"-log(1 / {args.vocab_size}) = " + \
-        f"{-torch.log(torch.tensor(1 / args.vocab_size))}")
+    print(f"-log(1 / {vocab_size}) = " + \
+        f"{-torch.log(torch.tensor(1 / vocab_size))}")
     
     # Get Tokenizer from local directory
     tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
@@ -221,19 +221,19 @@ def train_model(
     # Loads Tokenized data
     tokenized_dataset = load_ds(
         "parquet",
-        data_files=str(Path(args.dataset_dir) / args.dataset_name / f"{args.dataset_subset}.parquet"),
+        data_files=str(Path(datasets_dir) / dataset_name / f"{dataset_subset}.parquet"),
         split="all")
 
     train_loader = DataLoader(
         tokenized_dataset["train"].with_format("torch")["input_ids"],
-        batch_size=args.batch_size,
+        batch_size=batch_size,
         shuffle=True)
     valid_loader = DataLoader(
         tokenized_dataset["validation"].with_format("torch")["input_ids"],
-        batch_size=args.batch_size)
+        batch_size=batch_size)
     test_loader = DataLoader(
         tokenized_dataset["test"].with_format("torch")["input_ids"],
-        batch_size=args.batch_size)
+        batch_size=batch_size)
 
 
     # Define loss function
