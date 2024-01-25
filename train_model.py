@@ -10,7 +10,7 @@ from hugging_face_model import RetNetModel, TransformerModel
 from math import isclose
 from pathlib import Path
 from tabulate import tabulate
-from torch.utils.data import DataLoaderfrom os import environ
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
