@@ -98,7 +98,7 @@ class TransformerModelHF(PreTrainedModel):
                 workers or not (with the FairScale library).
             max_seq_len (int): Size of context window.
         """
-        
+
         # Create Transformer configuration
         if not config:
             self.config = DecoderConfig()
@@ -109,7 +109,6 @@ class TransformerModelHF(PreTrainedModel):
         else:
             raise ValueError("Config must be str or DecoderConfig object.")
 
-        
         super().__init__(self.config)
 
         # Create embeddings with index 0 representing padding

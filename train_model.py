@@ -117,7 +117,7 @@ def train_model(
             fsdp=fsdp,
             max_seq_len=seq_len)
         model = RetNetModelHF(config)
-        
+
     elif model_type == "transformer":
         AutoConfig.register("custom_transformer", DecoderConfig)
         AutoModel.register(DecoderConfig, TransformerModelHF)
@@ -197,7 +197,7 @@ def train_model(
     print("\nEstimated Loss if guessing:")
     print(f"-log(1 / {vocab_size}) = " + \
         f"{-torch.log(torch.tensor(1 / vocab_size))}")
-    
+
     # Get Tokenizer from local directory
     tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
 
@@ -442,6 +442,6 @@ if __name__ == "__main__":
         help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
         help="Maximum number of unique tokens in vocabulary.")
-    
+
     args = parser.parse_args()
     train_model(**vars(args))
