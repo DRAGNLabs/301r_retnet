@@ -140,7 +140,5 @@ if __name__ == "__main__":
         required=True,
         help="Folder to save tokenizer to.")
 
-
     args = parser.parse_args()
-
-    tokenize_data(args.tokenized_data_name, args.tokenized_data_folder, args.tokenizer_folder, args.dataset_name, args.seq_len, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)
+    tokenize_data(**vars(args))

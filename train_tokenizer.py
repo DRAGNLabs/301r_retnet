@@ -161,5 +161,4 @@ if __name__ == "__main__":
         help="Maximum vocabulary size.")
 
     args = parser.parse_args()
-
-    train_tokenizer(args.tokenizer_folder, args.dataset_name, args.seq_len, args.vocab_size, args.dataset_dir, args.dataset_subset, args.text_feature, args.splits, args.rand_seed)
+    train_tokenizer(**vars(args))

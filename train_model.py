@@ -12,7 +12,6 @@ from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
 from tqdm import tqdm
 from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
-from utils import generate_text
 from hugging_face_model import RetNetModel, TransformerModel
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from datasets import (load_dataset as load_ds)
