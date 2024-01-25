@@ -26,23 +26,15 @@ def evaluate_models(
 
 def grid_search(
         data_dir: str,
-        dataset_feature: str,
         dataset_name: str,
-        dataset_subset: str,
         datasets_dir: str,
-        test_data: str,
-        tokenizer_folder: str,
-        train_data: str,
-        validation_data: str):
+        tokenizer_folder: str):
     """ Perform grid search on the hyperparameters of the model.
 
     Args:
         data_dir (str): Path to directory where all data except datasets are
             saved.
-        dataset_feature (str): Hugging Face dataset feature/column to use.
-        dataset_name (str): Hugging Face dataset name. Should also set
-            '--dataset-subset'.
-        dataset_subset (str): Subset/config to use for Hugging Face dataset.
+        dataset_name (str): Hugging Face dataset name.
         datasets_dir (str): Path to directory in which Hugging Face datasets are
             downloaded.
     """
@@ -85,14 +77,9 @@ def grid_search(
             model_type="retnet",
             datasets_dir=datasets_dir,
             dataset_name=dataset_name,
-            dataset_subset=dataset_subset,
             data_dir=data_dir,
-            dataset_feature=dataset_feature,
             tboard_dir="/tmp/tboard_logs",
-            tokenizer_folder=tokenizer_folder,
-            train_data=train_data,
-            validation_data=validation_data,
-            test_data=test_data)
+            tokenizer_folder=tokenizer_folder)
         retnet_training_time=time.time() - retnet_start_time
 
         # Train Transformer model with same hyperparameters as RetNet model
@@ -104,14 +91,9 @@ def grid_search(
             model_type="transformer",
             datasets_dir=datasets_dir,
             dataset_name=dataset_name,
-            dataset_subset=dataset_subset,
             data_dir=data_dir,
-            dataset_feature=dataset_feature,
             tboard_dir="/tmp/tboard_logs",
-            tokenizer_folder=tokenizer_folder,
-            train_data=train_data,
-            validation_data=validation_data,
-            test_data=test_data)
+            tokenizer_folder=tokenizer_folder)
         transformer_training_time = time.time() - transformer_start_time
 
         # Track how much time both models combined took to train
@@ -163,22 +145,12 @@ if __name__ == "__main__":
 
     parser.add_argument("--data-dir", type=str, required=True,
         help="Path to directory where all data except datasets are saved.")
-    parser.add_argument("--dataset-feature", type=str, default="text",
-        help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
-        help="Hugging Face dataset name. Should also set --dataset-subset.")
-    parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
-        help="Subset/config to use for Hugging Face dataset.")
+        help="Hugging Face dataset name.")
     parser.add_argument("--datasets-dir", type=str, required=True,
         help="Path to directory in which Hugging Face datasets are downloaded.")
     parser.add_argument("--tokenizer-folder", type= str, required=True,
         help="Path to the file where the tokenizer will be saved")
-    parser.add_argument("--train-data", type= str, required=True,
-        help="Direct path to tokenized train data")
-    parser.add_argument("--validation-data", type= str, required=True,
-        help="Direct path to tokenized validation data")
-    parser.add_argument("--test-data", type= str, required=True,
-        help="Direct path to tokenized test data")
     
     args = parser.parse_args()
     grid_search(**vars(args))
