@@ -28,7 +28,7 @@ def train_tokenizer(
     
     entire_dataset = load_ds("parquet", 
                              data_files=str(data_path),
-                             split="train")
+                             split="all")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
