@@ -6,7 +6,7 @@ from pathlib import Path
 def download_data(
         dataset_name: str,
         dataset_subset: str,
-        dataset_root_dir: str):
+        datasets_dir: str):
     """ Download dataset from Hugging Face.
 
     It is useful to download the dataset before trying to train the model when
@@ -15,11 +15,11 @@ def download_data(
     Args:
         dataset_name (str): Name of Hugging Face dataset.
         dataset_subset (str): Configuration/subset of dataset to use.
-        dataset_root_dir (str): Absolute path to the directory in which Hugging
-            Face datasets are downloaded.
+        datasets_dir (str): Absolute path to the directory in which Hugging Face
+            datasets are downloaded.
     """
     # Create folder to save this dataset's files in
-    dataset_dir = Path(dataset_root_dir) / dataset_name
+    dataset_dir = Path(datasets_dir) / dataset_name
     dataset_dir.mkdir(parents=True)
 
     print("Beginning download")
@@ -52,7 +52,6 @@ if __name__ == "__main__":
     parser.add_argument("--dataset-subset", type=str, required=True,
         help="Subset/config to use for Hugging Face dataset.")
     parser.add_argument("--datasets-dir", type=str, required=True,
-        dest="dataset_root_dir",
         help="Path to directory in which Hugging Face datasets are downloaded.")
 
     args = parser.parse_args()

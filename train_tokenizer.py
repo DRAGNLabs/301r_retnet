@@ -28,7 +28,7 @@ def train_tokenizer(
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
 
     # Retrieve iterators for each split of the dataset
-    print(f'Data dir: {datasets_dir}')
+    print(f"Datasets dir: {datasets_dir}")
     data_path = Path(datasets_dir) / dataset_name / (dataset_subset + ".parquet")
     
     entire_dataset = load_ds("parquet", 
@@ -107,6 +107,7 @@ def train_tokenizer(
     tokenizer_save_path = Path(tokenizer_folder)
     tokenizer_save_path.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(tokenizer_save_path)
+
 
 if __name__ == "__main__":
     # Get arguments
