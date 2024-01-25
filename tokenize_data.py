@@ -8,9 +8,6 @@ from tokenizers import Tokenizer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 
-# Disable parallelism to avoid errors with DataLoaders later on
-environ["TOKENIZERS_PARALLELISM"] = "false"
-
 def tokenize_data(
         data_dir: str,
         dataset_name: str,
@@ -31,31 +28,7 @@ def tokenize_data(
     
     # Retrieve iterators for each split of the dataset
     print(f"Datasets dir: {datasets_dir}")
-    entire_dataset = datasets.load_dataset(
-        "parquet",
-        data_files=str(Path(datasets_dir) / dataset_name / f"{dataset_subset}.parquet"),
-        split="all")
-
-    # Function to filter out undesired inputs. In this case, filter out
-    # instances with only whitespace
-    filter_fun = lambda inst_dict : bool(inst_dict[text_feature].strip())
-
-    # Filter out undesired data instances
-    entire_dataset = entire_dataset.filter(filter_fun)
-
-    # Split into training, validation, and testing datasets
-    train_validtest = entire_dataset.train_test_split(
-        train_size=splits[0],
-        shuffle=True,
-        seed=rand_seed)
-    valid_test = train_validtest["test"].train_test_split(
-        train_size=splits[1] / (splits[1] + splits[2]),
-        shuffle=True,
-        seed=rand_seed)
-    entire_dataset = datasets.DatasetDict({
-        "train": train_validtest["train"],
-        "validation": valid_test["train"],
-        "test": valid_test["test"]})
+    entire_dataset = datasets.load_from_disk(Path(datasets_dir) / dataset_name)
 
     tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
 
@@ -76,18 +49,12 @@ def tokenize_data(
 
     #This code saves the now tokenized dataset as a .parquet folder, making a folder in the data directory called tokenized if one does not already exist.
     tokenized_dataset_dir = Path(data_dir) / "tokenized_datasets" / dataset_name
-    print(f"Saving tokenized data to {tokenized_dataset_dir}")
-    if not tokenized_dataset_dir.exists():
-        tokenized_dataset_dir.mkdir(parents=True)
+    tokenized_dataset_dir.mkdir(parents=True, exist_ok=True)
 
-    if isinstance(entire_dataset, datasets.arrow_dataset.Dataset):
-        entire_dataset.to_parquet(tokenized_dataset_dir / f"{tokenized_data_name}.parquet")
-    elif isinstance(entire_dataset, datasets.dataset_dict.DatasetDict):
-        for key, value in entire_dataset.items():
-            filename = key + '.parquet'
-            value.to_parquet(tokenized_dataset_dir / filename)
-    else:
-        print("Dataset is not of type datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict")
+    print(f"Saving tokenized data to {tokenized_dataset_dir}")
+    for key, value in entire_dataset.items():
+        filename = key + '.parquet'
+        value.to_parquet(tokenized_dataset_dir / filename)
 
 
 if __name__ == "__main__":

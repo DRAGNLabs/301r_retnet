@@ -10,9 +10,6 @@ from tokenizers.trainers import BpeTrainer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 
-# Disable parallelism to avoid errors with DataLoaders later on
-environ["TOKENIZERS_PARALLELISM"] = "false"
-
 def train_tokenizer(
         dataset_name: str,
         datasets_dir: str,
@@ -53,6 +50,10 @@ def train_tokenizer(
         "train": train_validtest["train"],
         "validation": valid_test["train"],
         "test": valid_test["test"]})
+
+    # Save splits to file
+    entire_dataset.save_to_disk(
+        dataset_dict_path=Path(datasets_dir) / dataset_name)
 
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
