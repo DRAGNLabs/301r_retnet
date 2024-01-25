@@ -26,26 +26,26 @@ def evaluate_models(
 
 def grid_search(
         data_dir: str,
-        datasets_dir: str,
         dataset_feature: str,
         dataset_name: str,
         dataset_subset: str,
-        tokenizer_folder: str,
+        datasets_dir: str,
         num_devices: str,
+        test_data: str,
+        tokenizer_folder: str,
         train_data: str,
-        validation_data: str,
-        test_data: str):
+        validation_data: str):
     """ Perform grid search on the hyperparameters of the model.
 
     Args:
         data_dir (str): Path to directory where all data except datasets are
             saved.
-        datasets_dir (str): Path to directory in which Hugging Face datasets are
-            downloaded.
         dataset_feature (str): Hugging Face dataset feature/column to use.
         dataset_name (str): Hugging Face dataset name. Should also set
             '--dataset-subset'.
         dataset_subset (str): Subset/config to use for Hugging Face dataset.
+        datasets_dir (str): Path to directory in which Hugging Face datasets are
+            downloaded.
     """
     # Hyperparameters ranges to test
     learning_rates = [0.01, 0.001, 0.0001]
