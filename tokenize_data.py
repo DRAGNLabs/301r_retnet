@@ -11,16 +11,16 @@ from transformers import PreTrainedTokenizerFast
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def tokenize_data(
-        tokenized_data_name: str,
-        tokenized_data_folder: str,
-        tokenizer_folder: str,
+        data_dir: str,
         dataset_name: str,
-        seq_len: int,
         datasets_dir: str,
+        seq_len: int,
+        tokenized_data_name: str,
+        tokenizer_folder: str,
         dataset_subset: str=None,
-        text_feature: str="text",
+        rand_seed: int=None,
         splits: list[float]=[0.7, 0.2, 0.1],
-        rand_seed: int=None) -> \
+        text_feature: str="text") -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
     
     # Retrieve iterators for each split of the dataset
@@ -69,17 +69,17 @@ def tokenize_data(
     entire_dataset = entire_dataset.remove_columns(column_names=text_feature)
 
     #This code saves the now tokenized dataset as a .parquet folder, making a folder in the data directory called tokenized if one does not already exist.
-    path = Path(tokenized_data_folder)
-    print(f"Saving tokenized data to {path}")
-    if not path.exists():
-        path.mkdir(parents=True)
+    tokenized_dataset_dir = Path(data_dir) / "tokenized_datasets" / dataset_name
+    print(f"Saving tokenized data to {tokenized_dataset_dir}")
+    if not tokenized_dataset_dir.exists():
+        tokenized_dataset_dir.mkdir(parents=True)
 
     if isinstance(entire_dataset, datasets.arrow_dataset.Dataset):
-        entire_dataset.to_parquet(path / f"{tokenized_data_name}.parquet")
+        entire_dataset.to_parquet(tokenized_dataset_dir / f"{tokenized_data_name}.parquet")
     elif isinstance(entire_dataset, datasets.dataset_dict.DatasetDict):
         for key, value in entire_dataset.items():
             filename = key + '.parquet'
-            value.to_parquet(path / filename)
+            value.to_parquet(tokenized_dataset_dir / filename)
     else:
         print("Dataset is not of type datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict")
 
@@ -88,6 +88,11 @@ if __name__ == "__main__":
     # Get arguments
     parser = ArgumentParser()
     
+    parser.add_argument(
+        "--data-dir",
+        type=str,
+        required=True,
+        help="Path to directory where all data expect datasets are saved.")
     parser.add_argument(
         "--dataset-name",
         type=str,
@@ -125,11 +130,6 @@ if __name__ == "__main__":
         type=str,
         default="text",
         help="Name of the feature/column of the dataset to use.")
-    parser.add_argument(
-        "--tokenized-data-folder",
-        type=str,
-        required=True,
-        help="Folder to save tokenizered data to.")
     parser.add_argument(
         "--tokenized-data-name",
         type=str,
