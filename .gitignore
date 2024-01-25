@@ -18,9 +18,7 @@ venv.bak/
 
 # Weights and saved models folders
 models/
-weights/
 tokenizers/
-
 
 # TensorBoard logs folder
 logs/
