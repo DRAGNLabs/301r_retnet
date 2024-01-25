@@ -7,7 +7,6 @@ from argparse import ArgumentParser
 from datasets import (load_dataset as load_ds)
 from datetime import datetime
 from hugging_face_model import RetNetModelHF, TransformerModelHF
-from math import isclose
 from pathlib import Path
 from tabulate import tabulate
 from torch.utils.data import DataLoader
@@ -44,7 +43,6 @@ def train_model(
         model_type: str="retnet",
         rand_seed: bool=None,
         seq_len: int=128,
-        splits: list[float]=[0.7, 0.2, 0.1],
         tboard_dir: str="/tmp/data",
         tokenizer_folder: str=None,
         val_freq: int=3,
@@ -80,8 +78,6 @@ def train_model(
             rand_seed (int): Random seed to use, allowing more reproducible
                 results.
             seq_len (int): Sequence length (context window size).
-            splits (list[float]): Space-separated decimal splits of train,
-                validation, and test datasets. (Ex: '0.7 0.2 0.1')
             tboard_dir (str): Path to directory to save TensorBoard logs in.
             val_freq (int): Number of times to run validation per epoch during
                 training.
@@ -106,11 +102,6 @@ def train_model(
     assert value_embed_dim % heads == 0, \
         "Value Embed Dimension not divisible by number of heads " + \
         f"({value_embed_dim} % {heads} != 0)!"
-
-    # Test the dataset splits add up to 1, using isclose for rounding errors
-    assert isclose(sum(splits), 1), \
-        "The dataset splits for the training, validation, and testing " + \
-        f"datasets must sum up to 1 ({' + '.join(map(str, splits))} != 1)!"
 
     # Set random seeds for torch, numpy, random, etc. with transformers library
     if rand_seed is not None:
@@ -445,10 +436,6 @@ if __name__ == "__main__":
         help="Random seed to use, allowing more reproducible results.")
     parser.add_argument("-s", "--seq-len", type=int, default=512,
         help="Sequence length (context window size).")
-    parser.add_argument("--splits", type=float, nargs=3,
-        default=[0.7, 0.2, 0.1],
-        help="Space-separated decimal splits of train, validation, and " + \
-            "test datasets. (Ex: '0.7 0.2 0.1')")
     parser.add_argument("--tboard-dir", type=str, default=None,
         help="Path to directory to save TensorBoard logs in.")
     parser.add_argument("--tokenizer-folder", type= str, required=True,
