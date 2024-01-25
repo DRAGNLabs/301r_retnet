@@ -27,7 +27,7 @@ def evaluate_models(
 
 def grid_search(
         data_dir: str,
-        dataset_dir: str,
+        datasets_dir: str,
         dataset_feature: str,
         dataset_name: str,
         dataset_subset: str,
@@ -85,7 +85,7 @@ def grid_search(
             lr=lr,
             batch_size=batch_size,
             model_type="retnet",
-            dataset_dir=dataset_dir,
+            datasets_dir=datasets_dir,
             dataset_name=dataset_name,
             dataset_subset=dataset_subset,
             data_dir=data_dir,
@@ -105,7 +105,7 @@ def grid_search(
             lr=lr,
             batch_size=batch_size,
             model_type="transformer",
-            dataset_dir=dataset_dir,
+            datasets_dir=datasets_dir,
             dataset_name=dataset_name,
             dataset_subset=dataset_subset,
             data_dir=data_dir,
@@ -167,14 +167,14 @@ if __name__ == "__main__":
 
     parser.add_argument("--data-dir", type=str, required=True,
         help="Path to directory where all data except datasets are saved.")
-    parser.add_argument("--dataset-dir", type=str, required=True,
-        help="Path to directory in which Hugging Face datasets are downloaded.")
     parser.add_argument("--dataset-feature", type=str, default="text",
         help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
         help="Hugging Face dataset name. Should also set --dataset-subset.")
     parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
         help="Subset/config to use for Hugging Face dataset.")
+    parser.add_argument("--datasets-dir", type=str, required=True,
+        help="Path to directory in which Hugging Face datasets are downloaded.")
     parser.add_argument("--tokenizer-folder", type= str, required=True,
         help="Path to the file where the tokenizer will be saved")
     parser.add_argument("--num-devices", type= str, required=True,

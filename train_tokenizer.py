@@ -20,7 +20,7 @@ def train_tokenizer(
         dataset_name: str,
         seq_len: int,
         vocab_size: int,
-        dataset_dir: str,
+        datasets_dir: str,
         dataset_subset: str=None,
         text_feature: str="text",
         splits: list[float]=[0.7, 0.2, 0.1],
@@ -28,8 +28,8 @@ def train_tokenizer(
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
 
     # Retrieve iterators for each split of the dataset
-    print(f'Data dir: {dataset_dir}')
-    data_path = Path(dataset_dir) / dataset_name / (dataset_subset + ".parquet")
+    print(f'Data dir: {datasets_dir}')
+    data_path = Path(datasets_dir) / dataset_name / (dataset_subset + ".parquet")
     
     entire_dataset = load_ds("parquet", 
                              data_files=str(data_path),

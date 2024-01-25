@@ -16,7 +16,7 @@ def tokenize_data(
         tokenizer_folder: str,
         dataset_name: str,
         seq_len: int,
-        dataset_dir: str,
+        datasets_dir: str,
         dataset_subset: str=None,
         text_feature: str="text",
         splits: list[float]=[0.7, 0.2, 0.1],
@@ -24,10 +24,10 @@ def tokenize_data(
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
     
     # Retrieve iterators for each split of the dataset
-    print(f'Data dir: {dataset_dir}')
+    print(f'Data dir: {datasets_dir}')
     entire_dataset = datasets.load_dataset(
         "parquet",
-        data_files=str(Path(dataset_dir) / dataset_name / f"{dataset_subset}.parquet"),
+        data_files=str(Path(datasets_dir) / dataset_name / f"{dataset_subset}.parquet"),
         split="all")
 
     # Function to filter out undesired inputs. In this case, filter out

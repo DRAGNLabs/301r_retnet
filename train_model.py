@@ -28,7 +28,7 @@ def train_model(
         batch_size: int=8,
         checkpoints: bool=False,
         data_dir: str="/tmp/data",
-        dataset_dir: str="/tmp/data/datasets",
+        datasets_dir: str="/tmp/data/datasets",
         dataset_feature: str="text",
         dataset_name: str="wikitext",
         dataset_subset: str="wikitext-2-v1",
@@ -175,11 +175,11 @@ def train_model(
         f"{model_type}_{total_params}"
 
     # Make sure dataset is pre-downloaded
-    dataset_root_dir = Path(dataset_dir)
-    dataset_dir = dataset_root_dir / dataset_name
-    assert dataset_dir.exists(), \
-        f"The directory with data, {dataset_dir}, doesn't exist!"
-    print(f"\nUsing dataset directory {dataset_dir}")
+    dataset_root_dir = Path(datasets_dir)
+    datasets_dir = dataset_root_dir / dataset_name
+    assert datasets_dir.exists(), \
+        f"The directory with data, {datasets_dir}, doesn't exist!"
+    print(f"\nUsing dataset directory {datasets_dir}")
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(data_dir) / "models" / model_label

@@ -47,13 +47,13 @@ if __name__ == "__main__":
     # Initialize, setup, and parse the argument parser
     parser = ArgumentParser(prog="Data Downloader")
 
-    parser.add_argument("--dataset-dir", type=str, required=True,
-        dest="dataset_root_dir",
-        help="Path to directory in which Hugging Face datasets are downloaded.")
     parser.add_argument("--dataset-name", type=str, required=True,
         help="Hugging Face dataset name. Should also set --dataset-subset.")
     parser.add_argument("--dataset-subset", type=str, required=True,
         help="Subset/config to use for Hugging Face dataset.")
+    parser.add_argument("--datasets-dir", type=str, required=True,
+        dest="dataset_root_dir",
+        help="Path to directory in which Hugging Face datasets are downloaded.")
 
     args = parser.parse_args()
 
