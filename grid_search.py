@@ -28,6 +28,7 @@ def grid_search(
         data_dir: str,
         dataset_name: str,
         datasets_dir: str,
+        rand_seed: int,
         tokenizer_folder: str):
     """ Perform grid search on the hyperparameters of the model.
 
@@ -53,6 +54,7 @@ def grid_search(
     with open(Path(data_dir) / "grid_search_results.csv", "w") as results_file:
         # Write header to CSV file
         results_file.write(",".join([
+            "Random Seed",
             "Learning Rate",
             "Embedding Dimension",
             "Batch Size",
@@ -78,6 +80,7 @@ def grid_search(
             datasets_dir=datasets_dir,
             dataset_name=dataset_name,
             data_dir=data_dir,
+            rand_seed=rand_seed,
             tboard_dir="/tmp/tboard_logs",
             tokenizer_folder=tokenizer_folder)
         retnet_training_time=time.time() - retnet_start_time
@@ -92,6 +95,7 @@ def grid_search(
             datasets_dir=datasets_dir,
             dataset_name=dataset_name,
             data_dir=data_dir,
+            rand_seed=rand_seed,
             tboard_dir="/tmp/tboard_logs",
             tokenizer_folder=tokenizer_folder)
         transformer_training_time = time.time() - transformer_start_time
@@ -110,6 +114,7 @@ def grid_search(
         with open(Path(data_dir) / "grid_search_results.csv",
                 "a") as results_file:
             results_file.write(",".join(map(str, [
+                rand_seed,
                 lr,
                 embed_dim,
                 batch_size,
@@ -149,6 +154,8 @@ if __name__ == "__main__":
         help="Hugging Face dataset name.")
     parser.add_argument("--datasets-dir", type=str, required=True,
         help="Path to directory in which Hugging Face datasets are downloaded.")
+    parser.add_argument("-r", "--rand-seed", type=int, default=None,
+        help="Random seed to use, allowing more reproducible results.")
     parser.add_argument("--tokenizer-folder", type= str, required=True,
         help="Path to the file where the tokenizer will be saved")
     

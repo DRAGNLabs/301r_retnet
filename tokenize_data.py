@@ -16,7 +16,6 @@ def tokenize_data(
         tokenized_data_name: str,
         tokenizer_folder: str,
         dataset_subset: str=None,
-        rand_seed: int=None,
         splits: list[float]=[0.7, 0.2, 0.1],
         text_feature: str="text") -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
@@ -81,11 +80,6 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Relative path from base of repository to directory in which to download the dataset.")
-    parser.add_argument(
-        "--rand-seed",
-        type=int,
-        default=None,
-        help="Seed used during dataset shuffling, ignored if None.")
     parser.add_argument(
         "--seq-len",
         type=int,

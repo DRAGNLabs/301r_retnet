@@ -44,7 +44,6 @@ def train_tokenizer(
         seed=rand_seed)
     valid_test = train_validtest["test"].train_test_split(
         train_size=splits[1] / (splits[1] + splits[2]),
-        shuffle=True,
         seed=rand_seed)
     entire_dataset = DatasetDict({
         "train": train_validtest["train"],
