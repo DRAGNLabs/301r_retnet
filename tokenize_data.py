@@ -24,7 +24,7 @@ def tokenize_data(
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
     
     # Retrieve iterators for each split of the dataset
-    print(f'Data dir: {datasets_dir}')
+    print(f"Datasets dir: {datasets_dir}")
     entire_dataset = datasets.load_dataset(
         "parquet",
         data_files=str(Path(datasets_dir) / dataset_name / f"{dataset_subset}.parquet"),
@@ -70,18 +70,18 @@ def tokenize_data(
 
     #This code saves the now tokenized dataset as a .parquet folder, making a folder in the data directory called tokenized if one does not already exist.
     path = Path(tokenized_data_folder)
-    print(f'Saving tokenized data to {path}')
+    print(f"Saving tokenized data to {path}")
     if not path.exists():
         path.mkdir(parents=True)
 
     if isinstance(entire_dataset, datasets.arrow_dataset.Dataset):
-        entire_dataset.to_parquet(path  / f'{tokenized_data_name}.parquet')
+        entire_dataset.to_parquet(path / f"{tokenized_data_name}.parquet")
     elif isinstance(entire_dataset, datasets.dataset_dict.DatasetDict):
         for key, value in entire_dataset.items():
             filename = key + '.parquet'
             value.to_parquet(path / filename)
     else:
-        print('Dataset is not of type datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict')
+        print("Dataset is not of type datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict")
 
 
 if __name__ == "__main__":
