@@ -1,10 +1,11 @@
 import datasets
+
+from argparse import ArgumentParser
 from os import environ
+from pathlib import Path
 from tokenizers import Tokenizer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
-from argparse import ArgumentParser
-from pathlib import Path
 
 # Disable parallelism to avoid errors with DataLoaders later on
 environ["TOKENIZERS_PARALLELISM"] = "false"
