@@ -21,12 +21,14 @@ from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, 
 torch.backends.cuda.matmul.allow_tf32 = True
 
 def train_model(
+        dataset_name: str,
+        tokenizer_folder: str,
+        vocab_size: int,
         activation_dropout: float=0.0,
         batch_size: int=8,
         checkpoints: bool=False,
         data_dir: str="/tmp/data",
         datasets_dir: str="/tmp/data/datasets",
-        dataset_name: str="wikitext",
         device: str="cuda",
         dropout: float=0.1,
         embed_dim: int=80,
@@ -40,12 +42,14 @@ def train_model(
         rand_seed: bool=None,
         seq_len: int=128,
         tboard_dir: str="/tmp/tboard_logs",
-        tokenizer_folder: str=None,
         val_freq: int=3,
-        value_embed_dim: int=12,
-        vocab_size: int=32768):
+        value_embed_dim: int=12):
     """ Use parameters to run train_model().
         Args:
+            dataset_name (str): Hugging Face dataset name.
+            tokenizer_folder (str): Path to the file where the tokenizer will be saved
+            vocab_size (int): Maximum vocabulary size (number of unique tokens
+                in vocabulary.
             activation_dropout (float): Probability of an element to be zeroed
                 during dropout after activation between FFN layers.
             batch_size (int): Batch size.
@@ -54,7 +58,6 @@ def train_model(
                 saved.
             datasets_dir (str): Path to directory in which Hugging Face datasets
                 are downloaded.
-            dataset_name (str): Hugging Face dataset name.
             device (str): Device to use (ex: 'cpu', 'cuda', or 'cuda:0').
             dropout (float): Probability of an element to be zeroed during
                 dropout.
@@ -75,8 +78,6 @@ def train_model(
             val_freq (int): Number of times to run validation per epoch during
                 training.
             value_embed_dim (int): Value embed dimension size.
-            vocab_size (int): Maximum vocabulary size (number of unique tokens
-                in vocabulary.
 
         Returns:
             A tuple of the trained model instance and the test average loss.
