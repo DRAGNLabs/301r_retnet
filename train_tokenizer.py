@@ -1,16 +1,16 @@
+from argparse import ArgumentParser
 from datasets import (
     DatasetDict,
     get_dataset_infos as get_ds_infos,
     get_dataset_split_names as get_ds_split_names,
     load_dataset as load_ds)
 from os import environ
+from pathlib import Path
 from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
-from argparse import ArgumentParser
-from pathlib import Path
 
 # Disable parallelism to avoid errors with DataLoaders later on
 environ["TOKENIZERS_PARALLELISM"] = "false"
