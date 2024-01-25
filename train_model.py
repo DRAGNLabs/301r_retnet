@@ -10,7 +10,7 @@ from hugging_face_model import RetNetModel, TransformerModel
 from math import isclose
 from pathlib import Path
 from tabulate import tabulate
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoaderfrom os import environ
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
@@ -46,6 +46,7 @@ def train_model(
         seq_len: int=128,
         splits: list[float]=[0.7, 0.2, 0.1],
         tboard_dir: str="/tmp/data",
+        tokenizer_folder: str=None,
         val_freq: int=3,
         value_embed_dim: int=12,
         vocab_size: int=4000):
@@ -215,7 +216,7 @@ def train_model(
         f"{-torch.log(torch.tensor(1 / args.vocab_size))}")
     
     # Get Tokenizer from local directory
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(args.tokenizer_folder)
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
 
     # Loads Tokenized data
     tokenized_dataset = load_ds(
