@@ -432,13 +432,17 @@ if __name__ == "__main__":
     parser.add_argument("--data-dir", type=str, required=True,
         help="Path to directory where all data except datasets are saved.")
     parser.add_argument("--dataset-dir", type=str, required=True,
-        help="Path to directory in which Hugging Face datasets are downloaded.")
+        help="Path to the datasets directory.")
     parser.add_argument("--dataset-feature", type=str, default="text",
         help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
         help="Hugging Face dataset name. Should also set --dataset-subset.")
+    
     parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
         help="Subset/config to use for Hugging Face dataset.")
+    parser.add_argument("--dataset-subset", type= str, required=True,
+        help="Specific name of Tokenized dataset")
+    
     parser.add_argument("--device", type=str, default="cuda",
         help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
     parser.add_argument("-d", "--dropout", type=float, default=0.1,
@@ -470,18 +474,14 @@ if __name__ == "__main__":
             "test datasets. (Ex: '0.7 0.2 0.1')")
     parser.add_argument("--tboard-dir", type=str, default=None,
         help="Path to directory to save TensorBoard logs in.")
+    parser.add_argument("--tokenizer-folder", type= str, required=True,
+        help="Path to the file where the tokenizer will be saved")
     parser.add_argument("--val-freq", type=int, default=3,
         help="Number of times to run validation per epoch during training.")
     parser.add_argument("--value-embed-dim", type=int, default=1280,
         help="Value embed dimension size.")
     parser.add_argument("--vocab-size", type=int, required=True,
         help="Maximum number of unique tokens in vocabulary.")
-    parser.add_argument("--tokenizer-folder", type= str, required=True,
-        help="Path to the file where the tokenizer will be saved")
-    parser.add_argument("--dataset-dir", type= str, required=True,
-        help="Path to the datasets directory")
-    parser.add_argument("--dataset-subset", type= str, required=True,
-        help="Specific name of Tokenized dataset")
     
 
     args = parser.parse_args()
