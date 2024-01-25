@@ -5,7 +5,6 @@ import torch.nn.functional as F
 
 from argparse import ArgumentParser
 from datetime import datetime
-from load_data import get_loaders_tokenizer
 from math import isclose
 from pathlib import Path
 from tabulate import tabulate
@@ -237,24 +236,6 @@ def train_model(
         batch_size=args.batch_size)
 
 
-    # Get DataLoaders and trained Tokenizer
-    # print(f"\nNow retrieving '{args.dataset_name}' and training tokenizer...")
-    # train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
-    #     dataset_name=args.dataset_name,
-    #     seq_len=args.seq_len,
-    #     batch_size=args.batch_size,
-    #     vocab_size=args.vocab_size,
-    #     data_dir= Path("/grphome/grp_retnet/compute/data") / args.dataset_name, #NOTE(jay): would not hardcode data, add as a parameter for flexibility
-    #     dataset_config=args.dataset_subset,
-    #     text_feature=args.dataset_feature,
-    #     max_token_len=20,
-    #     splits=args.splits,
-    #     rand_seed=args.rand_seed)
-
-    # Save trained tokenizer
-    # tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
-    # print(f"Saved trained tokenizer")
-
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
 
@@ -437,12 +418,8 @@ if __name__ == "__main__":
         help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
         help="Hugging Face dataset name. Should also set --dataset-subset.")
-    
     parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
-        help="Subset/config to use for Hugging Face dataset.")
-    parser.add_argument("--dataset-subset", type= str, required=True,
-        help="Specific name of Tokenized dataset")
-    
+        help="Specific name of Tokenized dataset.")
     parser.add_argument("--device", type=str, default="cuda",
         help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
     parser.add_argument("-d", "--dropout", type=float, default=0.1,
@@ -483,6 +460,5 @@ if __name__ == "__main__":
     parser.add_argument("--vocab-size", type=int, required=True,
         help="Maximum number of unique tokens in vocabulary.")
     
-
     args = parser.parse_args()
     train_model(**vars(args))
