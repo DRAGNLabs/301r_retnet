@@ -56,11 +56,11 @@ def run_eval(model_path_dir: str, tokenizer_path_dir: Optional[str] = None, task
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_path_dir', type=str, required=True, help='Path to model directory')
-    parser.add_argument('--tokenizer_path_dir', type=str, default=None, help='Path to tokenizer directory')
+    parser.add_argument('--model-path-dir', type=str, required=True, help='Path to model directory')
+    parser.add_argument('--tokenizer-path-dir', type=str, default=None, help='Path to tokenizer directory')
     parser.add_argument('--tasks', type=str, nargs='+', default=['hellaswag'], help='Tasks to evaluate on')
     parser.add_argument('--device', type=str, default='cuda:0', help='Device to run on')
-    parser.add_argument('--results_out_path', type=str, default=None, help='Path to save results')
-    args = parser.parse_args()
+    parser.add_argument('--results-out-path', type=str, default=None, help='Path to save results')
 
-    run_eval(args.model_path_dir, args.tokenizer_path_dir, args.tasks, args.device, args.results_out_path)
+    args = parser.parse_args()
+    run_eval(**vars(args))

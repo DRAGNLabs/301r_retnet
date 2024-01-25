@@ -412,14 +412,14 @@ if __name__ == "__main__":
         default=False, help="Save model checkpoints while training.")
     parser.add_argument("--data-dir", type=str, required=True,
         help="Path to directory where all data except datasets are saved.")
-    parser.add_argument("--dataset-dir", type=str, required=True,
-        help="Path to the datasets directory.")
     parser.add_argument("--dataset-feature", type=str, default="text",
         help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
         help="Hugging Face dataset name. Should also set --dataset-subset.")
     parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
         help="Specific name of Tokenized dataset.")
+    parser.add_argument("--datasets-dir", type=str, required=True,
+        help="Path to the datasets directory.")
     parser.add_argument("--device", type=str, default="cuda",
         help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
     parser.add_argument("-d", "--dropout", type=float, default=0.1,

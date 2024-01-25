@@ -89,27 +89,27 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     
     parser.add_argument(
-        "--dataset_dir",
-        type=str,
-        required=True,
-        help="Relative path from base of repository to directory in which to download the dataset.")
-    parser.add_argument(
-        "--dataset_name",
+        "--dataset-name",
         type=str,
         required=True,
         help="Name of Hugging Face dataset.")
     parser.add_argument(
-        "--dataset_subset",
+        "--dataset-subset",
         type=str,
         default=None,
         help="Configuration/subset of dataset to use.")
     parser.add_argument(
-        "--rand_seed",
+        "--datasets-dir",
+        type=str,
+        required=True,
+        help="Relative path from base of repository to directory in which to download the dataset.")
+    parser.add_argument(
+        "--rand-seed",
         type=int,
         default=None,
         help="Seed used during dataset shuffling, ignored if None.")
     parser.add_argument(
-        "--seq_len",
+        "--seq-len",
         type=int,
         required=True,
         help="Context window/sequence length.")
@@ -121,22 +121,22 @@ if __name__ == "__main__":
         help="Space-separated decimal splits of train, validation, and " + \
             "test datasets. (Ex: '0.7 0.2 0.1')")
     parser.add_argument(
-        "--text_feature",
+        "--text-feature",
         type=str,
         default="text",
         help="Name of the feature/column of the dataset to use.")
     parser.add_argument(
-        "--tokenized_data_folder",
+        "--tokenized-data-folder",
         type=str,
         required=True,
         help="Folder to save tokenizered data to.")
     parser.add_argument(
-        "--tokenized_data_name",
+        "--tokenized-data-name",
         type=str,
         required=True,
         help="Name of tokenized data.")
     parser.add_argument(
-        "--tokenizer_folder",
+        "--tokenizer-folder",
         type=str,
         required=True,
         help="Folder to save tokenizer to.")
