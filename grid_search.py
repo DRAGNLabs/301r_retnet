@@ -5,7 +5,7 @@ import torch
 
 from argparse import ArgumentParser
 from pathlib import Path
-from train_model_lightning import train_model
+from train_model import train_model
 
 def evaluate_models(
         model1: torch.nn.Module,
