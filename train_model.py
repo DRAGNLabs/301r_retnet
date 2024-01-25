@@ -59,7 +59,7 @@ def train_model(
             checkpoints (bool): Save model checkpoints while training.
             data_dir (str): Path to directory where all data except datasets are
                 saved.
-            dataset_dir (str): Path to directory in which Hugging Face datasets
+            datasets_dir (str): Path to directory in which Hugging Face datasets
                 are downloaded.
             dataset_feature (str): Hugging Face dataset feature/column to use.
             dataset_name (str): Hugging Face dataset name. Should also set
