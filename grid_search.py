@@ -29,7 +29,8 @@ def grid_search(
         dataset_name: str,
         datasets_dir: str,
         rand_seed: int,
-        tokenizer_folder: str):
+        tokenizer_folder: str,
+        vocab_size: int):
     """ Perform grid search on the hyperparameters of the model.
 
     Args:
@@ -73,31 +74,33 @@ def grid_search(
         # Train RetNet model
         retnet_start_time = time.time()
         retnet_model, avg_loss_retnet = train_model(
-            embed_dim=embed_dim,
-            lr=lr,
             batch_size=batch_size,
-            model_type="retnet",
             datasets_dir=datasets_dir,
             dataset_name=dataset_name,
             data_dir=data_dir,
+            embed_dim=embed_dim,
+            lr=lr,
+            model_type="retnet",
             rand_seed=rand_seed,
             tboard_dir="/tmp/tboard_logs",
-            tokenizer_folder=tokenizer_folder)
+            tokenizer_folder=tokenizer_folder,
+            vocab_size=vocab_size)
         retnet_training_time=time.time() - retnet_start_time
 
         # Train Transformer model with same hyperparameters as RetNet model
         transformer_start_time = time.time()
         transformer_model, avg_loss_transformer = train_model(
-            embed_dim=embed_dim,
-            lr=lr,
             batch_size=batch_size,
-            model_type="transformer",
             datasets_dir=datasets_dir,
             dataset_name=dataset_name,
             data_dir=data_dir,
+            embed_dim=embed_dim,
+            lr=lr,
+            model_type="transformer",
             rand_seed=rand_seed,
             tboard_dir="/tmp/tboard_logs",
-            tokenizer_folder=tokenizer_folder)
+            tokenizer_folder=tokenizer_folder,
+            vocab_size=vocab_size)
         transformer_training_time = time.time() - transformer_start_time
 
         # Track how much time both models combined took to train
@@ -158,6 +161,8 @@ if __name__ == "__main__":
         help="Random seed to use, allowing more reproducible results.")
     parser.add_argument("--tokenizer-folder", type= str, required=True,
         help="Path to the file where the tokenizer will be saved")
+    parser.add_argument("--vocab-size", type=int, required=True,
+        help="Maximum number of unique tokens in vocabulary.")
     
     args = parser.parse_args()
     grid_search(**vars(args))
