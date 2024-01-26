@@ -1,4 +1,3 @@
-import csv
 import itertools
 import time
 import torch
@@ -27,21 +26,19 @@ def evaluate_models(
 
 def grid_search(
         data_dir: str,
-        dataset_dir: str,
-        dataset_feature: str,
         dataset_name: str,
-        dataset_subset: str):
+        datasets_dir: str,
+        rand_seed: int,
+        tokenizer_folder: str,
+        vocab_size: int):
     """ Perform grid search on the hyperparameters of the model.
 
     Args:
         data_dir (str): Path to directory where all data except datasets are
             saved.
-        dataset_dir (str): Path to directory in which Hugging Face datasets are
+        dataset_name (str): Hugging Face dataset name.
+        datasets_dir (str): Path to directory in which Hugging Face datasets are
             downloaded.
-        dataset_feature (str): Hugging Face dataset feature/column to use.
-        dataset_name (str): Hugging Face dataset name. Should also set
-            '--dataset-subset'.
-        dataset_subset (str): Subset/config to use for Hugging Face dataset.
     """
     # Hyperparameters ranges to test
     learning_rates = [0.01, 0.001, 0.0001]
@@ -58,6 +55,7 @@ def grid_search(
     with open(Path(data_dir) / "grid_search_results.csv", "w") as results_file:
         # Write header to CSV file
         results_file.write(",".join([
+            "Random Seed",
             "Learning Rate",
             "Embedding Dimension",
             "Batch Size",
@@ -76,31 +74,33 @@ def grid_search(
         # Train RetNet model
         retnet_start_time = time.time()
         retnet_model, avg_loss_retnet = train_model(
+            batch_size=batch_size,
+            datasets_dir=datasets_dir,
+            dataset_name=dataset_name,
+            data_dir=data_dir,
             embed_dim=embed_dim,
             lr=lr,
-            batch_size=batch_size,
             model_type="retnet",
-            dataset_dir=dataset_dir,
-            dataset_name=dataset_name,
-            dataset_subset=dataset_subset,
-            data_dir=data_dir,
-            dataset_feature=dataset_feature,
-            tboard_dir="/tmp/tboard_logs")
-        retnet_training_time = time.time() - retnet_start_time
+            rand_seed=rand_seed,
+            tboard_dir="/tmp/tboard_logs",
+            tokenizer_folder=tokenizer_folder,
+            vocab_size=vocab_size)
+        retnet_training_time=time.time() - retnet_start_time
 
         # Train Transformer model with same hyperparameters as RetNet model
         transformer_start_time = time.time()
         transformer_model, avg_loss_transformer = train_model(
+            batch_size=batch_size,
+            datasets_dir=datasets_dir,
+            dataset_name=dataset_name,
+            data_dir=data_dir,
             embed_dim=embed_dim,
             lr=lr,
-            batch_size=batch_size,
             model_type="transformer",
-            dataset_dir=dataset_dir,
-            dataset_name=dataset_name,
-            dataset_subset=dataset_subset,
-            data_dir=data_dir,
-            dataset_feature=dataset_feature,
-            tboard_dir="/tmp/tboard_logs")
+            rand_seed=rand_seed,
+            tboard_dir="/tmp/tboard_logs",
+            tokenizer_folder=tokenizer_folder,
+            vocab_size=vocab_size)
         transformer_training_time = time.time() - transformer_start_time
 
         # Track how much time both models combined took to train
@@ -117,6 +117,7 @@ def grid_search(
         with open(Path(data_dir) / "grid_search_results.csv",
                 "a") as results_file:
             results_file.write(",".join(map(str, [
+                rand_seed,
                 lr,
                 embed_dim,
                 batch_size,
@@ -152,14 +153,16 @@ if __name__ == "__main__":
 
     parser.add_argument("--data-dir", type=str, required=True,
         help="Path to directory where all data except datasets are saved.")
-    parser.add_argument("--dataset-dir", type=str, required=True,
-        help="Path to directory in which Hugging Face datasets are downloaded.")
-    parser.add_argument("--dataset-feature", type=str, default="text",
-        help="Hugging Face dataset feature/column to use.")
     parser.add_argument("--dataset-name", type=str, default="wikitext",
-        help="Hugging Face dataset name. Should also set --dataset-subset.")
-    parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
-        help="Subset/config to use for Hugging Face dataset.")
-
+        help="Hugging Face dataset name.")
+    parser.add_argument("--datasets-dir", type=str, required=True,
+        help="Path to directory in which Hugging Face datasets are downloaded.")
+    parser.add_argument("-r", "--rand-seed", type=int, default=None,
+        help="Random seed to use, allowing more reproducible results.")
+    parser.add_argument("--tokenizer-folder", type= str, required=True,
+        help="Path to the file where the tokenizer will be saved")
+    parser.add_argument("--vocab-size", type=int, required=True,
+        help="Maximum number of unique tokens in vocabulary.")
+    
     args = parser.parse_args()
     grid_search(**vars(args))
