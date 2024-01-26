@@ -1,4 +1,26 @@
-This is a readme for the RETNET team
+# Retnet VS Transformers
+
+## Introduction
+
+This project focuses on the comparison and analysis of RetNet vs Transformers, utilizing Microsoft's TorchScale as the base architecture.
+
+## Features
+
+- [Feature 1]
+- [Feature 2]
+- [Feature 3]
+
+## Base Architecture - Microsoft TorchScale
+
+This project is built upon [Microsoft TorchScale](https://github.com/microsoft/torchscale), which serves as the base architecture for our research. TorchScale provides a set of tools and utilities for training and evaluating deep learning models efficiently. We have leveraged its capabilities to develop our comparison between RetNet and Transformers.
+
+## Installation and Setup
+
+To get started with this project, first clone the RetNet repository using the following command:
+
+````bash
+git clone https://github.com/DRAGNLabs/301r_retnet.git
+cd 301r_retnet
 
 Make sure to have Python=3.11
 When you use a .sh script, run this to grant permission "chmod +x retnet.sh" for the script you want to use
@@ -9,9 +31,11 @@ _Hyperparameters Scaling_
 ### Python Code Examples
 
 #### 0. **Preparing Data**:
+
 This repository is designed to be run on a cluster. As such, the data must be downloaded and prepared before running the training script.
 
 To download data from the HuggingFace Hub, run the `download_data.py` script with the following parameters:
+
 - dataset_name : the name of the dataset on HF hub
 - dataset_subset : the subset to use
 - dataset_dir : the name of the folder to save the dataset in. Typically, you can just keep this the same as the dataset_name
@@ -40,7 +64,7 @@ model = RetNetModel(num_layers=hyperparams["num_layers"],
                     num_heads=hyperparams["num_heads"],
                     dropout_rate=hyperparams["dropout_rate"])
 optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["learning_rate"])
-```
+````
 
 #### 2. **Implementing Learning Rate Scheduler**:
 
