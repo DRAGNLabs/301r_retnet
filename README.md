@@ -68,7 +68,8 @@ Then, execute the script with:
 
 ## Citations
 
-```@article{torchscale,
+```
+@article{torchscale,
   author    = {Shuming Ma and Hongyu Wang and Shaohan Huang and Wenhui Wang and Zewen Chi and Li Dong and Alon Benhaim and Barun Patra and Vishrav Chaudhary and Xia Song and Furu Wei},
   title     = {{TorchScale}: {Transformers} at Scale},
   journal   = {CoRR},
@@ -77,14 +78,17 @@ Then, execute the script with:
 }
 ```
 
-```@article{retnet,
-author={Yutao Sun and Li Dong and Shaohan Huang and Shuming Ma and Yuqing Xia and Jilong Xue and Jianyong Wang and Furu Wei},
-title = {Retentive Network: A Successor to {Transformer} for Large Language Models},
-journal = {ArXiv},
-volume = {abs/2307.08621},
-year = {2023}
+```
+@article{retnet,
+  author={Yutao Sun and Li Dong and Shaohan Huang and Shuming Ma and Yuqing Xia and Jilong Xue and Jianyong Wang and Furu Wei},
+  title     = {Retentive Network: A Successor to {Transformer} for Large Language Models},
+  journal   = {ArXiv},
+  volume    = {abs/2307.08621},
+  year      = {2023}
 }
 ```
+
+## Others
 
 _Hyperparameters Scaling_
 
