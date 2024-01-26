@@ -12,10 +12,16 @@
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn. Does nothing if the program doesn't use OpenMP.
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
+# Make sure to set these
+MODEL_PATH_DIR=/tmp/models/retnet
+TOKENIZER_PATH_DIR=/grphome/grp_retnet/compute/tokenizers/wikitext
+TASKS=winogrande
+
+
 # BEFORE RUNNING THIS SCRIPT ON THE COMPUTE NODE: Make sure to run the run_eval.py script locally to download and cache the correct datasets and benchmarks.
 # You do not need to let it run to completion, just until the datasets and benchmarks are downloaded and cached.
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 nvidia-smi
 mamba activate retnet
-python ../run_eval.py --model-path-dir /tmp/models/retnet --tokenizer-path-dir /grphome/grp_retnet/compute/tokenizers/wikitext --tasks winogrande
+python ../run_eval.py --model-path-dir ${MODEL_PATH_DIR} --tokenizer-path-dir ${TOKENIZER_PATH_DIR} --tasks ${TASKS}
