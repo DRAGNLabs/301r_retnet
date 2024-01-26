@@ -19,11 +19,51 @@ git clone https://github.com/DRAGNLabs/301r_retnet.git
 cd 301r_retnet
 ```
 
-Make sure to have Python=3.11
-When you use a .sh script, run this to grant permission "chmod +x retnet.sh" for the script you want to use
-Then do this "./retnet.sh" to run the script
+### Python Version Requirement
 
-_Hyperparameters Scaling_
+Ensure you have Python 3.11 installed. To check your current Python version, run:
+
+```bash
+python --version
+```
+
+If you do not have Python 3.11, you can download it from the official Python website or use a package manager like apt for Linux or brew for macOS.
+
+Setting Up Python Environment
+After installing Python 3.11, you may need to switch to the correct Python environment. You can use pyenv or a similar tool to manage multiple Python versions. To install and use Python 3.11 with pyenv, follow these steps:
+
+Install pyenv (skip if already installed)
+
+```bash
+curl https://pyenv.run | bash
+```
+
+Install Python 3.11 using pyenv
+
+```bash
+pyenv install 3.11
+```
+
+Set Python 3.11 as the global version
+
+```bash
+pyenv global 3.11
+```
+
+Running Shell Scripts
+For running any .sh scripts, grant execution permissions using:
+
+```bash
+chmod +x retnet.sh
+```
+
+Then, execute the script with:
+
+```bash
+./file.sh
+```
+
+[Continue with additional installation and setup instructions as required for your project.]
 
 ## Features
 
@@ -56,6 +96,8 @@ volume = {abs/2307.08621},
 year = {2023}
 }
 ```
+
+_Hyperparameters Scaling_
 
 ### Python Code Examples
 
