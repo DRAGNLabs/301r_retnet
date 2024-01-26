@@ -30,6 +30,9 @@ tokenizer_path: "/Users/jtappen/CS301R/301r_retnet/data/tokenizers/wikitext_toke
 tokenized_data_name: "wikitext-2-v1-tokenized"
 tokenized_data_dir: "/Users/jtappen/301R/301r_retnet/scripts/data/wikitext/tokenized_data_wikitext"
 
+#Train Model
+data_dir: "/Users/jtappen/301R/301r_retnet/scripts/data/models"
+
 splits:
   - 0.7
   - 0.2

@@ -29,15 +29,15 @@ REPO_ROOT_NAME = "301r_retnet"
 torch.backends.cuda.matmul.allow_tf32 = True
 
 def train_model(
-        activation_dropout: float=0.0,
-        batch_size: int=8,
-        checkpoints: bool=False,
-        data_dir: str="/tmp/data",
-        dataset_dir: str="/tmp/data/datasets",
-        dataset_feature: str="text",
-        dataset_name: str="wikitext",
-        dataset_subset: str="wikitext-2-v1",
-        device: str="cuda",
+        activation_dropout: float,
+        batch_size: int,
+        checkpoints: bool,
+        data_dir: str,
+        dataset_dir: str,
+        dataset_feature: str,
+        dataset_name: str,
+        dataset_subset: str,
+        device: str,
         dropout: float=0.1,
         embed_dim: int=80,
         epochs: int=1,
@@ -186,7 +186,7 @@ def train_model(
     print(f"\nUsing dataset directory {dataset_dir}")
 
     # Initialize model directory for config files, weights, etc.
-    model_dir = Path(data_dir) / "models" / model_label
+    model_dir = Path(data_dir) / model_label
     model_dir.mkdir(parents=True, exist_ok=False)
     print(f"Saving model files in {model_dir}")
 
@@ -500,4 +500,4 @@ if __name__ == "__main__":
     
 
     # args = parser.parse_args()
-    train_model(config)
+    train_model(config.activation_dropout, config.batch_size, config.checkpoints, config.data_dir, config.dataset_dir, config.dropout, config.embed_dim,config.epochs,config.ffn_dim, config.fsdp, config.layers, config.learning_rate, config.model_type)
