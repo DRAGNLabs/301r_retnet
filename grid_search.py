@@ -77,13 +77,13 @@ def grid_search(
             batch_size=batch_size,
             datasets_dir=datasets_dir,
             dataset_name=dataset_name,
-            data_dir=data_dir,
+            models_path=data_dir,
             embed_dim=embed_dim,
             lr=lr,
             model_type="retnet",
             rand_seed=rand_seed,
             tboard_dir="/tmp/tboard_logs",
-            tokenizer_folder=tokenizer_folder,
+            tokenizer_path=tokenizer_folder,
             vocab_size=vocab_size)
         retnet_training_time=time.time() - retnet_start_time
 
@@ -93,13 +93,13 @@ def grid_search(
             batch_size=batch_size,
             datasets_dir=datasets_dir,
             dataset_name=dataset_name,
-            data_dir=data_dir,
+            models_path=data_dir,
             embed_dim=embed_dim,
             lr=lr,
             model_type="transformer",
             rand_seed=rand_seed,
             tboard_dir="/tmp/tboard_logs",
-            tokenizer_folder=tokenizer_folder,
+            tokenizer_path=tokenizer_folder,
             vocab_size=vocab_size)
         transformer_training_time = time.time() - transformer_start_time
 

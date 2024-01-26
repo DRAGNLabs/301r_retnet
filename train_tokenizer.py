@@ -14,10 +14,10 @@ from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 
 def train_tokenizer(
-        tokenizer_folder: str,
+        tokenizer_path: str,
         seq_len: int,
         vocab_size: int,
-        raw_dataset_dir: str,
+        raw_dataset_path: str,
         dataset_subset: str,
         text_feature: str,
         splits: list[float],
@@ -25,8 +25,8 @@ def train_tokenizer(
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
 
     # Retrieve iterators for each split of the dataset
-    print(f'Data dir: {raw_dataset_dir}')
-    data_path = Path(raw_dataset_dir) / (dataset_subset + ".parquet")
+    print(f'Data dir: {raw_dataset_path}')
+    data_path = Path(raw_dataset_path) / (dataset_subset + ".parquet")
     
     entire_dataset = load_ds("parquet", 
                              data_files=str(data_path),
@@ -54,7 +54,7 @@ def train_tokenizer(
 
     # Save splits to file
     entire_dataset.save_to_disk(
-        dataset_dict_path=Path(raw_dataset_dir))
+        dataset_dict_path=Path(raw_dataset_path))
 
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
@@ -104,7 +104,7 @@ def train_tokenizer(
         tokenizer_object=tokenizer)
 
     # Save tokenizer to file
-    tokenizer_save_path = Path(tokenizer_folder)
+    tokenizer_save_path = Path(tokenizer_path)
     tokenizer_save_path.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(tokenizer_save_path)
 
@@ -121,4 +121,4 @@ if __name__ == "__main__":
 
     config = Struct(**config)
 
-    train_tokenizer(config.tokenizer_path, config.seq_len, config.vocab_size, config.raw_dataset_dir, config.dataset_subset, config.dataset_feature, config.splits, config.rand_seed)
+    train_tokenizer(config.tokenizer_path, config.seq_len, config.vocab_size, config.raw_dataset_path, config.dataset_subset, config.dataset_feature, config.splits, config.rand_seed)

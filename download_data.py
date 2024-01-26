@@ -9,7 +9,7 @@ from pathlib import Path
 def download_data(
         dataset_name: str,
         dataset_subset: str,
-        raw_dataset_dir: str):
+        raw_dataset_path: str):
     """ Download dataset from Hugging Face.
 
     It is useful to download the dataset before trying to train the model when
@@ -22,7 +22,7 @@ def download_data(
             datasets are downloaded.
     """
     # Create folder to save this dataset's files in
-    dataset_dir = Path(raw_dataset_dir)
+    dataset_dir = Path(raw_dataset_path)
     dataset_dir.mkdir(parents=True, exist_ok=True)
 
     
@@ -59,4 +59,4 @@ if __name__ == "__main__":
 
     config = Struct(**config)
 
-    download_data(config.dataset_name, config.dataset_subset, config.raw_dataset_dir)
+    download_data(config.dataset_name, config.dataset_subset, config.raw_dataset_path)

@@ -5,7 +5,6 @@ import torch.nn.functional as F
 import yaml
 import sys
 
-from argparse import ArgumentParser
 from datasets import (load_dataset as load_ds)
 from datetime import datetime
 from hugging_face_model import RetNetModelHF, TransformerModelHF
@@ -17,12 +16,7 @@ from torchinfo import summary as model_summary
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from tqdm import tqdm
 from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
-from utils import generate_text
-from hugging_face_model import RetNetModel, TransformerModel
-from torchscale.architecture.config import RetNetConfig, DecoderConfig
-from datasets import (load_dataset as load_ds)
-from torch.utils.data import DataLoader
-from utils import Struct
+from utils import generate_text, Struct
 
 REPO_ROOT_NAME = "301r_retnet"
 
@@ -31,14 +25,13 @@ REPO_ROOT_NAME = "301r_retnet"
 torch.backends.cuda.matmul.allow_tf32 = True
 
 def train_model(
-        dataset_name: str,
-        tokenizer_folder: str,
+        tokenized_dataset_path: str,
+        tokenizer_path: str,
         vocab_size: int,
         activation_dropout: float=0.0,
         batch_size: int=8,
         checkpoints: bool=False,
-        data_dir: str="/tmp/data",
-        datasets_dir: str="/tmp/data/datasets",
+        models_path: str="/tmp/data",
         device: str="cuda",
         dropout: float=0.1,
         embed_dim: int=80,
@@ -170,13 +163,13 @@ def train_model(
         f"{model_type}_{total_params}"
 
     # Make sure dataset is pre-downloaded
-    dataset_dir = Path(datasets_dir) / dataset_name
-    assert dataset_dir.exists(), \
-        f"The directory with data, {dataset_dir}, doesn't exist!"
-    print(f"\nUsing dataset directory {dataset_dir}")
+    # dataset_dir = Path(datasets_dir) / dataset_name
+    # assert dataset_dir.exists(), \
+    #     f"The directory with data, {dataset_dir}, doesn't exist!"
+    # print(f"\nUsing dataset directory {dataset_dir}")
 
     # Initialize model directory for config files, weights, etc.
-    model_dir = Path(data_dir) / model_label
+    model_dir = Path(models_path) / model_label
     model_dir.mkdir(parents=True, exist_ok=False)
     print(f"Saving model files in {model_dir}")
 
@@ -186,13 +179,13 @@ def train_model(
     print(f"Saving weight files in {weights_dir}")
 
     # Initialize tokenizers directory
-    tokenizers_dir = Path(data_dir) / "tokenizers"
-    tokenizers_dir.mkdir(parents=False, exist_ok=True)
-    print(f"Saving tokenizer files in {tokenizers_dir}")
+    # tokenizers_dir = Path(models_path) / "tokenizers"
+    # tokenizers_dir.mkdir(parents=False, exist_ok=True)
+    # print(f"Saving tokenizer files in {tokenizers_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
     if tboard_dir is None:
-        tboard_log_dir = Path(data_dir) / "logs" / model_label
+        tboard_log_dir = Path(models_path) / "logs" / model_label
     else:
         tboard_log_dir = f"{tboard_dir}/logs/{model_label}"
     writer = SummaryWriter(log_dir=tboard_log_dir)
@@ -210,20 +203,20 @@ def train_model(
         f"{-torch.log(torch.tensor(1 / vocab_size))}")
 
     # Get Tokenizer from local directory
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_path)
 
     # Loads Tokenized data
     tokenized_train = load_ds(
         "parquet",
-        data_files=str(Path(data_dir) / "tokenized_datasets" / dataset_name / "train.parquet"),
+        data_files=str(Path(tokenized_dataset_path) / "train.parquet"),
         split="all")
     tokenized_val = load_ds(
         "parquet",
-        data_files=str(Path(data_dir) / "tokenized_datasets" / dataset_name / "validation.parquet"),
+        data_files=str(Path(tokenized_dataset_path) / "validation.parquet"),
         split="all")
     tokenized_test = load_ds(
         "parquet",
-        data_files=str(Path(data_dir) / "tokenized_datasets" / dataset_name / "test.parquet"),
+        data_files=str(Path(tokenized_dataset_path) / "test.parquet"),
         split="all")
 
     train_loader = DataLoader(
@@ -408,76 +401,6 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     config = Struct(**config)
+    train_model(config.tokenized_dataset_path, config.tokenizer_path, config.vocab_size, config.activation_dropout, config.batch_size, config.checkpoints, config.models_path,config.device, config.dropout, config.embed_dim, config.epochs, config.ffn_dim, config.fsdp, config.heads, config.layers, config.learning_rate, config.model_type, config.rand_seed, config.seq_len, config.tensorboard_directory, config.validation_frequency, config.value_embed_dim)
 
-
-
-
-
-    parser = ArgumentParser(
-            prog="Model Trainer",
-            description="Used to train comparable RetNet, Transformer models.")
-
-    # parser.add_argument("-a", "--activation-dropout", type=float, default=0.0,
-    #     help="Probability of element to be zeroed in dropout layer after " + \
-    #         "activation between FFN layers.")
-    # parser.add_argument("-b", "--batch-size", type=int, default=32,
-    #     help="Batch size.")
-    # parser.add_argument("-c", "--checkpoints", action="store_true",
-    #     default=False, help="Save model checkpoints while training.")
-    # parser.add_argument("--data-dir", type=str, required=True,
-    #     help="Path to directory where all data except datasets are saved.")
-    # parser.add_argument("--dataset-dir", type=str, required=True,
-    #     help="Path to directory in which Hugging Face datasets are downloaded.")
-    # parser.add_argument("--dataset-feature", type=str, default="text",
-    #     help="Hugging Face dataset feature/column to use.")
-    # parser.add_argument("--dataset-name", type=str, default="wikitext",
-    #     help="Hugging Face dataset name. Should also set --dataset-subset.")
-    # parser.add_argument("--dataset-subset", type=str, default="wikitext-2-v1",
-    #     help="Subset/config to use for Hugging Face dataset.")
-    # parser.add_argument("--device", type=str, default="cuda",
-    #     help="Device to use (ex: 'cpu', 'cuda', or 'cuda:0').")
-    # parser.add_argument("-d", "--dropout", type=float, default=0.1,
-    #     help="Probability of element to be zeroed in dropout layer.")
-    # parser.add_argument("-e", "--embed-dim", type=int, default=768,
-    #     help="Embedding dimension size of each token.")
-    # parser.add_argument("--epochs", type=int, default=10,
-    #     help="Number of epochs to train for.")
-    # parser.add_argument("-f", "--ffn-dim", type=int, default=1280,
-    #     help="FFN hidden layer size.")
-    # parser.add_argument("--fsdp", action="store_true", default=False,
-    #     help="Module parameters sharded across data parallel workers.")
-    # parser.add_argument("-l", "--layers", type=int, default=12,
-    #     help="Number of stacked layers in model.")
-    # parser.add_argument("--lr", type=float, required=True,
-    #     help="Learning rate of model to train.")
-    # parser.add_argument("-m", "--model", required=True, dest="model_type",
-    #     choices=["retnet", "transformer"],
-    #     help="Name of model architecture to train.")
-    # parser.add_argument("-n", "--heads", type=int, default=3,
-    #     help="Number of heads. Head architecture changes based on model.")
-    # parser.add_argument("-r", "--rand-seed", type=int, default=None,
-    #     help="Random seed to use, allowing more reproducible results.")
-    # parser.add_argument("-s", "--seq-len", type=int, default=512,
-    #     help="Sequence length (context window size).")
-    # parser.add_argument("--splits", type=float, nargs=3,
-    #     default=[0.7, 0.2, 0.1],
-    #     help="Space-separated decimal splits of train, validation, and " + \
-    #         "test datasets. (Ex: '0.7 0.2 0.1')")
-    # parser.add_argument("--tboard-dir", type=str, default=None,
-    #     help="Path to directory to save TensorBoard logs in.")
-    # parser.add_argument("--val-freq", type=int, default=3,
-    #     help="Number of times to run validation per epoch during training.")
-    # parser.add_argument("--value-embed-dim", type=int, default=1280,
-    #     help="Value embed dimension size.")
-    # parser.add_argument("--vocab-size", type=int, required=True,
-    #     help="Maximum number of unique tokens in vocabulary.")
-    # parser.add_argument("--tokenizer-folder", type= str, required=True,
-    #     help="Path to the file where the tokenizer will be saved")
-    # parser.add_argument("--dataset-dir", type= str, required=True,
-    #     help="Path to the datasets directory")
-    # parser.add_argument("--dataset-subset", type= str, required=True,
-    #     help="Specific name of Tokenized dataset")
-    
-
-    # args = parser.parse_args()
-    train_model(config.activation_dropout, config.batch_size, config.checkpoints, config.data_dir, config.dataset_dir, config.dropout, config.embed_dim,config.epochs,config.ffn_dim, config.fsdp, config.layers, config.learning_rate, config.model_type)
+    #The ones to look at are data_dir, datasets_dir

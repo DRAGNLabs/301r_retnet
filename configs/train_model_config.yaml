@@ -2,36 +2,39 @@
 
 # Model Parameters
 activation_dropout: 0.0
-batch_size: 32
+batch_size: 8
 checkpoints: false
 dropout: 0.1
-embed_dim: 768
-epochs: 10
-ffn_dim: 1280
+embed_dim: 80
+epochs: 1
+ffn_dim: 12
 fsdp: false
-layers: 12
+layers: 2
 learning_rate: 0.001 # lr
 model_type: retnet # Choices: "retnet", "transformer"
-heads: 3
-seq_len: 512
-value_embed_dim: 1280
+heads: 4
+seq_len: 128
+value_embed_dim: 12
 vocab_size: 4000
 
-# Dataset Configuration
+
+# Dataset Configuration: Specifically Hugging Face
 dataset_feature: "text"
 dataset_name: "wikitext"
 dataset_subset: "wikitext-2-v1"
-raw_dataset_dir: "/Users/jtappen/301R/301r_retnet/scripts/data/wikitext"
+
+#Download_Data
+raw_dataset_path: "/Users/jtappen/301R/301r_retnet/data/datasets/wikitext"
 
 #Train Tokenizer
-tokenizer_path: "/Users/jtappen/CS301R/301r_retnet/data/tokenizers/wikitext_tokenizer"
+tokenizer_path: "/Users/jtappen/301R/301r_retnet/data/tokenizers/wikitext_tokenizer"
+tokenized_dataset_path: "/Users/jtappen/301R/301r_retnet/data/tokenized_dataset/wikitext"
 
 #Tokenize Data
 tokenized_data_name: "wikitext-2-v1-tokenized"
-tokenized_data_dir: "/Users/jtappen/301R/301r_retnet/scripts/data/wikitext/tokenized_data_wikitext"
 
 #Train Model
-data_dir: "/Users/jtappen/301R/301r_retnet/scripts/data/models"
+models_path: "/Users/jtappen/301R/301r_retnet/scripts/data/models"
 
 splits:
   - 0.7
