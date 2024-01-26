@@ -18,7 +18,7 @@ This project is built upon [Microsoft TorchScale](https://github.com/microsoft/t
 
 To get started with this project, first clone the RetNet repository using the following command:
 
-````bash
+```bash
 git clone https://github.com/DRAGNLabs/301r_retnet.git
 cd 301r_retnet
 ```
@@ -65,7 +65,7 @@ model = RetNetModel(num_layers=hyperparams["num_layers"],
                     num_heads=hyperparams["num_heads"],
                     dropout_rate=hyperparams["dropout_rate"])
 optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams["learning_rate"])
-````
+```
 
 #### 2. **Implementing Learning Rate Scheduler**:
 
