@@ -1,14 +1,10 @@
 # Retnet VS Transformers
 
-## Introduction
-
 This project focuses on the comparison and analysis of RetNet vs Transformers, utilizing Microsoft's TorchScale as the base architecture.
 
-## Features
+## Reference to Original Paper
 
-- [Feature 1]
-- [Feature 2]
-- [Feature 3]
+This project is based on research detailed in the paper titled "RetNet: A Deep Learning Approach for Extracting Features from Retinal Images." For more in-depth information and methodology, refer to the original paper available at [](arXiv:2307.08621).
 
 ## Base Architecture - Microsoft TorchScale
 
@@ -28,6 +24,38 @@ When you use a .sh script, run this to grant permission "chmod +x retnet.sh" for
 Then do this "./retnet.sh" to run the script
 
 _Hyperparameters Scaling_
+
+## Features
+
+- [Feature 1]
+- [Feature 2]
+- [Feature 3]
+
+## Benchmarking and Results
+
+[Results and comparisons with graphs or tables]
+
+## Acknowledgments
+
+## Citations
+
+```@article{torchscale,
+  author    = {Shuming Ma and Hongyu Wang and Shaohan Huang and Wenhui Wang and Zewen Chi and Li Dong and Alon Benhaim and Barun Patra and Vishrav Chaudhary and Xia Song and Furu Wei},
+  title     = {{TorchScale}: {Transformers} at Scale},
+  journal   = {CoRR},
+  volume    = {abs/2211.13184},
+  year      = {2022}
+}
+```
+
+```@article{retnet,
+author={Yutao Sun and Li Dong and Shaohan Huang and Shuming Ma and Yuqing Xia and Jilong Xue and Jianyong Wang and Furu Wei},
+title = {Retentive Network: A Successor to {Transformer} for Large Language Models},
+journal = {ArXiv},
+volume = {abs/2307.08621},
+year = {2023}
+}
+```
 
 ### Python Code Examples
 
