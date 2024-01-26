@@ -29,25 +29,16 @@ python --version
 
 If you do not have Python 3.11, you can download it from the official Python website or use a package manager like apt for Linux or brew for macOS.
 
-Setting Up Python Environment
-After installing Python 3.11, you may need to switch to the correct Python environment. You can use pyenv or a similar tool to manage multiple Python versions. To install and use Python 3.11 with pyenv, follow these steps:
+### Setting Up Python Environment with Mamba
 
-Install pyenv (skip if already installed)
-
-```bash
-curl https://pyenv.run | bash
-```
-
-Install Python 3.11 using pyenv
+If you don't have Mamba installed, you can follow the instructions at Mamba documentation to set it up. Once Mamba is installed, create a new environment with Python 3.11:
 
 ```bash
-pyenv install 3.11
-```
+# Create a new Mamba environment named 'retnet_env' with Python 3.11
+mamba create -n retnet_env python=3.11
 
-Set Python 3.11 as the global version
-
-```bash
-pyenv global 3.11
+# Activate the Mamba environment
+mamba activate retnet_env
 ```
 
 Running Shell Scripts
@@ -60,10 +51,8 @@ chmod +x retnet.sh
 Then, execute the script with:
 
 ```bash
-./file.sh
+./script.sh
 ```
-
-[Continue with additional installation and setup instructions as required for your project.]
 
 ## Features
 
