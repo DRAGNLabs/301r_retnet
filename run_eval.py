@@ -2,7 +2,7 @@ import argparse
 import json
 import lm_eval
 
-from hugging_face_model import RetNetModel, TransformerModel
+from hugging_face_model import RetNetModelHF, TransformerModelHF
 from pathlib import Path
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from transformers import AutoModel, AutoConfig, AutoModelForCausalLM
@@ -17,10 +17,10 @@ def run_eval(model_path_dir: str, tokenizer_path_dir: Optional[str] = None, task
     """
     AutoConfig.register('retnet', RetNetConfig)
     AutoConfig.register('custom_transformer', DecoderConfig)
-    AutoModel.register(RetNetConfig, RetNetModel)
-    AutoModel.register(DecoderConfig, TransformerModel)
-    AutoModelForCausalLM.register(RetNetConfig, RetNetModel)
-    AutoModelForCausalLM.register(DecoderConfig, TransformerModel)
+    AutoModel.register(RetNetConfig, RetNetModelHF)
+    AutoModel.register(DecoderConfig, TransformerModelHF)
+    AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
+    AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
 
 
 
