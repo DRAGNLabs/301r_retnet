@@ -1,0 +1,31 @@
+{
+    "activation_dropout": 0.1,
+    "batch_size": 128,
+    "checkpoints": true,
+    "dataset_feature": "text",
+    "dataset_name": "c4",
+    "dataset_lang": "en",
+    "device": "cuda",
+    "dropout": 0.1,
+    "embed_dim": 128,
+    "epochs": 10,
+    "ffn_dim": 1024,
+    "fsdp": true,
+    "layers": 6,
+    "lr": 0.001,
+    "model": "retnet",
+    "heads": 8,
+    "rand_seed": 42,
+    "seq_len": 128,
+    "splits": [
+        0.7,
+        0.2,
+        0.1
+    ],
+    "val_freq": 3,
+    "value_embed_dim": 128,
+    "vocab_size": 100000,
+    "tokenizer_folder": "/home/searlejj/CS301R/301r_retnet/data/tokenizers/my_cool_tokenizer",
+    "dataset_dir": "/home/searlejj/fsl_groups/grp_retnet/compute/data",
+    "dataset_subset": "wikitext-2-v1-tokenized"
+}

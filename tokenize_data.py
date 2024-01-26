@@ -10,14 +10,15 @@ from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 
 def tokenize_data(
-        data_dir: str,
-        dataset_name: str,
-        datasets_dir: str,
-        seq_len: int,
+        # data_dir: str,
+        # dataset_name: str,
+        # datasets_dir: str,
+        # seq_len: int,
         tokenized_data_name: str,
-        tokenizer_folder: str,
+        tokenized_data_dir:str,
+        tokenizer_path: str,
         seq_len: int,
-        dataset_dir: str,
+        raw_dataset_dir: str,
         dataset_subset: str,
         text_feature: str,
         splits: list[float],
@@ -25,15 +26,16 @@ def tokenize_data(
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
     
     # Test the dataset splits add up to 1, using isclose for rounding errors
-    assert isclose(sum(splits), 1), \
-        "The dataset splits for the training, validation, and testing " + \
-        f"datasets must sum up to 1 ({' + '.join(map(str, splits))} != 1)!"
+    
+    # assert isclose(sum(splits), 1), \
+    #     "The dataset splits for the training, validation, and testing " + \
+    #     f"datasets must sum up to 1 ({' + '.join(map(str, splits))} != 1)!"
     
     # Retrieve iterators for each split of the dataset
-    print(f"Datasets dir: {datasets_dir}")
-    entire_dataset = datasets.load_from_disk(Path(datasets_dir) / dataset_name)
+    print(f"Datasets dir: {raw_dataset_dir}")
+    entire_dataset = datasets.load_from_disk(Path(raw_dataset_dir))
 
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_path)
 
     # Tokenize the datasets
     tokenization = lambda instances_dict : \
@@ -51,7 +53,7 @@ def tokenize_data(
     entire_dataset = entire_dataset.remove_columns(column_names=text_feature)
 
     #This code saves the now tokenized dataset as a .parquet folder, making a folder in the data directory called tokenized if one does not already exist.
-    tokenized_dataset_dir = Path(data_dir) / "tokenized_datasets" / dataset_name
+    tokenized_dataset_dir = Path(raw_dataset_dir) / "tokenized_datasets"
     tokenized_dataset_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Saving tokenized data to {tokenized_dataset_dir}")
@@ -71,7 +73,7 @@ if __name__ == "__main__":
 
     config = Struct(**config)
 
-    tokenize_data(config.tokenized_data_name, config.tokenized_data_dir, config.tokenizer_path, config.seq_len, config.raw_dataset_dir, config.dataset_subset, config.dataset_feature, config.splits, config.rand_seed)
+    tokenize_data(config.tokenized_data_name, config.tokenized_data_dir, config.tokenizer_path, config.seq_len, config.raw_dataset_dir, config.dataset_subset,config.dataset_feature, config.splits, config.rand_seed)
 
     
 

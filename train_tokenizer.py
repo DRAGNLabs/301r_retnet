@@ -16,9 +16,8 @@ from transformers import PreTrainedTokenizerFast
 def train_tokenizer(
         tokenizer_folder: str,
         seq_len: int,
-        tokenizer_folder: str,
         vocab_size: int,
-        dataset_dir: str,
+        raw_dataset_dir: str,
         dataset_subset: str,
         text_feature: str,
         splits: list[float],
@@ -26,8 +25,8 @@ def train_tokenizer(
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
 
     # Retrieve iterators for each split of the dataset
-    print(f'Data dir: {dataset_dir}')
-    data_path = Path(dataset_dir) / (dataset_subset + ".parquet")
+    print(f'Data dir: {raw_dataset_dir}')
+    data_path = Path(raw_dataset_dir) / (dataset_subset + ".parquet")
     
     entire_dataset = load_ds("parquet", 
                              data_files=str(data_path),
@@ -55,7 +54,7 @@ def train_tokenizer(
 
     # Save splits to file
     entire_dataset.save_to_disk(
-        dataset_dict_path=Path(datasets_dir) / dataset_name)
+        dataset_dict_path=Path(raw_dataset_dir))
 
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
