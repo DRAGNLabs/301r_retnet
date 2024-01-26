@@ -5,7 +5,7 @@ from typing import Optional, Union
 from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
-from transformers import PreTrainedModel, AutoModel, AutoConfig
+from transformers import PreTrainedModel
 
 class RetNetModelHF(PreTrainedModel):
     """ Create model with RetNet architecture. """
@@ -98,7 +98,7 @@ class TransformerModelHF(PreTrainedModel):
                 workers or not (with the FairScale library).
             max_seq_len (int): Size of context window.
         """
-        
+
         # Create Transformer configuration
         if not config:
             self.config = DecoderConfig()
@@ -109,7 +109,6 @@ class TransformerModelHF(PreTrainedModel):
         else:
             raise ValueError("Config must be str or DecoderConfig object.")
 
-        
         super().__init__(self.config)
 
         # Create embeddings with index 0 representing padding

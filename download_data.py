@@ -18,8 +18,8 @@ def download_data(
     Args:
         dataset_name (str): Name of Hugging Face dataset.
         dataset_subset (str): Configuration/subset of dataset to use.
-        dataset_root_dir (str): Absolute path to the directory in which Hugging
-            Face datasets are downloaded.
+        datasets_dir (str): Absolute path to the directory in which Hugging Face
+            datasets are downloaded.
     """
     # Create folder to save this dataset's files in
     dataset_dir = Path(raw_dataset_dir)
@@ -35,7 +35,7 @@ def download_data(
             name=dataset_subset,
             split="all",
             trust_remote_code=True)
-    
+
     # check if dataset is of type datasets.arrow_dataset.Dataset
     if isinstance(dataset, datasets.arrow_dataset.Dataset):
         filename = dataset_subset + ".parquet"
@@ -44,8 +44,10 @@ def download_data(
         dataset.to_parquet(dataset_dir / filename)
     else:
         raise Exception("Dataset is not of type " + \
-            "datasets.arrow_dataset.Dataset or datasets.dataset_dict.DatasetDict")
+            "datasets.arrow_dataset.Dataset or " + \
+            "datasets.dataset_dict.DatasetDict")
     print("Download completed.")
+
 
 if __name__ == "__main__":
 

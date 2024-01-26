@@ -6,13 +6,15 @@ import yaml
 import sys
 
 from argparse import ArgumentParser
+from datasets import (load_dataset as load_ds)
 from datetime import datetime
-from load_data import get_loaders_tokenizer
-from math import isclose
+from hugging_face_model import RetNetModelHF, TransformerModelHF
 from pathlib import Path
 from tabulate import tabulate
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
+from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from tqdm import tqdm
 from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
 from utils import generate_text
@@ -29,15 +31,15 @@ REPO_ROOT_NAME = "301r_retnet"
 torch.backends.cuda.matmul.allow_tf32 = True
 
 def train_model(
-        activation_dropout: float,
-        batch_size: int,
-        checkpoints: bool,
-        data_dir: str,
-        dataset_dir: str,
-        dataset_feature: str,
         dataset_name: str,
-        dataset_subset: str,
-        device: str,
+        tokenizer_folder: str,
+        vocab_size: int,
+        activation_dropout: float=0.0,
+        batch_size: int=8,
+        checkpoints: bool=False,
+        data_dir: str="/tmp/data",
+        datasets_dir: str="/tmp/data/datasets",
+        device: str="cuda",
         dropout: float=0.1,
         embed_dim: int=80,
         epochs: int=1,
@@ -49,26 +51,23 @@ def train_model(
         model_type: str="retnet",
         rand_seed: bool=None,
         seq_len: int=128,
-        splits: list[float]=[0.7, 0.2, 0.1],
-        tboard_dir: str="/tmp/data",
+        tboard_dir: str="/tmp/tboard_logs",
         val_freq: int=3,
-        value_embed_dim: int=12,
-        vocab_size: int=4000):
-    # Store all the parameters, which are the only locals at this point, as dict
+        value_embed_dim: int=12):
     """ Use parameters to run train_model().
         Args:
+            dataset_name (str): Hugging Face dataset name.
+            tokenizer_folder (str): Path to the file where the tokenizer will be saved
+            vocab_size (int): Maximum vocabulary size (number of unique tokens
+                in vocabulary.
             activation_dropout (float): Probability of an element to be zeroed
                 during dropout after activation between FFN layers.
             batch_size (int): Batch size.
             checkpoints (bool): Save model checkpoints while training.
             data_dir (str): Path to directory where all data except datasets are
                 saved.
-            dataset_dir (str): Path to directory in which Hugging Face datasets
+            datasets_dir (str): Path to directory in which Hugging Face datasets
                 are downloaded.
-            dataset_feature (str): Hugging Face dataset feature/column to use.
-            dataset_name (str): Hugging Face dataset name. Should also set
-                --dataset-subset.
-            dataset_subset (str): Subset/config to use for Hugging Face dataset.
             device (str): Device to use (ex: 'cpu', 'cuda', or 'cuda:0').
             dropout (float): Probability of an element to be zeroed during
                 dropout.
@@ -85,18 +84,15 @@ def train_model(
             rand_seed (int): Random seed to use, allowing more reproducible
                 results.
             seq_len (int): Sequence length (context window size).
-            splits (list[float]): Space-separated decimal splits of train,
-                validation, and test datasets. (Ex: '0.7 0.2 0.1')
             tboard_dir (str): Path to directory to save TensorBoard logs in.
             val_freq (int): Number of times to run validation per epoch during
                 training.
             value_embed_dim (int): Value embed dimension size.
-            vocab_size (int): Maximum vocabulary size (number of unique tokens
-                in vocabulary.
 
         Returns:
             A tuple of the trained model instance and the test average loss.
     """
+    # Store all the parameters, which are the only locals at this point, as dict
     arg_dict = locals()
 
     # Test that the head dimension will be an even, whole number
@@ -111,11 +107,6 @@ def train_model(
         "Value Embed Dimension not divisible by number of heads " + \
         f"({value_embed_dim} % {heads} != 0)!"
 
-    # Test the dataset splits add up to 1, using isclose for rounding errors
-    assert isclose(sum(splits), 1), \
-        "The dataset splits for the training, validation, and testing " + \
-        f"datasets must sum up to 1 ({' + '.join(map(str, splits))} != 1)!"
-
     # Set random seeds for torch, numpy, random, etc. with transformers library
     if rand_seed is not None:
         set_seed(rand_seed)
@@ -123,8 +114,8 @@ def train_model(
     # Create requested model
     if model_type == "retnet":
         AutoConfig.register("retnet", RetNetConfig)
-        AutoModel.register(RetNetConfig, RetNetModel)
-        AutoModelForCausalLM.register(RetNetConfig, RetNetModel)
+        AutoModel.register(RetNetConfig, RetNetModelHF)
+        AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
         config = RetNetConfig(
             decoder_embed_dim=embed_dim,
             decoder_value_embed_dim=value_embed_dim,
@@ -136,12 +127,12 @@ def train_model(
             vocab_size=vocab_size,
             fsdp=fsdp,
             max_seq_len=seq_len)
-        model = RetNetModel(config)
-        
+        model = RetNetModelHF(config)
+
     elif model_type == "transformer":
         AutoConfig.register("custom_transformer", DecoderConfig)
-        AutoModel.register(DecoderConfig, TransformerModel)
-        AutoModelForCausalLM.register(DecoderConfig, TransformerModel)
+        AutoModel.register(DecoderConfig, TransformerModelHF)
+        AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
         config = DecoderConfig(
             decoder_embed_dim=embed_dim,
             decoder_value_embed_dim=value_embed_dim,
@@ -153,7 +144,7 @@ def train_model(
             vocab_size=vocab_size,
             fsdp=fsdp,
             max_seq_len=seq_len)
-        model = TransformerModel(config)
+        model = TransformerModelHF(config)
 
     # Print all arguments for recordkeeping
     print("Arguments:")
@@ -179,8 +170,7 @@ def train_model(
         f"{model_type}_{total_params}"
 
     # Make sure dataset is pre-downloaded
-    dataset_root_dir = Path(dataset_dir)
-    dataset_dir = dataset_root_dir / dataset_name
+    dataset_dir = Path(datasets_dir) / dataset_name
     assert dataset_dir.exists(), \
         f"The directory with data, {dataset_dir}, doesn't exist!"
     print(f"\nUsing dataset directory {dataset_dir}")
@@ -216,47 +206,37 @@ def train_model(
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
-    print(f"-log(1 / {args.vocab_size}) = " + \
-        f"{-torch.log(torch.tensor(1 / args.vocab_size))}")
-    
+    print(f"-log(1 / {vocab_size}) = " + \
+        f"{-torch.log(torch.tensor(1 / vocab_size))}")
+
     # Get Tokenizer from local directory
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(args.tokenizer_folder)
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_folder)
 
     # Loads Tokenized data
-    tokenized_dataset = load_ds(
+    tokenized_train = load_ds(
         "parquet",
-        data_files=str(Path(args.dataset_dir) / args.dataset_name / f"{args.dataset_subset}.parquet"),
+        data_files=str(Path(data_dir) / "tokenized_datasets" / dataset_name / "train.parquet"),
+        split="all")
+    tokenized_val = load_ds(
+        "parquet",
+        data_files=str(Path(data_dir) / "tokenized_datasets" / dataset_name / "validation.parquet"),
+        split="all")
+    tokenized_test = load_ds(
+        "parquet",
+        data_files=str(Path(data_dir) / "tokenized_datasets" / dataset_name / "test.parquet"),
         split="all")
 
     train_loader = DataLoader(
-        tokenized_dataset["train"].with_format("torch")["input_ids"],
-        batch_size=args.batch_size,
+        tokenized_train.with_format("torch")["input_ids"],
+        batch_size=batch_size,
         shuffle=True)
     valid_loader = DataLoader(
-        tokenized_dataset["validation"].with_format("torch")["input_ids"],
-        batch_size=args.batch_size)
+        tokenized_val.with_format("torch")["input_ids"],
+        batch_size=batch_size)
     test_loader = DataLoader(
-        tokenized_dataset["test"].with_format("torch")["input_ids"],
-        batch_size=args.batch_size)
+        tokenized_test.with_format("torch")["input_ids"],
+        batch_size=batch_size)
 
-
-    # Get DataLoaders and trained Tokenizer
-    # print(f"\nNow retrieving '{args.dataset_name}' and training tokenizer...")
-    # train_loader, valid_loader, test_loader, tokenizer = get_loaders_tokenizer(
-    #     dataset_name=args.dataset_name,
-    #     seq_len=args.seq_len,
-    #     batch_size=args.batch_size,
-    #     vocab_size=args.vocab_size,
-    #     data_dir= Path("/grphome/grp_retnet/compute/data") / args.dataset_name, #NOTE(jay): would not hardcode data, add as a parameter for flexibility
-    #     dataset_config=args.dataset_subset,
-    #     text_feature=args.dataset_feature,
-    #     max_token_len=20,
-    #     splits=args.splits,
-    #     rand_seed=args.rand_seed)
-
-    # Save trained tokenizer
-    # tokenizer.save_pretrained(save_directory=save_folder, filename_prefix="BPE")
-    # print(f"Saved trained tokenizer")
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")

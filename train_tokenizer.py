@@ -4,24 +4,19 @@ import yaml
 from utils import Struct
 from datasets import (
     DatasetDict,
-    get_dataset_infos as get_ds_infos,
-    get_dataset_split_names as get_ds_split_names,
     load_dataset as load_ds)
 from os import environ
+from pathlib import Path
 from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
-from argparse import ArgumentParser
-from pathlib import Path
-
-# Disable parallelism to avoid errors with DataLoaders later on
-environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def train_tokenizer(
         tokenizer_folder: str,
         seq_len: int,
+        tokenizer_folder: str,
         vocab_size: int,
         dataset_dir: str,
         dataset_subset: str,
@@ -36,7 +31,7 @@ def train_tokenizer(
     
     entire_dataset = load_ds("parquet", 
                              data_files=str(data_path),
-                             split="train")
+                             split="all")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
@@ -52,12 +47,15 @@ def train_tokenizer(
         seed=rand_seed)
     valid_test = train_validtest["test"].train_test_split(
         train_size=splits[1] / (splits[1] + splits[2]),
-        shuffle=True,
         seed=rand_seed)
     entire_dataset = DatasetDict({
         "train": train_validtest["train"],
         "validation": valid_test["train"],
         "test": valid_test["test"]})
+
+    # Save splits to file
+    entire_dataset.save_to_disk(
+        dataset_dict_path=Path(datasets_dir) / dataset_name)
 
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
@@ -110,6 +108,7 @@ def train_tokenizer(
     tokenizer_save_path = Path(tokenizer_folder)
     tokenizer_save_path.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(tokenizer_save_path)
+
 
 if __name__ == "__main__":
     # Get arguments
