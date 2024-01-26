@@ -4,7 +4,7 @@ This project focuses on the comparison and analysis of RetNet vs Transformers, u
 
 ## Reference to Original Paper
 
-This project is based on research detailed in the paper titled "RetNet: A Deep Learning Approach for Extracting Features from Retinal Images." For more in-depth information and methodology, refer to the original paper available at [](arXiv:2307.08621).
+This project is based on research detailed in the paper titled "RetNet: A Deep Learning Approach for Extracting Features from Retinal Images." For more in-depth information and methodology, refer to the original paper available at [Retentive Network: A Successor to Transformer for Large Language Models](arXiv:2307.08621).
 
 ## Base Architecture - Microsoft TorchScale
 
