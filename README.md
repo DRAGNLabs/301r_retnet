@@ -21,6 +21,7 @@ To get started with this project, first clone the RetNet repository using the fo
 ````bash
 git clone https://github.com/DRAGNLabs/301r_retnet.git
 cd 301r_retnet
+```
 
 Make sure to have Python=3.11
 When you use a .sh script, run this to grant permission "chmod +x retnet.sh" for the script you want to use
