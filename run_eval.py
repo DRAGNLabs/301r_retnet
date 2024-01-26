@@ -1,14 +1,19 @@
-import argparse
 import json
 import lm_eval
 
+from argparse import ArgumentParser
 from hugging_face_model import RetNetModelHF, TransformerModelHF
 from pathlib import Path
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from transformers import AutoModel, AutoConfig, AutoModelForCausalLM
 from typing import Optional, List
 
-def run_eval(model_path_dir: str, tokenizer_path_dir: Optional[str] = None, tasks: List[str] = ['hellaswag'], device: str = 'cuda:0', results_out_path: Optional[str] = None):
+def run_eval(
+        model_path_dir: str,
+        device: str = 'cuda:0',
+        results_out_path: Optional[str] = None,
+        tasks: List[str] = ['hellaswag'],
+        tokenizer_path_dir: Optional[str] = None):
     """
     Run evaluation on all tasks
     :param model_path_dir: path to model directory
@@ -42,8 +47,6 @@ def run_eval(model_path_dir: str, tokenizer_path_dir: Optional[str] = None, task
             device=device,
         )
 
-
-
     print(results['results'])
     model_name = Path(model_path_dir).name
     if not results_out_path:
@@ -55,12 +58,13 @@ def run_eval(model_path_dir: str, tokenizer_path_dir: Optional[str] = None, task
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model-path-dir', type=str, required=True, help='Path to model directory')
-    parser.add_argument('--tokenizer-path-dir', type=str, default=None, help='Path to tokenizer directory')
-    parser.add_argument('--tasks', type=str, nargs='+', default=['hellaswag'], help='Tasks to evaluate on')
+    parser = ArgumentParser()
+    
     parser.add_argument('--device', type=str, default='cuda:0', help='Device to run on')
+    parser.add_argument('--model-path-dir', type=str, required=True, help='Path to model directory')
     parser.add_argument('--results-out-path', type=str, default=None, help='Path to save results')
+    parser.add_argument('--tasks', type=str, nargs='+', default=['hellaswag'], help='Tasks to evaluate on')
+    parser.add_argument('--tokenizer-path-dir', type=str, default=None, help='Path to tokenizer directory')
 
     args = parser.parse_args()
     run_eval(**vars(args))
