@@ -5,10 +5,7 @@ import yaml
 from utils import Struct
 from pathlib import Path
 
-def download_data(
-        dataset_name: str,
-        dataset_subset: str,
-        raw_dataset_path: str):
+def download_data(config):
     """ Download dataset from Hugging Face.
 
     It is useful to download the dataset before trying to train the model when
@@ -21,25 +18,25 @@ def download_data(
             datasets are downloaded.
     """
     # Create folder to save this dataset's files in
-    dataset_dir = Path(raw_dataset_path)
+    dataset_dir = Path(config.raw_dataset_path)
     dataset_dir.mkdir(parents=True, exist_ok=True)
 
     
     print("Beginning download")
     print(f"File path: {dataset_dir}")
-    print(f"Data name: {dataset_name}")
-    print(f"Data subset: {dataset_subset}")
+    print(f"Data name: {config.dataset_name}")
+    print(f"Data subset: {config.dataset_subset}")
     dataset = datasets.load_dataset(
-            path=dataset_name,
-            name=dataset_subset,
+            path=config.dataset_name,
+            name=config.dataset_subset,
             split="all",
             trust_remote_code=True)
 
     # check if dataset is of type datasets.arrow_dataset.Dataset
     if isinstance(dataset, datasets.arrow_dataset.Dataset):
-        filename = dataset_subset + ".parquet"
+        filename = config.dataset_subset + ".parquet"
         dataset.to_parquet(dataset_dir / filename)
-        filename = dataset_subset + ".parquet"
+        filename = config.dataset_subset + ".parquet"
         dataset.to_parquet(dataset_dir / filename)
     else:
         raise Exception("Dataset is not of type " + \
@@ -49,7 +46,6 @@ def download_data(
 
 
 if __name__ == "__main__":
-
     args = sys.argv
     config_path =args[1]
 
@@ -58,4 +54,4 @@ if __name__ == "__main__":
 
     config = Struct(**config)
 
-    download_data(config.dataset_name, config.dataset_subset, config.raw_dataset_path)
+    download_data(config)

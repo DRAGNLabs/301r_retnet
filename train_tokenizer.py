@@ -12,20 +12,12 @@ from tokenizers.trainers import BpeTrainer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 
-def train_tokenizer(
-        tokenizer_path: str,
-        seq_len: int,
-        vocab_size: int,
-        raw_dataset_path: str,
-        dataset_subset: str,
-        text_feature: str,
-        splits: list[float],
-        rand_seed: int) -> \
+def train_tokenizer(config) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
 
     # Retrieve iterators for each split of the dataset
-    print(f'Data dir: {raw_dataset_path}')
-    data_path = Path(raw_dataset_path) / (dataset_subset + ".parquet")
+    print(f'Data dir: {config.raw_dataset_path}')
+    data_path = Path(config.raw_dataset_path) / (config.dataset_subset + ".parquet")
     
     entire_dataset = load_ds("parquet", 
                              data_files=str(data_path),
@@ -33,19 +25,19 @@ def train_tokenizer(
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
-    filter_fun = lambda inst_dict : bool(inst_dict[text_feature].strip())
+    filter_fun = lambda inst_dict : bool(inst_dict[config.text_feature].strip())
 
     # Filter out undesired data instances
     entire_dataset = entire_dataset.filter(filter_fun)
 
     # Split into training, validation, and testing datasets
     train_validtest = entire_dataset.train_test_split(
-        train_size=splits[0],
+        train_size=config.splits[0],
         shuffle=True,
-        seed=rand_seed)
+        seed=config.rand_seed)
     valid_test = train_validtest["test"].train_test_split(
-        train_size=splits[1] / (splits[1] + splits[2]),
-        seed=rand_seed)
+        train_size=config.splits[1] / (config.splits[1] + config.splits[2]),
+        seed=config.rand_seed)
     entire_dataset = DatasetDict({
         "train": train_validtest["train"],
         "validation": valid_test["train"],
@@ -53,12 +45,12 @@ def train_tokenizer(
 
     # Save splits to file
     entire_dataset.save_to_disk(
-        dataset_dict_path=Path(raw_dataset_path))
+        dataset_dict_path=Path(config.raw_dataset_path))
 
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
     trainer = BpeTrainer(
-        vocab_size=vocab_size,
+        vocab_size=config.vocab_size,
         show_progress=True,
         special_tokens=["<pad>", "<bos>", "<unk>"])
 
@@ -69,7 +61,7 @@ def train_tokenizer(
 
     # Train tokenizer on only training data
     tokenizer.train_from_iterator(
-        iter(entire_dataset["train"][text_feature]),
+        iter(entire_dataset["train"][config.text_feature]),
         trainer=trainer,
         length=len(entire_dataset["train"]))
 
@@ -87,14 +79,14 @@ def train_tokenizer(
         direction="right",
         pad_id=0,
         pad_token="<pad>",
-        length=seq_len + 1)
+        length=config.seq_len + 1)
 
     # Enable truncation
-    tokenizer.enable_truncation(max_length=seq_len + 1, direction="right")
+    tokenizer.enable_truncation(max_length=config.seq_len + 1, direction="right")
 
     # Wrap tokenizer with transformers library
     tokenizer = PreTrainedTokenizerFast(
-        model_max_length=seq_len,
+        model_max_length=config.seq_len,
         padding_side="right",
         truncation_side="right",
         bos_token="<bos>",
@@ -103,14 +95,12 @@ def train_tokenizer(
         tokenizer_object=tokenizer)
 
     # Save tokenizer to file
-    tokenizer_save_path = Path(tokenizer_path)
+    tokenizer_save_path = Path(config.tokenizer_path)
     tokenizer_save_path.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(tokenizer_save_path)
 
 
 if __name__ == "__main__":
-    # Get arguments
-
     args = sys.argv
     config_path =args[1]
 
@@ -119,4 +109,4 @@ if __name__ == "__main__":
 
     config = Struct(**config)
 
-    train_tokenizer(config.tokenizer_path, config.seq_len, config.vocab_size, config.raw_dataset_path, config.dataset_subset, config.dataset_feature, config.splits, config.rand_seed)
+    train_tokenizer(config)

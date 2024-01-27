@@ -344,5 +344,3 @@ if __name__ == "__main__":
 
     config = Struct(**config)
     train_model(config.tokenized_dataset_path, config.tokenizer_path, config.vocab_size, config.activation_dropout, config.batch_size, config.checkpoints, config.models_path,config.device, config.dropout, config.embed_dim, config.epochs, config.ffn_dim, config.fsdp, config.heads, config.layers, config.learning_rate, config.model_type, config.rand_seed, config.seq_len, config.validation_frequency, config.value_embed_dim)
-
-    #The ones to look at are data_dir, datasets_dir
