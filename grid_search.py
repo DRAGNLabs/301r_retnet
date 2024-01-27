@@ -1,10 +1,14 @@
+import copy
 import itertools
+import sys
 import time
 import torch
+import yaml
 
 from argparse import ArgumentParser
 from pathlib import Path
 from train_model import train_model
+from utils import Struct
 
 def evaluate_models(
         model1: torch.nn.Module,
@@ -24,22 +28,8 @@ def evaluate_models(
     return model1_loss - model2_loss
 
 
-def grid_search(
-        data_dir: str,
-        dataset_name: str,
-        datasets_dir: str,
-        rand_seed: int,
-        tokenizer_folder: str,
-        vocab_size: int):
-    """ Perform grid search on the hyperparameters of the model.
-
-    Args:
-        data_dir (str): Path to directory where all data except datasets are
-            saved.
-        dataset_name (str): Hugging Face dataset name.
-        datasets_dir (str): Path to directory in which Hugging Face datasets are
-            downloaded.
-    """
+def grid_search(config: Struct):
+    """ Perform grid search on the hyperparameters of the model."""
     # Hyperparameters ranges to test
     learning_rates = [0.01, 0.001, 0.0001]
     embed_dims = [768, 1024, 1280]
@@ -52,7 +42,7 @@ def grid_search(
         batch_sizes))
 
     # Open a CSV file to write the results
-    with open(Path(data_dir) / "grid_search_results.csv", "w") as results_file:
+    with open(Path(config.root_data_path) / "grid_search_results.csv", "w") as results_file:
         # Write header to CSV file
         results_file.write(",".join([
             "Random Seed",
@@ -69,38 +59,29 @@ def grid_search(
     # Train models with each different permutation of hyperparameters
     similarity_scores = {}
     for lr, embed_dim, batch_size in param_combinations:
+        # Prepare seperate config objects to pass
+        retnet_config = copy.deepcopy(config)
+        retnet_config.lr = lr
+        retnet_config.embed_dim = embed_dim
+        retnet_config.batch_size = batch_size
+        retnet_config.model_type = "retnet"
+        
+        transformer_config = copy.deepcopy(config)
+        transformer_config.lr = lr
+        transformer_config.embed_dim = embed_dim
+        transformer_config.batch_size = batch_size
+        transformer_config.model_type = "transformer"
+
         start_time = time.time()
 
         # Train RetNet model
         retnet_start_time = time.time()
-        retnet_model, avg_loss_retnet = train_model(
-            batch_size=batch_size,
-            datasets_dir=datasets_dir,
-            dataset_name=dataset_name,
-            models_path=data_dir,
-            embed_dim=embed_dim,
-            lr=lr,
-            model_type="retnet",
-            rand_seed=rand_seed,
-            tboard_dir="/tmp/tboard_logs",
-            tokenizer_path=tokenizer_folder,
-            vocab_size=vocab_size)
+        retnet_model, avg_loss_retnet = train_model(retnet_config)
         retnet_training_time=time.time() - retnet_start_time
 
         # Train Transformer model with same hyperparameters as RetNet model
         transformer_start_time = time.time()
-        transformer_model, avg_loss_transformer = train_model(
-            batch_size=batch_size,
-            datasets_dir=datasets_dir,
-            dataset_name=dataset_name,
-            models_path=data_dir,
-            embed_dim=embed_dim,
-            lr=lr,
-            model_type="transformer",
-            rand_seed=rand_seed,
-            tboard_dir="/tmp/tboard_logs",
-            tokenizer_path=tokenizer_folder,
-            vocab_size=vocab_size)
+        transformer_model, avg_loss_transformer = train_model(transformer_config)
         transformer_training_time = time.time() - transformer_start_time
 
         # Track how much time both models combined took to train
@@ -114,10 +95,10 @@ def grid_search(
             model2_loss=avg_loss_transformer)
 
         # Record results in CSV
-        with open(Path(data_dir) / "grid_search_results.csv",
+        with open(Path(config.root_data_path) / "grid_search_results.csv",
                 "a") as results_file:
             results_file.write(",".join(map(str, [
-                rand_seed,
+                config.rand_seed,
                 lr,
                 embed_dim,
                 batch_size,
@@ -136,7 +117,7 @@ def grid_search(
     most_diff_params = max(similarity_scores, key=similarity_scores.get)
 
     # Save comparison of similarity results
-    with open(Path(data_dir) / "grid_search_results.csv", "a") as results_file:
+    with open(Path(config.root_data_path) / "grid_search_results.csv", "a") as results_file:
         results_file.write(",".join(map(str, [
             "Most Similar Parameters",
             *most_similar_params,
@@ -148,21 +129,12 @@ def grid_search(
 
 
 if __name__ == "__main__":
-    # Initialize, setup, and parse the argument parser
-    parser = ArgumentParser(prog="Grid Search")
+    args = sys.argv
+    config_path =args[1]
 
-    parser.add_argument("--data-dir", type=str, required=True,
-        help="Path to directory where all data except datasets are saved.")
-    parser.add_argument("--dataset-name", type=str, default="wikitext",
-        help="Hugging Face dataset name.")
-    parser.add_argument("--datasets-dir", type=str, required=True,
-        help="Path to directory in which Hugging Face datasets are downloaded.")
-    parser.add_argument("-r", "--rand-seed", type=int, default=None,
-        help="Random seed to use, allowing more reproducible results.")
-    parser.add_argument("--tokenizer-folder", type= str, required=True,
-        help="Path to the file where the tokenizer will be saved")
-    parser.add_argument("--vocab-size", type=int, required=True,
-        help="Maximum number of unique tokens in vocabulary.")
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    config = Struct(**config)
     
-    args = parser.parse_args()
-    grid_search(**vars(args))
+    grid_search(config)
