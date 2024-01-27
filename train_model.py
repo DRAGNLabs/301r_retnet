@@ -18,8 +18,6 @@ from tqdm import tqdm
 from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
 from utils import generate_text, Struct
 
-REPO_ROOT_NAME = "301r_retnet"
-
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -401,6 +399,6 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     config = Struct(**config)
-    train_model(config.tokenized_dataset_path, config.tokenizer_path, config.vocab_size, config.activation_dropout, config.batch_size, config.checkpoints, config.models_path,config.device, config.dropout, config.embed_dim, config.epochs, config.ffn_dim, config.fsdp, config.heads, config.layers, config.learning_rate, config.model_type, config.rand_seed, config.seq_len, config.tensorboard_directory, config.validation_frequency, config.value_embed_dim)
+    train_model(config.tokenized_dataset_path, config.tokenizer_path, config.vocab_size, config.activation_dropout, config.batch_size, config.checkpoints, config.models_path,config.device, config.dropout, config.embed_dim, config.epochs, config.ffn_dim, config.fsdp, config.heads, config.layers, config.learning_rate, config.model_type, config.rand_seed, config.seq_len, config.validation_frequency, config.value_embed_dim)
 
     #The ones to look at are data_dir, datasets_dir

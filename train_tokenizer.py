@@ -112,7 +112,6 @@ def train_tokenizer(
 if __name__ == "__main__":
     # Get arguments
 
-
     args = sys.argv
     config_path =args[1]
 
