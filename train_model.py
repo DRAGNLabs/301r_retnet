@@ -16,69 +16,14 @@ from torchinfo import summary as model_summary
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from tqdm import tqdm
 from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
-from utils import generate_text, Struct
+from utils import Struct
 
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
 
-def train_model(
-        tokenized_dataset_path: str,
-        tokenizer_path: str,
-        vocab_size: int,
-        activation_dropout: float=0.0,
-        batch_size: int=8,
-        checkpoints: bool=False,
-        models_path: str="/tmp/data",
-        device: str="cuda",
-        dropout: float=0.1,
-        embed_dim: int=80,
-        epochs: int=1,
-        ffn_dim: int=12,
-        fsdp: bool=False,
-        heads: int=4,
-        layers: int=2,
-        lr: float=0.001,
-        model_type: str="retnet",
-        rand_seed: bool=None,
-        seq_len: int=128,
-        tboard_dir: str="/tmp/tboard_logs",
-        val_freq: int=3,
-        value_embed_dim: int=12):
+def train_model(config: Struct):
     """ Use parameters to run train_model().
-        Args:
-            dataset_name (str): Hugging Face dataset name.
-            tokenizer_folder (str): Path to the file where the tokenizer will be saved
-            vocab_size (int): Maximum vocabulary size (number of unique tokens
-                in vocabulary.
-            activation_dropout (float): Probability of an element to be zeroed
-                during dropout after activation between FFN layers.
-            batch_size (int): Batch size.
-            checkpoints (bool): Save model checkpoints while training.
-            data_dir (str): Path to directory where all data except datasets are
-                saved.
-            datasets_dir (str): Path to directory in which Hugging Face datasets
-                are downloaded.
-            device (str): Device to use (ex: 'cpu', 'cuda', or 'cuda:0').
-            dropout (float): Probability of an element to be zeroed during
-                dropout.
-            embed_dim (int): Embedding dimension size of each token.
-            epochs (int): Number of epochs to train for.
-            ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
-            fsdp (bool): Whether to shard Module parameters across data parallel
-                workers or not (with the FairScale library).
-            heads (int): Number of heads. Head architecture changes based on
-                model.
-            layers (int): Number of retention network layers.
-            lr (float): Learning rate of model to train.
-            model_type (str): Name of model architecture to train.
-            rand_seed (int): Random seed to use, allowing more reproducible
-                results.
-            seq_len (int): Sequence length (context window size).
-            tboard_dir (str): Path to directory to save TensorBoard logs in.
-            val_freq (int): Number of times to run validation per epoch during
-                training.
-            value_embed_dim (int): Value embed dimension size.
 
         Returns:
             A tuple of the trained model instance and the test average loss.
@@ -87,54 +32,54 @@ def train_model(
     arg_dict = locals()
 
     # Test that the head dimension will be an even, whole number
-    assert embed_dim % (heads * 2) == 0, \
+    assert config.embed_dim % (config.heads * 2) == 0, \
         "Head Dimension must be even to perform Rotary Position Embedding " + \
-        f"({embed_dim} / {heads} = {embed_dim / heads} " + \
+        f"({config.embed_dim} / {config.heads} = {config.embed_dim / config.heads} " + \
         "-- not an even, whole number)! Try changing the Embedding " + \
         "Dimension or number of heads."
 
     # Test that the value embedding dimension is divisible by number of heads
-    assert value_embed_dim % heads == 0, \
+    assert config.value_embed_dim % config.heads == 0, \
         "Value Embed Dimension not divisible by number of heads " + \
-        f"({value_embed_dim} % {heads} != 0)!"
+        f"({config.value_embed_dim} % {config.heads} != 0)!"
 
     # Set random seeds for torch, numpy, random, etc. with transformers library
-    if rand_seed is not None:
-        set_seed(rand_seed)
+    if config.rand_seed is not None:
+        set_seed(config.rand_seed)
 
     # Create requested model
-    if model_type == "retnet":
+    if config.model_type == "retnet":
         AutoConfig.register("retnet", RetNetConfig)
         AutoModel.register(RetNetConfig, RetNetModelHF)
         AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
         config = RetNetConfig(
-            decoder_embed_dim=embed_dim,
-            decoder_value_embed_dim=value_embed_dim,
-            decoder_retention_heads=heads,
-            decoder_ffn_embed_dim=ffn_dim,
-            decoder_layers=layers,
-            dropout=dropout,
-            activation_dropout=activation_dropout,
-            vocab_size=vocab_size,
-            fsdp=fsdp,
-            max_seq_len=seq_len)
+            decoder_embed_dim=config.embed_dim,
+            decoder_value_embed_dim=config.value_embed_dim,
+            decoder_retention_heads=config.heads,
+            decoder_ffn_embed_dim=config.ffn_dim,
+            decoder_layers=config.layers,
+            dropout=config.dropout,
+            activation_dropout=config.activation_dropout,
+            vocab_size=config.vocab_size,
+            fsdp=config.fsdp,
+            max_seq_len=config.seq_len)
         model = RetNetModelHF(config)
 
-    elif model_type == "transformer":
+    elif config.model_type == "transformer":
         AutoConfig.register("custom_transformer", DecoderConfig)
         AutoModel.register(DecoderConfig, TransformerModelHF)
         AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
         config = DecoderConfig(
-            decoder_embed_dim=embed_dim,
-            decoder_value_embed_dim=value_embed_dim,
-            decoder_attention_heads=heads,
-            decoder_ffn_embed_dim=ffn_dim,
-            decoder_layers=layers,
-            dropout=dropout,
-            activation_dropout=activation_dropout,
-            vocab_size=vocab_size,
-            fsdp=fsdp,
-            max_seq_len=seq_len)
+            decoder_embed_dim=config.embed_dim,
+            decoder_value_embed_dim=config.value_embed_dim,
+            decoder_attention_heads=config.heads,
+            decoder_ffn_embed_dim=config.ffn_dim,
+            decoder_layers=config.layers,
+            dropout=config.dropout,
+            activation_dropout=config.activation_dropout,
+            vocab_size=config.vocab_size,
+            fsdp=config.fsdp,
+            max_seq_len=config.seq_len)
         model = TransformerModelHF(config)
 
     # Print all arguments for recordkeeping
@@ -154,11 +99,11 @@ def train_model(
     print("\nModel Summary:")
     total_params = model_summary(
         model,
-        input_data=torch.ones(1, seq_len).long()).total_params
+        input_data=torch.ones(1, config.seq_len).long()).total_params
 
     # Create unique label for model (timestamp, model type, parameter count)
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-        f"{model_type}_{total_params}"
+        f"{config.model_type}_{total_params}"
 
     # Make sure dataset is pre-downloaded
     # dataset_dir = Path(datasets_dir) / dataset_name
@@ -167,7 +112,7 @@ def train_model(
     # print(f"\nUsing dataset directory {dataset_dir}")
 
     # Initialize model directory for config files, weights, etc.
-    model_dir = Path(models_path) / model_label
+    model_dir = Path(config.models_path) / model_label
     model_dir.mkdir(parents=True, exist_ok=False)
     print(f"Saving model files in {model_dir}")
 
@@ -182,10 +127,10 @@ def train_model(
     # print(f"Saving tokenizer files in {tokenizers_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    if tboard_dir is None:
-        tboard_log_dir = Path(models_path) / "logs" / model_label
+    if config.tboard_dir is None:
+        tboard_log_dir = Path(config.models_path) / "logs" / model_label
     else:
-        tboard_log_dir = f"{tboard_dir}/logs/{model_label}"
+        tboard_log_dir = f"{config.tboard_dir}/logs/{model_label}"
     writer = SummaryWriter(log_dir=tboard_log_dir)
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
@@ -197,43 +142,43 @@ def train_model(
 
     # Print estimated loss if it hasn't learned anything
     print("\nEstimated Loss if guessing:")
-    print(f"-log(1 / {vocab_size}) = " + \
-        f"{-torch.log(torch.tensor(1 / vocab_size))}")
+    print(f"-log(1 / {config.vocab_size}) = " + \
+        f"{-torch.log(torch.tensor(1 / config.vocab_size))}")
 
     # Get Tokenizer from local directory
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(tokenizer_path)
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
 
     # Loads Tokenized data
     tokenized_train = load_ds(
         "parquet",
-        data_files=str(Path(tokenized_dataset_path) / "train.parquet"),
+        data_files=str(Path(config.tokenized_dataset_path) / "train.parquet"),
         split="all")
     tokenized_val = load_ds(
         "parquet",
-        data_files=str(Path(tokenized_dataset_path) / "validation.parquet"),
+        data_files=str(Path(config.tokenized_dataset_path) / "validation.parquet"),
         split="all")
     tokenized_test = load_ds(
         "parquet",
-        data_files=str(Path(tokenized_dataset_path) / "test.parquet"),
+        data_files=str(Path(config.tokenized_dataset_path) / "test.parquet"),
         split="all")
 
     train_loader = DataLoader(
         tokenized_train.with_format("torch")["input_ids"],
-        batch_size=batch_size,
+        batch_size=config.batch_size,
         shuffle=True)
     valid_loader = DataLoader(
         tokenized_val.with_format("torch")["input_ids"],
-        batch_size=batch_size)
+        batch_size=config.batch_size)
     test_loader = DataLoader(
         tokenized_test.with_format("torch")["input_ids"],
-        batch_size=batch_size)
+        batch_size=config.batch_size)
 
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
 
     # Define optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
 
     # Define the device to use
     device = torch.device(device)
@@ -243,7 +188,7 @@ def train_model(
 
     # Train the model
     num_val_runs = 0
-    for num_epoch in range(epochs):
+    for num_epoch in range(config.epochs):
         print(f"\nEpoch #{num_epoch}")
 
         model.train()
@@ -281,8 +226,8 @@ def train_model(
             # is finished.
             avg_val_loss = 0
             avg_train_loss = 0
-            if val_freq > 0 \
-                    and (num_val_runs + 1) / val_freq \
+            if config.val_freq > 0 \
+                    and (num_val_runs + 1) / config.val_freq \
                         <= (batch_idx + 1) / len(train_loader):
                 # Print average train loss
                 avg_train_loss = train_total_loss / train_total_samples
@@ -331,7 +276,7 @@ def train_model(
                     global_step=num_val_runs)
 
                 # If checkpoints are to be saved
-                if checkpoints:
+                if config.checkpoints:
                     # Save current weights of the model
                     weight_filename = f"epoch_{num_epoch}_validation_" + \
                         f"{num_val_runs}.pt"
@@ -391,7 +336,6 @@ def train_model(
 
 
 if __name__ == "__main__":
-    # Initialize, setup, and parse the argument parser
     args = sys.argv
     config_path =args[1]
 
