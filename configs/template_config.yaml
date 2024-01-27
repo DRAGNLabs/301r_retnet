@@ -41,6 +41,9 @@ tokenized_dataset_path: "/YOUR/PATH/HERE/data/tokenized_dataset/wikitext"
 # Path to model folder
 models_path: "/YOUR/PATH/HERE/data/models"
 
+# Tensorboard path
+tboard_path: ~
+
 splits:
   - 0.7
   - 0.2

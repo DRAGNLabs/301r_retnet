@@ -52,7 +52,7 @@ def train_model(config: Struct):
         AutoConfig.register("retnet", RetNetConfig)
         AutoModel.register(RetNetConfig, RetNetModelHF)
         AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
-        config = RetNetConfig(
+        HF_config = RetNetConfig(
             decoder_embed_dim=config.embed_dim,
             decoder_value_embed_dim=config.value_embed_dim,
             decoder_retention_heads=config.heads,
@@ -63,13 +63,13 @@ def train_model(config: Struct):
             vocab_size=config.vocab_size,
             fsdp=config.fsdp,
             max_seq_len=config.seq_len)
-        model = RetNetModelHF(config)
+        model = RetNetModelHF(HF_config)
 
     elif config.model_type == "transformer":
         AutoConfig.register("custom_transformer", DecoderConfig)
         AutoModel.register(DecoderConfig, TransformerModelHF)
         AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
-        config = DecoderConfig(
+        HF_config = DecoderConfig(
             decoder_embed_dim=config.embed_dim,
             decoder_value_embed_dim=config.value_embed_dim,
             decoder_attention_heads=config.heads,
@@ -80,7 +80,7 @@ def train_model(config: Struct):
             vocab_size=config.vocab_size,
             fsdp=config.fsdp,
             max_seq_len=config.seq_len)
-        model = TransformerModelHF(config)
+        model = TransformerModelHF(HF_config)
 
     # Print all arguments for recordkeeping
     print("Arguments:")
@@ -127,16 +127,16 @@ def train_model(config: Struct):
     # print(f"Saving tokenizer files in {tokenizers_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    if config.tboard_dir is None:
+    if config.tboard_path is None:
         tboard_log_dir = Path(config.models_path) / "logs" / model_label
     else:
-        tboard_log_dir = f"{config.tboard_dir}/logs/{model_label}"
+        tboard_log_dir = f"{config.tboard_path}/logs/{model_label}"
     writer = SummaryWriter(log_dir=tboard_log_dir)
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
     # Save all the variables in args as JSON inside folder
     json_string = json.dump(
-        obj=arg_dict,
+        obj=arg_table,
         fp=open(model_dir / "model_args.json", "w"),
         indent=4)
 
@@ -178,10 +178,10 @@ def train_model(config: Struct):
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
 
     # Define optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
 
     # Define the device to use
-    device = torch.device(device)
+    device = torch.device(config.device)
 
     # Compile model and put on device
     model = torch.compile(model).to(device)
@@ -226,8 +226,8 @@ def train_model(config: Struct):
             # is finished.
             avg_val_loss = 0
             avg_train_loss = 0
-            if config.val_freq > 0 \
-                    and (num_val_runs + 1) / config.val_freq \
+            if config.validation_frequency > 0 \
+                    and (num_val_runs + 1) / config.validation_frequency \
                         <= (batch_idx + 1) / len(train_loader):
                 # Print average train loss
                 avg_train_loss = train_total_loss / train_total_samples
@@ -343,4 +343,4 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     config = Struct(**config)
-    train_model(config.tokenized_dataset_path, config.tokenizer_path, config.vocab_size, config.activation_dropout, config.batch_size, config.checkpoints, config.models_path,config.device, config.dropout, config.embed_dim, config.epochs, config.ffn_dim, config.fsdp, config.heads, config.layers, config.learning_rate, config.model_type, config.rand_seed, config.seq_len, config.validation_frequency, config.value_embed_dim)
+    train_model(config)
