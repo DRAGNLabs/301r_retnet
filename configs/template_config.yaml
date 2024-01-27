@@ -44,26 +44,44 @@ splits:
 
 # Device Configuration
 device: "cuda" # Options: "cpu", "cuda"
-num_devices: 1 # Number of GPUs
+# (int) # Number of GPUs
+num_devices: 1 
 
 # Training Configuration
-rand_seed: 42 
-validation_frequency: 3 
+rand_seed: 42
+# epochs (int): Number of epochs to train for.
+epochs: 1
+# validation_frequency (int): How often to validate per epoch
+validation_frequency: 3
+# lr (float): Learning rate of model to train.
+learning_rate: 0.001 # lr
 
 # Model Trainer Configuration
 # Model Parameters
+
+# activation_dropout (float): Probability of an element to be zeroed during dropout after activation between FFN layers.
 activation_dropout: 0.0
+# batch_size (int): Batch size for training.
 batch_size: 8
+# checkpoints (bool): Whether to save checkpoints during training.
 checkpoints: false
+# dropout (float): Probability of an element to be zeroed during dropout.
 dropout: 0.1
+# embed_dim (int): Embedding dimension size of each token.
 embed_dim: 80
-epochs: 1
+# ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
 ffn_dim: 12
+#fsdp (bool): Whether to shard Module parameters across data parallel workers or not (with the FairScale library).
 fsdp: false
+# layers (int): Number of retention network layers.
 layers: 2
-learning_rate: 0.001 # lr
+# model_type (str): Name of model architecture to train.
 model_type: retnet # Choices: "retnet", "transformer"
+# heads (int): Number of heads. Head architecture changes based on model.
 heads: 4
+# seq_len (int): Sequence length (context window size).
 seq_len: 128
+# value_embed_dim (int): Value embed dimension size.
 value_embed_dim: 12
+# vocab_size (int): Maximum vocabulary size (number of unique tokens in vocabulary.
 vocab_size: 4000
