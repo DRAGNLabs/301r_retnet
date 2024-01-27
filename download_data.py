@@ -3,7 +3,6 @@ import sys
 import yaml
 
 from utils import Struct
-from argparse import ArgumentParser
 from pathlib import Path
 
 def download_data(

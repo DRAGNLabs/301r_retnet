@@ -1,9 +1,9 @@
 import json
+import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import yaml
-import sys
 
 from datasets import (load_dataset as load_ds)
 from datetime import datetime

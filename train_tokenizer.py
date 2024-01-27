@@ -5,7 +5,6 @@ from utils import Struct
 from datasets import (
     DatasetDict,
     load_dataset as load_ds)
-from os import environ
 from pathlib import Path
 from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
