@@ -1,0 +1,69 @@
+# USAGE: The YAML configuration contains all necessary paths and parameters to download data
+#        train a tokenizer, tokenize the data, train a model, and evaluate the model.
+#
+#        To prepare a YAML config for usage, create a copy of template_config.yaml 
+#        in the user_configs folder and fill in the necessary parameters.
+#        Path names need to be specified properly. These should be absolute paths.
+#        A suggestion for path structure is given in the template.
+#        The YAML config file is then passed as an argument to any scripts.
+#
+#        For example, to train a model, run:
+#        python train_model.py ./configs/my_config.yaml
+#
+#        Do not add a YAML config to a git commit unless you have a good reason.
+
+# Dataset Configuration
+
+# HuggingFace Dataset Feature
+dataset_feature: "text" 
+# HuggingFace Dataset Name
+dataset_name: "wikitext" 
+# HuggingFace Dataset Subset
+dataset_subset: "wikitext-2-v1" 
+
+# Download Data
+# Path to raw dataset folder
+raw_dataset_path: "/YOUR/PATH/HERE/data/datasets/wikitext" 
+
+# Train Tokenizer
+# Path to tokenizer folder
+tokenizer_path: "/YOUR/PATH/HERE/data/tokenizers/wikitext_tokenizer"
+
+# Tokenize Data
+# Path to tokenized dataset folder
+tokenized_dataset_path: "/YOUR/PATH/HERE/data/tokenized_dataset/wikitext"
+
+# Train Model
+# Path to model folder
+models_path: "/YOUR/PATH/HERE/data/models"
+
+splits:
+  - 0.7
+  - 0.2
+  - 0.1
+
+# Device Configuration
+device: "cuda" # Options: "cpu", "cuda"
+num_devices: 1 # Number of GPUs
+
+# Training Configuration
+rand_seed: 42 
+validation_frequency: 3 
+
+# Model Trainer Configuration
+# Model Parameters
+activation_dropout: 0.0
+batch_size: 8
+checkpoints: false
+dropout: 0.1
+embed_dim: 80
+epochs: 1
+ffn_dim: 12
+fsdp: false
+layers: 2
+learning_rate: 0.001 # lr
+model_type: retnet # Choices: "retnet", "transformer"
+heads: 4
+seq_len: 128
+value_embed_dim: 12
+vocab_size: 4000
