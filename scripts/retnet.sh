@@ -1,24 +1,2 @@
 python3 ../train_model.py \
-    --activation-dropout 0.1 \
-    --batch-size 128 \
-    --checkpoints \
-    --data-dir /tmp/data \
-    --dataset-name wikitext \
-    --datasets-dir /tmp/data/datasets \
-    --device cuda \
-    --dropout 0.1 \
-    --embed-dim 128 \
-    --epochs 10 \
-    --ffn-dim 1024 \
-    --fsdp \
-    --heads 8 \
-    --layers 6 \
-    --lr 0.001 \
-    --model retnet \
-    --rand-seed 42 \
-    --seq-len 128 \
-    --tboard-dir /tmp/tboard_logs \
-    --tokenizer-folder /tmp/data/tokenizers/BPE_wikitext-2-v1_32768 \
-    --val-freq 3 \
-    --value-embed-dim 128 \
-    --vocab-size 32768 \
+    ../configs/user_configs/YOUR_CONFIG_HERE.yaml

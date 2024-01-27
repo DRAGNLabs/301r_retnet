@@ -21,6 +21,10 @@ dataset_name: "wikitext"
 # HuggingFace Dataset Subset
 dataset_subset: "wikitext-2-v1" 
 
+# Root Data Path
+# This path is useful for any new features that don't want to specify a new path parameter in the config
+root_data_path: "/YOUR/PATH/HERE/data"
+
 # Download Data
 # Path to raw dataset folder
 raw_dataset_path: "/YOUR/PATH/HERE/data/datasets/wikitext" 

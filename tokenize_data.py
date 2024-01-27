@@ -17,15 +17,15 @@ def tokenize_data(config):
         f"datasets must sum up to 1 ({' + '.join(map(str, config.splits))} != 1)!"
     
     # Retrieve iterators for each split of the dataset
-    print(f"Datasets dir: {config.raw_dataset_dir}")
-    entire_dataset = datasets.load_from_disk(Path(config.raw_dataset_dir))
+    print(f"Datasets dir: {config.raw_dataset_path}")
+    entire_dataset = datasets.load_from_disk(Path(config.raw_dataset_path))
 
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
 
     # Tokenize the datasets
     tokenization = lambda instances_dict : \
         tokenizer(
-            instances_dict[config.text_feature],
+            instances_dict[config.dataset_feature],
             padding="max_length",
             truncation=True,
             max_length=config.seq_len + 1,
@@ -35,7 +35,7 @@ def tokenize_data(config):
     entire_dataset = entire_dataset.map(tokenization, batched=True)
 
     # Drop now unnecessary text_feature column
-    entire_dataset = entire_dataset.remove_columns(column_names=config.text_feature)
+    entire_dataset = entire_dataset.remove_columns(column_names=config.dataset_feature)
 
     #This code saves the now tokenized dataset as a .parquet folder, making a folder in the data directory called tokenized if one does not already exist.
     tokenized_dataset_dir = Path(config.tokenized_dataset_path)

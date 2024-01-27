@@ -25,7 +25,7 @@ def train_tokenizer(config) -> \
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
-    filter_fun = lambda inst_dict : bool(inst_dict[config.text_feature].strip())
+    filter_fun = lambda inst_dict : bool(inst_dict[config.dataset_feature].strip())
 
     # Filter out undesired data instances
     entire_dataset = entire_dataset.filter(filter_fun)
@@ -61,7 +61,7 @@ def train_tokenizer(config) -> \
 
     # Train tokenizer on only training data
     tokenizer.train_from_iterator(
-        iter(entire_dataset["train"][config.text_feature]),
+        iter(entire_dataset["train"][config.dataset_feature]),
         trainer=trainer,
         length=len(entire_dataset["train"]))
 

@@ -1,2 +1,2 @@
 python3 ../download_data.py \
-    ../configs/train_model_config.yaml \
+    ../configs/user_configs/YOUR_CONFIG_HERE.yaml 
