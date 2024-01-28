@@ -1,4 +1,4 @@
-# Retnet VS Transformers
+# RetNet VS Transformers
 
 This project focuses on the comparison and analysis of RetNet vs Transformers, utilizing Microsoft's TorchScale as the base architecture.
 
@@ -41,7 +41,8 @@ mamba create -n retnet_env python=3.11
 mamba activate retnet_env
 ```
 
-Running Shell Scripts
+### Running Shell Scripts
+
 For running any .sh scripts, grant execution permissions using:
 
 ```bash
@@ -53,6 +54,29 @@ Then, execute the script with:
 ```bash
 ./script.sh
 ```
+
+### Preparing the Environment
+
+Before running the main scripts, make sure to install all the necessary dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Execution Workflow
+
+To have the project work correctly, follow these steps:
+Run `download_data.sh` to fetch the necessary data.
+Execute `train_tokenizer.sh` to prepare the tokenizer.
+Use `tokenize_data.sh` for data tokenization.
+Finally, `run retnet.sh` or `transformer.sh` depending on your project needs.
+
+### Note on CUDA
+
+Check if your computer has an Nvidia GPU, as CUDA is required for some functionalities.
+CUDA comes as part of the requirements in the torch package.
+If you don't have an Nvidia GPU, you can still run the project on a CPU, but some functionalities might be limited.
+Alternatively, consider using a supercomputer if available, but ensure there are not a ton of parameters to train.
 
 ## Features
 
