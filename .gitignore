@@ -33,5 +33,5 @@ data/
 # Out files
 *.out
 **/test.json
-*.csv
+!/data_run/*.csv
 core.*
