@@ -55,6 +55,8 @@ splits:
 device: "cuda" # Options: "cpu", "cuda"
 # (int) # Number of GPUs
 num_devices: 1 
+# fsdp (bool): Distributed strategy for training.
+fsdp: true
 
 # Training Configuration
 rand_seed: 42
@@ -70,6 +72,8 @@ learning_rate: 0.001 # lr
 
 # activation_dropout (float): Probability of an element to be zeroed during dropout after activation between FFN layers.
 activation_dropout: 0.0
+# attention_heads (int): Number of attention heads in MHA module.
+attention_heads: 2
 # batch_size (int): Batch size for training.
 batch_size: 8
 # checkpoints (bool): Whether to save checkpoints during training.
@@ -84,10 +88,12 @@ ffn_dim: 12
 fsdp: false
 # layers (int): Number of retention network layers.
 layers: 2
+# heads (int): Number of heads. Head architecture changes based on model.
+heads: 4 # TODO: is this parameter obselete now?
 # model_type (str): Name of model architecture to train.
 model_type: retnet # Choices: "retnet", "transformer"
-# heads (int): Number of heads. Head architecture changes based on model.
-heads: 4
+# retention_heads (int): Number of retention heads in MSR module.
+retention_heads: 2
 # seq_len (int): Sequence length (context window size).
 seq_len: 128
 # value_embed_dim (int): Value embed dimension size.
