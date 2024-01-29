@@ -21,7 +21,6 @@ def download_data(config):
     dataset_dir = Path(config.raw_dataset_path)
     dataset_dir.mkdir(parents=True, exist_ok=True)
 
-    
     print("Beginning download")
     print(f"File path: {dataset_dir}")
     print(f"Data name: {config.dataset_name}")
@@ -34,8 +33,6 @@ def download_data(config):
 
     # check if dataset is of type datasets.arrow_dataset.Dataset
     if isinstance(dataset, datasets.arrow_dataset.Dataset):
-        filename = config.dataset_subset + ".parquet"
-        dataset.to_parquet(dataset_dir / filename)
         filename = config.dataset_subset + ".parquet"
         dataset.to_parquet(dataset_dir / filename)
     else:
