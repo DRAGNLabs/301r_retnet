@@ -20,7 +20,7 @@ def download_data(
     """
     # Create folder to save this dataset's files in
     dataset_dir = Path(datasets_dir) / dataset_name
-    dataset_dir.mkdir(parents=True)
+    dataset_dir.mkdir(parents=True, exist_ok=True)
 
     print("Beginning download")
     print(f"File path: {dataset_dir}")
