@@ -105,12 +105,6 @@ def train_model(config: Struct):
     model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
         f"{config.model_type}_{total_params}"
 
-    # Make sure dataset is pre-downloaded
-    # dataset_dir = Path(datasets_dir) / dataset_name
-    # assert dataset_dir.exists(), \
-    #     f"The directory with data, {dataset_dir}, doesn't exist!"
-    # print(f"\nUsing dataset directory {dataset_dir}")
-
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
     model_dir.mkdir(parents=True, exist_ok=False)
@@ -120,11 +114,6 @@ def train_model(config: Struct):
     weights_dir = model_dir / "weights"
     weights_dir.mkdir(parents=False, exist_ok=False)
     print(f"Saving weight files in {weights_dir}")
-
-    # Initialize tokenizers directory
-    # tokenizers_dir = Path(models_path) / "tokenizers"
-    # tokenizers_dir.mkdir(parents=False, exist_ok=True)
-    # print(f"Saving tokenizer files in {tokenizers_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
     if config.tboard_path is None:
