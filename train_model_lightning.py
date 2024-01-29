@@ -339,11 +339,11 @@ def train_model(config: Struct):
         tboard_log_dir = Path(config.models_path) / "logs" / model_label
     else:
         tboard_log_dir = f"{config.tboard_path}/logs/{model_label}"
-    writer = SummaryWriter(log_dir=tboard_log_dir)
+
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
     # Save all the variables in args as JSON inside folder
-    json_string = json.dump(
+    json.dump(
         obj=arg_table,
         fp=open(model_dir / "model_args.json", "w"),
         indent=4)
