@@ -219,7 +219,7 @@ class RetNetConfig(PretrainedConfig):
         super().__init__(**kwargs)
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
         self.decoder_value_embed_dim = kwargs.pop("decoder_value_embed_dim", 1280)
-        self.decoder_retention_heads = kwargs.pop("decoder_retention_heads", 3)
+        self.decoder_retention_heads = kwargs.pop("decoder_retention_heads", 4)
         self.decoder_ffn_embed_dim = kwargs.pop("decoder_ffn_embed_dim", 1280)
         self.decoder_layers = kwargs.pop("decoder_layers", 12)
         self.decoder_normalize_before = kwargs.pop("decoder_normalize_before", True)
