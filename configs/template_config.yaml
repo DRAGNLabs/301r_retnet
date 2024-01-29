@@ -8,7 +8,7 @@
 #        The YAML config file is then passed as an argument to any scripts.
 #
 #        For example, to train a model, run:
-#        python train_model.py ./configs/my_config.yaml
+#        python train_model.py ./configs/user_configs/my_config.yaml
 #
 #        Do not add a YAML config to a git commit unless you have a good reason.
 
