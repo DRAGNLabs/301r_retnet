@@ -1,32 +1,38 @@
-import os
+# General
 import json
+import os
+import signal
 import sys
 import time
-from typing import Any
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import yaml
 
-from datasets import load_dataset
-from datetime import datetime
-from math import isclose
-from pathlib import Path
-import signal
-from tabulate import tabulate
+# Torch
+import torch
 from torch import Tensor
+import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
-from torchscale.architecture.config import RetNetConfig, DecoderConfig
-from tqdm import tqdm
-from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
-from utils import generate_text
+
+# PyTorch Lightning
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from pytorch_lightning.callbacks import ModelCheckpoint
-from dataset import DataModule
+
+# Hugging Face
+from datasets import load_dataset
+from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
+
+# Other
+from pathlib import Path
+from tabulate import tabulate
+from tqdm import tqdm
+
+# Local
 from hugging_face_model import RetNetModelHF, TransformerModelHF
-from utils import Struct
+from dataset import DataModule
+from torchscale.architecture.config import RetNetConfig, DecoderConfig
+from utils import generate_text, Struct
 
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
