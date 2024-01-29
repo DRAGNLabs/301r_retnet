@@ -90,5 +90,5 @@ heads: 4
 seq_len: 128
 # value_embed_dim (int): Value embed dimension size.
 value_embed_dim: 12
-# vocab_size (int): Maximum vocabulary size (number of unique tokens in vocabulary.
+# vocab_size (int): Maximum vocabulary size (number of unique tokens in vocabulary)
 vocab_size: 4000
