@@ -1,0 +1,8 @@
+Generated strings:
+1: <bos><pad>
+
+2: <bos>= valkyria is a real @-@ time strategy video game developed by Looking Glass Studios and published by Activision for the PlayStation 2. It was released in North America on November 21, 1998, and in Europe on November 21, 1999. The game is set in the fictional world of the fictional world of the fictional world, and follows the events of the story of the fictional world of the fictional world. 
+<pad>
+
+3: <bos>= = reception = 
+<pad>
