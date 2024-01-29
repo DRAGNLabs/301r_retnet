@@ -1,25 +1,30 @@
+from pathlib import Path
+from pytorch_lightning import LightningDataModule
 from typing import List, Optional
 from torch.utils.data import DataLoader
-from pytorch_lightning import LightningDataModule
-from datasets import (
-    DatasetDict,
-    load_dataset as load_ds)
-from pathlib import Path
+
+from datasets import load_dataset
+
 
 class DataModule(LightningDataModule):
-    def __init__(self, train_dataset_path, val_dataset_path, test_dataset_path, batch_size, num_workers=0):
+    def __init__(self, config, num_workers=0):
         super().__init__()
-        self.batch_size = batch_size
+        self.batch_size = config.batch_size
         self.num_workers = num_workers
-        self.train_tokenized_dataset = load_ds("parquet",
-                            data_files=train_dataset_path,
-                            split="all")
-        self.val_tokenized_dataset = load_ds("parquet",
-                            data_files=val_dataset_path,
-                            split="all")
-        self.test_tokenized_dataset = load_ds("parquet",
-                            data_files=test_dataset_path,
-                            split="all")
+
+        # Load tokenized datasets
+        self.train_tokenized_dataset = load_dataset(
+            "parquet",
+            data_files=str(Path(config.tokenized_dataset_path) / "train.parquet"),
+            split="all")
+        self.val_tokenized_dataset = load_dataset(
+            "parquet",
+            data_files=str(Path(config.tokenized_dataset_path) / "validation.parquet"),
+            split="all")
+        self.test_tokenized_dataset = load_dataset(
+            "parquet",
+            data_files=str(Path(config.tokenized_dataset_path) / "test.parquet"),
+            split="all")
     
     def setup(self, stage: Optional[str] = None):
         self.train_dataset = self.train_tokenized_dataset.with_format("torch")["input_ids"]

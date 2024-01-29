@@ -357,26 +357,9 @@ def train_model(config: Struct):
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
 
     # Loads Tokenized data
-    tokenized_train = load_dataset(
-        "parquet",
-        data_files=str(Path(config.tokenized_dataset_path) / "train.parquet"),
-        split="all")
-    tokenized_val = load_dataset(
-        "parquet",
-        data_files=str(Path(config.tokenized_dataset_path) / "validation.parquet"),
-        split="all")
-    tokenized_test = load_dataset(
-        "parquet",
-        data_files=str(Path(config.tokenized_dataset_path) / "test.parquet"),
-        split="all")
-    
     print(f"\nNow loading '{config.dataset_name}' and tokenizer...")
 
-    dm = DataModule(tokenized_train, 
-                    tokenized_val,
-                    tokenized_test,
-                    config.batch_size,
-                    num_workers=1)
+    dm = DataModule(config, num_workers=1)
 
     #model = torch.compile(model) #TODO: this doesn't work with lightning, says something about logging in validation twice: need to use a different version of python?
 
