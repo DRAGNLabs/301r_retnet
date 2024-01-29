@@ -44,6 +44,8 @@ models_path: "/YOUR/PATH/HERE/data/models"
 # Tensorboard path
 tboard_path: ~
 
+# Splits
+# Fraction Train, Fraction Validation, Fraction Test
 splits:
   - 0.7
   - 0.2
