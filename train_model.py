@@ -15,7 +15,12 @@ from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from tqdm import tqdm
-from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
+from transformers import (
+    AutoConfig,
+    AutoModel,
+    AutoModelForCausalLM,
+    PreTrainedTokenizerFast,
+    set_seed)
 from utils import Struct
 
 # Allow torch to run float32 matrix multiplications in lower precision for
@@ -28,15 +33,12 @@ def train_model(config: Struct):
         Returns:
             A tuple of the trained model instance and the test average loss.
     """
-    # Store all the parameters, which are the only locals at this point, as dict
-    arg_dict = locals()
-
     # Test that the head dimension will be an even, whole number
     assert config.embed_dim % (config.heads * 2) == 0, \
         "Head Dimension must be even to perform Rotary Position Embedding " + \
-        f"({config.embed_dim} / {config.heads} = {config.embed_dim / config.heads} " + \
-        "-- not an even, whole number)! Try changing the Embedding " + \
-        "Dimension or number of heads."
+        f"({config.embed_dim} / {config.heads} = " + \
+        f"{config.embed_dim / config.heads} -- not an even, whole number)! " + \
+        "Try changing the Embedding Dimension or number of heads."
 
     # Test that the value embedding dimension is divisible by number of heads
     assert config.value_embed_dim % config.heads == 0, \
@@ -86,8 +88,8 @@ def train_model(config: Struct):
     print("Arguments:")
     arg_table = []
     row = []
-    for i, arg in enumerate(arg_dict.keys()):
-        row.append(f"{arg}: {arg_dict[arg]}")
+    for i, (key, value) in enumerate(config.get_config_dict().items()):
+        row.append(f"{key}: {value}")
         if (i + 1) % 4 == 0:
             arg_table.append(row)
             row = []
@@ -125,7 +127,7 @@ def train_model(config: Struct):
 
     # Save all the variables in args as JSON inside folder
     json_string = json.dump(
-        obj=arg_table,
+        obj=config.get_config_dict(),
         fp=open(model_dir / "model_args.json", "w"),
         indent=4)
 
@@ -144,7 +146,8 @@ def train_model(config: Struct):
         split="all")
     tokenized_val = load_ds(
         "parquet",
-        data_files=str(Path(config.tokenized_dataset_path) / "validation.parquet"),
+        data_files=str(Path(
+            config.tokenized_dataset_path) / "validation.parquet"),
         split="all")
     tokenized_test = load_ds(
         "parquet",
@@ -161,7 +164,6 @@ def train_model(config: Struct):
     test_loader = DataLoader(
         tokenized_test.with_format("torch")["input_ids"],
         batch_size=config.batch_size)
-
 
     # Define loss function
     loss_fn = nn.CrossEntropyLoss(reduction="mean")
@@ -326,10 +328,11 @@ def train_model(config: Struct):
 
 if __name__ == "__main__":
     args = sys.argv
-    config_path =args[1]
+    config_path = args[1]
 
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     config = Struct(**config)
+
     train_model(config)

@@ -2,8 +2,8 @@ import datasets
 import sys
 import yaml
 
-from utils import Struct
 from pathlib import Path
+from utils import Struct
 
 def download_data(config):
     """ Download dataset from Hugging Face.
@@ -31,7 +31,7 @@ def download_data(config):
             split="all",
             trust_remote_code=True)
 
-    # check if dataset is of type datasets.arrow_dataset.Dataset
+    # Check if dataset is of type datasets.arrow_dataset.Dataset
     if isinstance(dataset, datasets.arrow_dataset.Dataset):
         filename = config.dataset_subset + ".parquet"
         dataset.to_parquet(dataset_dir / filename)
@@ -44,9 +44,9 @@ def download_data(config):
 
 if __name__ == "__main__":
     args = sys.argv
-    config_path =args[1]
+    config_path = args[1]
 
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     config = Struct(**config)
