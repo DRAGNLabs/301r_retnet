@@ -13,8 +13,6 @@ x = 'Learning Rate'
 y = 'Embedding Dimension'
 
 def save_figure(x, y):
-    a = retnet_df[x]
-    b = retnet_df[y]
     plt.figure(figsize=(10, 7))
     plt.scatter(retnet_df[x], retnet_df[y], label='RetNet')
     # plt.scatter(transformer_df[x], transformer_df[y], label='Transformer')
