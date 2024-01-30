@@ -77,7 +77,7 @@ def generate_text(
                 input_tensor = torch.cat(
                     [input_tensor, predicted_id[None, None]],
                     dim=-1)
-            
+
                 # Store predicted token as part of generation
                 generated_token_idxs.append(predicted_id.item())
 
@@ -86,3 +86,20 @@ def generate_text(
 
     # Decode token indices lists to lists of strings and return
     return tokenizer.batch_decode(generated_token_idx_list)
+
+
+class Struct():
+    def __init__(self, **entries):
+        self.config_dict = entries
+        for key, value in entries.items():
+            setattr(self, key, value)
+
+    def __str__(self):
+        s = "Struct: {"
+        for key, value in self.config_dict.items():
+            s += f"{key}: {value},"
+        s = s[:-1] + "}"
+        return s
+
+    def get_config_dict(self):
+        return self.config_dict

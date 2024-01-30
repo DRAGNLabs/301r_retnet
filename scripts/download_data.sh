@@ -1,4 +1,1 @@
-python3 ../download_data.py \
-    --dataset-name wikitext \
-    --dataset-subset wikitext-2-v1 \
-    --datasets-dir /tmp/data/datasets \
+python3 ../../download_data.py ../../configs/user_configs/YOUR_CONFIG_HERE.yaml
