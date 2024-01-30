@@ -1,96 +1,94 @@
-# USAGE: The YAML configuration contains all necessary paths and parameters to download data
-#        train a tokenizer, tokenize the data, train a model, and evaluate the model.
+# ------------------------------------ USAGE -----------------------------------
+# The YAML configuration contains all necessary paths and parameters to download
+# data, train a tokenizer, tokenize the data, train a model, and evaluate the
+# model.
 #
-#        To prepare a YAML config for usage, create a copy of template_config.yaml 
-#        in the user_configs folder and fill in the necessary parameters.
-#        Path names need to be specified properly. These should be absolute paths.
-#        A suggestion for path structure is given in the template.
-#        The YAML config file is then passed as an argument to any scripts.
+# To use a YAML config, create a copy of template_config.yaml in the
+# user_configs folder and fill in the necessary parameters.
 #
-#        For example, to train a model, run:
-#        python train_model.py ./configs/user_configs/my_config.yaml
+# Path names need to be specified properly and be absolute paths. A suggested
+# path structure is given in the template. The YAML config file is then passed
+# as an argument to any scripts.
 #
-#        Do not add a YAML config to a git commit unless you have a good reason.
+# For example, to train a model, run the following in the repository root
+# directory:
+#        python3 train_model.py ./configs/user_configs/my_config.yaml
+#
+# Do not Add a YAML config to a git commit unless you have a good reason.
 
-# Dataset Configuration
+# ---------------------------- DATASET CONFIGURATION ---------------------------
 
-# HuggingFace Dataset Feature
-dataset_feature: "text" 
-# HuggingFace Dataset Name
-dataset_name: "wikitext" 
-# HuggingFace Dataset Subset
-dataset_subset: "wikitext-2-v1" 
+# HuggingFace Dataset Feature (str): Column of the dataset to extract text from
+dataset_feature: "text"
+# HuggingFace Dataset Name (str)
+dataset_name: "wikitext"
+# HuggingFace Dataset Subset (str)
+dataset_subset: "wikitext-2-v1"
 
-# Root Data Path
-# This path is useful for any new features that don't want to specify a new path parameter in the config
+# Root Data Path: Useful for any new features that don't want to specify a new
+# path parameter in the config
 root_data_path: "/YOUR/PATH/HERE/data"
 
-# Download Data
-# Path to raw dataset folder
-raw_dataset_path: "/YOUR/PATH/HERE/data/datasets/wikitext" 
+# Download Data: Path to raw dataset folder
+raw_dataset_path: "/YOUR/PATH/HERE/data/datasets/wikitext"
 
-# Train Tokenizer
-# Path to tokenizer folder
+# Train Tokenizer: Path to tokenizer folder
 tokenizer_path: "/YOUR/PATH/HERE/data/tokenizers/wikitext_tokenizer"
 
-# Tokenize Data
-# Path to tokenized dataset folder
+# Tokenize Data: Path to tokenized dataset folder
 tokenized_dataset_path: "/YOUR/PATH/HERE/data/tokenized_dataset/wikitext"
 
-# Train Model
-# Path to model folder
+# Train Model: Path to model folder
 models_path: "/YOUR/PATH/HERE/data/models"
 
-# Tensorboard path
+# TensorBoard Path
 tboard_path: ~
 
-# Splits
-# Fraction Train, Fraction Validation, Fraction Test
+# Splits: Train split, Validation Split, and Test Split
 splits:
   - 0.7
   - 0.2
   - 0.1
 
-# Device Configuration
-device: "cuda" # Options: "cpu", "cuda"
-# (int) # Number of GPUs
-num_devices: 1 
+# ------------------------ MODEL TRAINING CONFIGURATION ------------------------
 
-# Training Configuration
-rand_seed: 42
-# epochs (int): Number of epochs to train for.
-epochs: 1
-# validation_frequency (int): How often to validate per epoch
-validation_frequency: 3
-# lr (float): Learning rate of model to train.
-learning_rate: 0.001 # lr
-
-# Model Trainer Configuration
-# Model Parameters
-
-# activation_dropout (float): Probability of an element to be zeroed during dropout after activation between FFN layers.
+# Activation Dropout (float): Probability of an element to be zeroed during
+# dropout after activation between FFN layers
 activation_dropout: 0.0
-# batch_size (int): Batch size for training.
+# Batch Size (int): Batch size for training
 batch_size: 8
-# checkpoints (bool): Whether to save checkpoints during training.
+# Checkpoints (bool): Whether to save checkpoints during training
 checkpoints: false
-# dropout (float): Probability of an element to be zeroed during dropout.
+# Device Configuration (str)
+device: "cuda" # Choices: "cpu", "cuda"
+# Dropout (float): Probability of an element to be zeroed during dropout
 dropout: 0.1
-# embed_dim (int): Embedding dimension size of each token.
+# Embedding Dimension (int): Embedding dimension size of each token
 embed_dim: 80
-# ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
+# Epochs (int): Number of epochs to train for
+epochs: 1
+# FFN Dimension (int): Hidden layer size of Feed Forward Network (FFN)
 ffn_dim: 12
-#fsdp (bool): Whether to shard Module parameters across data parallel workers or not (with the FairScale library).
+# Fully Sharded Data Parallel (bool): Whether to shard Module parameters across
+# data parallel workers or not (with the FairScale library)
 fsdp: false
-# layers (int): Number of retention network layers.
-layers: 2
-# model_type (str): Name of model architecture to train.
-model_type: retnet # Choices: "retnet", "transformer"
-# heads (int): Number of heads. Head architecture changes based on model.
+# Heads (int): Number of heads. Head architecture changes based on model
 heads: 4
-# seq_len (int): Sequence length (context window size).
+# Layers (int): Number of stacked network layers
+layers: 2
+# Learning Rate (float)
+learning_rate: 0.001
+# Model Type (str): Name of model architecture to train
+model_type: retnet # Choices: "retnet", "transformer"
+# Number of GPUs (int)
+num_devices: 1
+# Random Seed (int): For reproducibility
+rand_seed: 42
+# Sequence Length (int): Context window size by number of tokens
 seq_len: 128
-# value_embed_dim (int): Value embed dimension size.
+# Validation Frequency (int): Number of times to validate per epoch
+validation_frequency: 3
+# Value Embedding Dimension (int): Value embed dimension size
 value_embed_dim: 12
-# vocab_size (int): Maximum vocabulary size (number of unique tokens in vocabulary)
+# Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
 vocab_size: 4000
