@@ -196,7 +196,7 @@ class TransformerModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
-        self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
+        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
 
         return loss
     
@@ -242,8 +242,8 @@ class TransformerModel(LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model_hf.decoder_stack.parameters(), lr=self.config.learning_rate)
-        #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
-        return [optimizer]#, [lr_scheduler]
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
+        return [optimizer], [lr_scheduler]
     
     def save_pretrained(self, save_folder: str):
         """ Save model weights and parameters to folder. """

@@ -74,6 +74,8 @@ save_top_k: 3
 val_check_interval: 0.5
 # use_slurm (bool): Whether to use SLURM for training.
 use_slurm: true
+# gamma (float): Learning rate scheduler gamma.
+gamma: 0.85
 
 # Model Trainer Configuration
 # Model Parameters
