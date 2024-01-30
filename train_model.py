@@ -33,9 +33,6 @@ def train_model(config: Struct):
         Returns:
             A tuple of the trained model instance and the test average loss.
     """
-    # Store all the parameters, which are the only locals at this point, as dict
-    arg_dict = locals()
-
     # Test that the head dimension will be an even, whole number
     assert config.embed_dim % (config.heads * 2) == 0, \
         "Head Dimension must be even to perform Rotary Position Embedding " + \
@@ -91,8 +88,8 @@ def train_model(config: Struct):
     print("Arguments:")
     arg_table = []
     row = []
-    for i, arg in enumerate(arg_dict.keys()):
-        row.append(f"{arg}: {arg_dict[arg]}")
+    for i, (key, value) in enumerate(config.__dict__.items()):
+        row.append(f"{key}: {value}")
         if (i + 1) % 4 == 0:
             arg_table.append(row)
             row = []
@@ -130,7 +127,7 @@ def train_model(config: Struct):
 
     # Save all the variables in args as JSON inside folder
     json_string = json.dump(
-        obj=arg_table,
+        obj=config.__dict__,
         fp=open(model_dir / "model_args.json", "w"),
         indent=4)
 
