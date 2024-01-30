@@ -334,6 +334,11 @@ def train_model(config: Struct):
     weights_dir.mkdir(parents=False, exist_ok=False)
     print(f"Saving weight files in {weights_dir}")
 
+    # Initialize checkpoints directory
+    checkpoints_dir = model_dir / "checkpoints"
+    checkpoints_dir.mkdir(parents=False, exist_ok=False)
+    print(f"Saving checkpoints in {checkpoints_dir}")
+
     # Create SummaryWriter to record logs for TensorBoard
     if config.tboard_path is None:
         tboard_log_dir = Path(config.models_path) / "logs" / model_label
@@ -365,7 +370,7 @@ def train_model(config: Struct):
 
     # Implement callbacks
     model_checkpoint = CustomCheckpoint(
-        dirpath=config.save_folder, # TODO: implement this parameter
+        dirpath=checkpoints_dir,
         filename='epoch_{epoch}_validation_{num_val_runs}', # TODO: where are we getting num val runs?
         save_top_k=3, # TODO: implement this argument
         monitor='val_loss',
