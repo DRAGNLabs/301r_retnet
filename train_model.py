@@ -88,7 +88,7 @@ def train_model(config: Struct):
     print("Arguments:")
     arg_table = []
     row = []
-    for i, (key, value) in enumerate(config.__dict__.items()):
+    for i, (key, value) in enumerate(config.get_config_dict().items()):
         row.append(f"{key}: {value}")
         if (i + 1) % 4 == 0:
             arg_table.append(row)
@@ -127,7 +127,7 @@ def train_model(config: Struct):
 
     # Save all the variables in args as JSON inside folder
     json_string = json.dump(
-        obj=config.__dict__,
+        obj=config.get_config_dict(),
         fp=open(model_dir / "model_args.json", "w"),
         indent=4)
 
