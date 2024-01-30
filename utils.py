@@ -93,7 +93,8 @@ class Struct():
         self.__dict__.update(entries)
 
     def __str__(self):
-        s = "Struct: \n"
+        s = "Struct: {"
         for key, value in self.__dict__.items():
-            s += f"{key}: {value} \n"
+            s += f"{key}: {value},"
+        s = s[:-1] + "}"
         return s
