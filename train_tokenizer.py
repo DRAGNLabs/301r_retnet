@@ -1,31 +1,30 @@
 import sys
 import yaml
 
-from utils import Struct
-from datasets import (
-    DatasetDict,
-    load_dataset as load_ds)
+from datasets import DatasetDict, load_dataset as load_ds
 from pathlib import Path
 from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
+from utils import Struct
 
 def train_tokenizer(config) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
-
     # Retrieve iterators for each split of the dataset
-    print(f'Data dir: {config.raw_dataset_path}')
-    data_path = Path(config.raw_dataset_path) / (config.dataset_subset + ".parquet")
-    
-    entire_dataset = load_ds("parquet", 
+    print(f"Data dir: {config.raw_dataset_path}")
+    data_path = Path(config.raw_dataset_path) / \
+        (config.dataset_subset + ".parquet")
+
+    entire_dataset = load_ds("parquet",
                              data_files=str(data_path),
                              split="all")
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
-    filter_fun = lambda inst_dict : bool(inst_dict[config.dataset_feature].strip())
+    filter_fun = lambda inst_dict : bool(
+        inst_dict[config.dataset_feature].strip())
 
     # Filter out undesired data instances
     entire_dataset = entire_dataset.filter(filter_fun)
@@ -82,7 +81,9 @@ def train_tokenizer(config) -> \
         length=config.seq_len + 1)
 
     # Enable truncation
-    tokenizer.enable_truncation(max_length=config.seq_len + 1, direction="right")
+    tokenizer.enable_truncation(
+        max_length=config.seq_len + 1,
+        direction="right")
 
     # Wrap tokenizer with transformers library
     tokenizer = PreTrainedTokenizerFast(
@@ -102,9 +103,9 @@ def train_tokenizer(config) -> \
 
 if __name__ == "__main__":
     args = sys.argv
-    config_path =args[1]
+    config_path = args[1]
 
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     config = Struct(**config)
