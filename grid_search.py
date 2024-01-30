@@ -42,7 +42,8 @@ def grid_search(config: Struct):
         batch_sizes))
 
     # Open a CSV file to write the results
-    with open(Path(config.root_data_path) / "grid_search_results.csv", "w") as results_file:
+    with open(Path(config.root_data_path) / "grid_search_results.csv",
+            "w") as results_file:
         # Write header to CSV file
         results_file.write(",".join([
             "Random Seed",
@@ -65,7 +66,7 @@ def grid_search(config: Struct):
         retnet_config.embed_dim = embed_dim
         retnet_config.batch_size = batch_size
         retnet_config.model_type = "retnet"
-        
+
         transformer_config = copy.deepcopy(config)
         transformer_config.lr = lr
         transformer_config.embed_dim = embed_dim
@@ -117,7 +118,8 @@ def grid_search(config: Struct):
     most_diff_params = max(similarity_scores, key=similarity_scores.get)
 
     # Save comparison of similarity results
-    with open(Path(config.root_data_path) / "grid_search_results.csv", "a") as results_file:
+    with open(Path(config.root_data_path) / "grid_search_results.csv",
+            "a") as results_file:
         results_file.write(",".join(map(str, [
             "Most Similar Parameters",
             *most_similar_params,
@@ -130,11 +132,11 @@ def grid_search(config: Struct):
 
 if __name__ == "__main__":
     args = sys.argv
-    config_path =args[1]
+    config_path = args[1]
 
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     config = Struct(**config)
-    
+
     grid_search(config)
