@@ -371,7 +371,7 @@ def train_model(config: Struct):
     # Implement callbacks
     model_checkpoint = CustomCheckpoint(
         dirpath=checkpoints_dir,
-        filename='epoch_{epoch}_validation_{num_val_runs}', # TODO: where are we getting num val runs?
+        filename='epoch_{epoch}_validation_{val_loss:.2f}', # NOTE: I replaced num_val_runs, with just the loss, not sure how to keep track of validation count, but probably not relevant
         save_top_k=3, # TODO: implement this argument
         monitor='val_loss',
         mode='min')
