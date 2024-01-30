@@ -1,21 +1,19 @@
 import datasets
+import math
 import sys
 import yaml
-import math
 
-from utils import Struct
 from pathlib import Path
 from transformers import PreTrainedTokenizerFast
-
+from utils import Struct
 
 def tokenize_data(config):
-    
     # Test the dataset splits add up to 1, using isclose for rounding errors
-
     assert math.isclose(sum(config.splits), 1), \
         "The dataset splits for the training, validation, and testing " + \
-        f"datasets must sum up to 1 ({' + '.join(map(str, config.splits))} != 1)!"
-    
+        "datasets must sum up to 1 " + \
+        f"({' + '.join(map(str, config.splits))} != 1)!"
+
     # Retrieve iterators for each split of the dataset
     print(f"Datasets dir: {config.raw_dataset_path}")
     entire_dataset = datasets.load_from_disk(Path(config.raw_dataset_path))
@@ -35,9 +33,10 @@ def tokenize_data(config):
     entire_dataset = entire_dataset.map(tokenization, batched=True)
 
     # Drop now unnecessary text_feature column
-    entire_dataset = entire_dataset.remove_columns(column_names=config.dataset_feature)
+    entire_dataset = entire_dataset.remove_columns(
+        column_names=config.dataset_feature)
 
-    #This code saves the now tokenized dataset as a .parquet folder, making a folder in the data directory called tokenized if one does not already exist.
+    # Make sure directory for tokenized dataset exists
     tokenized_dataset_dir = Path(config.tokenized_dataset_path)
     tokenized_dataset_dir.mkdir(parents=True, exist_ok=True)
 
@@ -49,9 +48,9 @@ def tokenize_data(config):
 
 if __name__ == "__main__":
     args = sys.argv
-    config_path =args[1]
+    config_path = args[1]
 
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     config = Struct(**config)
