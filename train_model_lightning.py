@@ -322,17 +322,13 @@ def train_model(config: Struct):
         input_data=torch.ones(1, config.seq_len).long()).total_params
     
     # Create unique label for model (model type, parameter count, hyperparameters**)
+    # TODO: add timestamp to keep unique?
     model_label = f"{config.model_type}_{total_params}_LR{config.lr}_ED{config.embed_dim}_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}"
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
     model_dir.mkdir(parents=True, exist_ok=False)
     print(f"Saving model files in {model_dir}")
-
-    # Initialize weights directory
-    weights_dir = model_dir / "weights"
-    weights_dir.mkdir(parents=False, exist_ok=False)
-    print(f"Saving weight files in {weights_dir}")
 
     # Initialize checkpoints directory
     checkpoints_dir = model_dir / "checkpoints"
@@ -371,24 +367,36 @@ def train_model(config: Struct):
     # Implement callbacks
     model_checkpoint = CustomCheckpoint(
         dirpath=checkpoints_dir,
-        filename='epoch_{epoch}_validation_{val_loss:.2f}', # NOTE: I replaced num_val_runs, with just the loss, not sure how to keep track of validation count, but probably not relevant
-        save_top_k=3, # TODO: implement this argument
+        filename='epoch_{epoch}_validation_{val_loss:.2f}',
+        save_top_k=config.save_top_k,
         monitor='val_loss',
         mode='min')
     
-    trainer = Trainer(
-        default_root_dir=config.data_dir, # main directory for run # TODO: implement this argument
-        accelerator='gpu', # gpu or cpu
-        num_nodes=1, # TODO: implement this as an argument
-        devices=config.num_devices,
-        strategy="ddp",
-        max_epochs=config.epochs,
-        accumulate_grad_batches=1, #TODO: implement this argument
-        sync_batchnorm=True,
-        plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
-        callbacks=[model_checkpoint],
-        #val_check_interval=val_freq #TODO: need to set this properly-> default is 1? But doesn't make sense.
-        )
+    if not config.use_slurm:
+        trainer = Trainer(
+            default_root_dir=model_dir, # main directory for run
+            accelerator=config.device,
+            devices=config.num_devices,
+            max_epochs=config.epochs,
+            val_check_interval=config.val_check_interval,
+            accumulate_grad_batches=config.accumulate_grad_batches,
+            sync_batchnorm=True,
+            callbacks=[model_checkpoint]
+            )
+    else:
+        trainer = Trainer(
+            default_root_dir=model_dir, # main directory for run
+            accelerator=config.device,
+            num_nodes=config.num_nodes,
+            devices=config.num_devices,
+            strategy=config.strategy,
+            max_epochs=config.epochs,
+            val_check_interval=config.val_check_interval,
+            accumulate_grad_batches=config.accumulate_grad_batches,
+            sync_batchnorm=True,
+            plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
+            callbacks=[model_checkpoint]
+            )
     
     trainer.fit(model, datamodule=dm)
 

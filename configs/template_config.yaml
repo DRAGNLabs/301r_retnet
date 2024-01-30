@@ -53,10 +53,12 @@ splits:
 
 # Device Configuration
 device: "cuda" # Options: "cpu", "cuda"
-# (int) # Number of GPUs
+# num_nodes (int): Number of nodes
+num_nodes: 1
+# Number of GPUs (int)
 num_devices: 1 
-# fsdp (bool): Distributed strategy for training.
-fsdp: true
+# strategy (string): Distributed strategy for training. You probably don't need to change this
+strategy: "ddp" # Options: "ddp", "ddp_spawn". 
 
 # Training Configuration
 rand_seed: 42
@@ -66,10 +68,18 @@ epochs: 1
 validation_frequency: 3
 # lr (float): Learning rate of model to train.
 learning_rate: 0.001 # lr
+# save_top_k (int): Number of best models to save.
+save_top_k: 3
+# val_check_interval (float): How often to validate as a fraction of an epoch.
+val_check_interval: 0.5
+# use_slurm (bool): Whether to use SLURM for training.
+use_slurm: true
 
 # Model Trainer Configuration
 # Model Parameters
 
+# accumulate_grad_batches (int): Accumulate gradients over n batches.
+accumulate_grad_batches: 1
 # activation_dropout (float): Probability of an element to be zeroed during dropout after activation between FFN layers.
 activation_dropout: 0.0
 # attention_heads (int): Number of attention heads in MHA module.
