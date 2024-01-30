@@ -64,7 +64,6 @@ class RetNetModel(LightningModule):
             dropout=config.dropout,
             activation_dropout=config.activation_dropout,
             vocab_size=config.vocab_size,
-            fsdp=config.fsdp,
             max_seq_len=config.seq_len,
             lr=config.learning_rate)
 
@@ -163,8 +162,7 @@ class TransformerModel(LightningModule):
             decoder_layers=config.layers,
             dropout=config.dropout,
             activation_dropout=config.activation_dropout,
-            vocab_size=config.vocab_size,
-            fsdp=config.fsdp)
+            vocab_size=config.vocab_size)
 
         self.model_hf = TransformerModelHF(config)
 
@@ -269,38 +267,10 @@ def train_model(config: Struct):
         set_seed(config.rand_seed)
 
     # Create requested model
-    if config.model_type == "retnet":
-        AutoConfig.register("retnet", RetNetConfig)
-        AutoModel.register(RetNetConfig, RetNetModelHF)
-        AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
-        HF_config = RetNetConfig(
-            decoder_embed_dim=config.embed_dim,
-            decoder_value_embed_dim=config.value_embed_dim,
-            decoder_retention_heads=config.heads,
-            decoder_ffn_embed_dim=config.ffn_dim,
-            decoder_layers=config.layers,
-            dropout=config.dropout,
-            activation_dropout=config.activation_dropout,
-            vocab_size=config.vocab_size,
-            fsdp=config.fsdp,
-            max_seq_len=config.seq_len)
-        model = RetNetModelHF(HF_config)
-    elif config.model_type == "transformer":
-        AutoConfig.register("custom_transformer", DecoderConfig)
-        AutoModel.register(DecoderConfig, TransformerModelHF)
-        AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
-        HF_config = DecoderConfig(
-            decoder_embed_dim=config.embed_dim,
-            decoder_value_embed_dim=config.value_embed_dim,
-            decoder_attention_heads=config.heads,
-            decoder_ffn_embed_dim=config.ffn_dim,
-            decoder_layers=config.layers,
-            dropout=config.dropout,
-            activation_dropout=config.activation_dropout,
-            vocab_size=config.vocab_size,
-            fsdp=config.fsdp,
-            max_seq_len=config.seq_len)
-        model = TransformerModelHF(HF_config)
+    if config.model_type == "RetNet":
+        model = RetNetModel(config)
+    elif config.model_type == "Transformer":
+        model = TransformerModel(config)
 
     # Print all arguments for recordkeeping
     print("Arguments:")
@@ -362,7 +332,7 @@ def train_model(config: Struct):
 
     dm = DataModule(config, num_workers=1)
 
-    #model = torch.compile(model) #TODO: this doesn't work with lightning, says something about logging in validation twice: need to use a different version of python?
+    model = torch.compile(model) #TODO: this doesn't work with lightning, says something about logging in validation twice: need to use a different version of python?
 
     # Implement callbacks
     model_checkpoint = CustomCheckpoint(
