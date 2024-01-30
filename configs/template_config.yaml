@@ -79,7 +79,7 @@ layers: 2
 # Learning Rate (float)
 learning_rate: 0.001
 # Model Type (str): Name of model architecture to train
-model_type: retnet # Choices: "retnet", "transformer"
+model_type: "retnet" # Choices: "retnet", "transformer"
 # Number of GPUs (int)
 num_devices: 1
 # Random Seed (int): For reproducibility
