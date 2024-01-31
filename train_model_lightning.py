@@ -267,10 +267,12 @@ def train_model(config: Struct):
         set_seed(config.rand_seed)
 
     # Create requested model
-    if config.model_type == "RetNet":
+    if config.model_type.lower() == "retnet":
         model = RetNetModel(config)
-    elif config.model_type == "Transformer":
+    elif config.model_type.lower() == "transformer":
         model = TransformerModel(config)
+    else:
+        raise ValueError(f"Model type '{config.model_type}' not supported!")
 
     # Print all arguments for recordkeeping
     print("Arguments:")
