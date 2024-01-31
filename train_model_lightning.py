@@ -335,8 +335,6 @@ def train_model(config: Struct):
     print(f"\nNow loading '{config.dataset_name}' and tokenizer...")
 
     dm = DataModule(config, num_workers=1)
-
-    model = torch.compile(model)
     
     # Implement callbacks
     model_checkpoint = CustomCheckpoint(
