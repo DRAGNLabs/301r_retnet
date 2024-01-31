@@ -332,8 +332,8 @@ def train_model(config: Struct):
 
     dm = DataModule(config, num_workers=1)
 
-    model = torch.compile(model) #TODO: this doesn't work with lightning, says something about logging in validation twice: need to use a different version of python?
-
+    model = torch.compile(model.model)
+    
     # Implement callbacks
     model_checkpoint = CustomCheckpoint(
         dirpath=checkpoints_dir,
