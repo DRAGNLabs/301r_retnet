@@ -424,13 +424,13 @@ if __name__ == "__main__":
                 config.seq_len,
                 test_loss,
                 end_time - start_time])) + "\n")
-    print(f"\nGRID SEARCH PARAMS: Learning Rate: {config.lr}, 
+    print(f"""\nGRID SEARCH PARAMS: Learning Rate: {config.lr}, 
           Embedding Dimension: {config.embed_dim}, 
           FFN Dimension: {config.ffn_dim}, 
           Heads: {config.heads}, 
           Sequence Length: {config.seq_len}, 
           Test Loss: {test_loss}, 
-          Training Time: {end_time - start_time} \n")
+          Training Time: {end_time - start_time} \n""")
 
 
     
