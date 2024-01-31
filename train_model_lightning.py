@@ -294,8 +294,8 @@ def train_model(config: Struct):
         input_data=torch.ones(1, config.seq_len).long()).total_params
     
     # Create unique label for model (model type, parameter count, hyperparameters**)
-    # TODO: add timestamp to keep unique?
-    model_label = f"{config.model_type}_{total_params}_LR{config.lr}_ED{config.embed_dim}_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}"
+    # TODO: add timestamp to end to keep unique
+    model_label = f"{config.model_type}_{total_params}_LR{config.learning_rate}_ED{config.embed_dim}_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}"
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
@@ -334,7 +334,7 @@ def train_model(config: Struct):
 
     dm = DataModule(config, num_workers=1)
 
-    model = torch.compile(model.model)
+    model = torch.compile(model)
     
     # Implement callbacks
     model_checkpoint = CustomCheckpoint(
@@ -419,7 +419,7 @@ if __name__ == "__main__":
     if config.grid_search_out_file is not None:
         with open(config.grid_search_out_file, "a") as results_file:
             results_file.write(",".join(map(str, [
-                config.lr,
+                config.learning_rate,
                 config.embed_dim,
                 config.ffn_dim,
                 config.heads,
