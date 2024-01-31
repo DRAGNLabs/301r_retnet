@@ -1,4 +1,5 @@
 # General
+import datetime
 import json
 import os
 import signal
@@ -53,6 +54,7 @@ class RetNetModel(LightningModule):
     """ Create model with RetNet architecture. """
     def __init__(self, config: Struct):
         super().__init__()
+        self.learning_rate = config.learning_rate
 
         # Create RetNet configuration
         hf_config = RetNetConfig(
@@ -141,7 +143,7 @@ class RetNetModel(LightningModule):
         return self.model_hf.get_params()
     
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.config.learning_rate) # model_hf.decoder_stack
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate) # model_hf.decoder_stack
         #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma) # TODO: Implement this
         return [optimizer]#, [lr_scheduler]
     
@@ -152,6 +154,7 @@ class RetNetModel(LightningModule):
 class TransformerModel(LightningModule):
     def __init__(self, config: Struct):
         super().__init__()
+        self.learning_rate = config.learning_rate
 
         # Create Transformer Decoder configuration
         config = DecoderConfig(
@@ -239,9 +242,9 @@ class TransformerModel(LightningModule):
         return self.model_hf.get_params()
     
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.model_hf.decoder_stack.parameters(), lr=self.config.learning_rate)
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
-        return [optimizer], [lr_scheduler]
+        optimizer = torch.optim.Adam(self.model_hf.decoder_stack.parameters(), lr=self.learning_rate)
+        #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
+        return [optimizer]#, [lr_scheduler]
     
     def save_pretrained(self, save_folder: str):
         """ Save model weights and parameters to folder. """
@@ -294,8 +297,7 @@ def train_model(config: Struct):
         input_data=torch.ones(1, config.seq_len).long()).total_params
     
     # Create unique label for model (model type, parameter count, hyperparameters**)
-    # TODO: add timestamp to end to keep unique
-    model_label = f"{config.model_type}_{total_params}_LR{config.learning_rate}_ED{config.embed_dim}_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}"
+    model_label = f"{config.model_type}_{total_params}_LR{config.learning_rate}_ED{config.embed_dim}_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}_time{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
