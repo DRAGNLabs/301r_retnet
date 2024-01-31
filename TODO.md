@@ -1,0 +1,3 @@
+- clean up code in train model lightning
+- ensure that logging is working as we want it to, that we're logging the right things, and that we can see the tensorboard logs. Look into torch lightning logging
+- fix line 401 in train_model_lightning: for gridsearch currently, we need to return the loss, not sure if we're returning the right thing.
