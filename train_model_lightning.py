@@ -297,7 +297,7 @@ def train_model(config: Struct):
         input_data=torch.ones(1, config.seq_len).long()).total_params
     
     # Create unique label for model (model type, parameter count, hyperparameters**)
-    model_label = f"{config.model_type}_{total_params}_LR{config.learning_rate}_ED{config.embed_dim}_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}_time{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
+    model_label = f"{config.model_type}_{total_params}_LR{config.learning_rate}_ED{config.embed_dim}_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}_{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
