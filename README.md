@@ -84,15 +84,17 @@ For example, if you want to run retnet:
 ### Note on CUDA
 
 Check if your computer has an Nvidia GPU, as CUDA is required for some functionalities.
-CUDA comes as part of the requirements in the torch package.
+CUDA comes as part of the requirements in the torch package. Check with the following command:
+```nvidia-smi```
 If you don't have an Nvidia GPU, you can still run the project on a CPU, but some functionalities might be limited.
+If you choose to do this, you will need to add '
 Alternatively, consider using a supercomputer if available, but ensure there are not a ton of parameters to train.
 
 ## Features
 
 ### Grid Search
 
-The Grid Search feature is designed to systematically explore a range of hyperparameters to find the optimal settings for our models. It evaluates the performance of the RetNet and Transformer models under various combinations of learning rates, embedding dimensions, and batch sizes. The goal is to identify the configuration that results in the best model performance, measured in terms of loss and training efficiency.
+The Grid Search feature is designed to systematically explore a range of hyperparameters to find the optimal settings for our models. It evaluates the performance of the RetNet and Transformer models under various combinations of learning rates, embedding dimensions, feed-forward dimensions, sequence length, and number of heads. The goal is to identify the configuration that results in the best model performance, measured in terms of loss and training efficiency for a given architecture.
 
 **Code Overview:**
 
