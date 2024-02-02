@@ -159,8 +159,6 @@ To use these models within your Hugging Face-based projects, follow these steps:
    transformer_params = transformer_model.get_params()
    ```
 
-To document the "PyTorch Lightning Integration" feature in your README, here's a structured approach that highlights how PyTorch Lightning enhances your models' training, evaluation, and scalability, particularly focusing on multi-core and distributed training capabilities. This documentation uses Markdown for clarity and engagement.
-
 ### PyTorch Lightning Integration
 
 PyTorch Lightning is leveraged in our project to streamline the training process of the RetNet and Transformer models, enabling efficient multi-core processing, easier scalability, and cleaner code by abstracting the boilerplate training loops. PyTorch Lightning's integration facilitates advanced functionalities like distributed training, automated logging, and checkpointing without complicating the model's architecture or training logic.
@@ -186,7 +184,28 @@ The provided Python code includes two main classes based on PyTorch Lightning:
 3. **Training Execution**: Use the `Trainer` to train the model by passing the model instance and the data module. The training process automatically handles device placement, distributed training, and logging.
 4. **Evaluation and Testing**: After training, use the `Trainer` for evaluating the model on a validation set and testing it on a test set, leveraging the best model checkpoint saved during training.
 
-- Torchscale
+### TorchScale Integration
+
+Our project leverages **Microsoft TorchScale** as the foundational framework to enhance the training and evaluation process of deep learning models, particularly focusing on the comparative analysis between RetNet and Transformer architectures. TorchScale is a robust library offering a suite of tools and utilities designed to optimize deep learning workflows, enabling scalable and efficient model development.
+
+**Core Contributions:**
+
+- **Efficiency and Scalability**: TorchScale provides critical functionalities for handling large-scale datasets and models, significantly improving training speed and efficiency without compromising accuracy or model complexity.
+- **Advanced Utilities**: The library includes a range of utilities for model evaluation, performance benchmarking, and hyperparameter tuning, facilitating a comprehensive analysis of model behaviors under various configurations.
+- **Integration with RetNet and Transformers**: By incorporating TorchScale, we have been able to systematically compare the performance of RetNet and Transformer models across different metrics, ensuring fair and rigorous evaluation standards.
+- **Enhanced Model Training**: TorchScale's support for distributed training and model optimization techniques allows us to train more complex models with larger datasets, pushing the boundaries of what's possible in our research.
+
+**Implementation Highlights:**
+
+Our project specifically benefits from TorchScale's:
+
+- **Distributed Training Support**: Utilizing TorchScale's distributed training capabilities to expedite the training process across multiple GPUs, enabling more extensive experimentation and faster iteration cycles.
+- **Performance Benchmarking Tools**: Leveraging built-in tools for benchmarking model performance, which has been crucial in the side-by-side comparison of RetNet and Transformer models, providing insights into their respective strengths and limitations.
+- **Hyperparameter Tuning and Model Evaluation**: Employing TorchScale's utilities for hyperparameter optimization and model evaluation to fine-tune our models for optimal performance, ensuring our comparisons are based on the best possible configurations of each architecture.
+
+**Usage in Our Project:**
+
+TorchScale's integration into our workflow has been seamless, with its utilities being utilized across various stages of model development—from initial training to final evaluation. This has enabled us to conduct a thorough and nuanced comparison of RetNet and Transformer models, contributing valuable insights to the field of deep learning.
 
 ## Benchmarking and Results
 
