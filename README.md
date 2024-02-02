@@ -63,6 +63,12 @@ Before running the main scripts, make sure to install all the necessary dependen
 pip install -r requirements.txt
 ```
 
+### Preparing YAML Configuration Files
+
+This project uses YAML configuration files to store all pipeline parameters and paths. The design choice of the YAML file is intended to eliminate repetition of commonly used parameters across code, as well as simplify future changes and refactors. The power of the YAML file is that it is very flexible: a developer can add to it as they see fit for whatever parameters they need, with the knowledge that the user will be aware of what parameters are needed when they run the code.
+
+To prepare a YAML config file, copy [template_config.yaml](./configs/template_config.yaml) into the [user_configs](./configs/user_configs/) folder. Fill out all parameters accordingly. Absolute paths are preferred for any path variables. The repository is setup to work flexibly with any desired directory structure.
+
 ### Execution Workflow
 
 To have the project work correctly, follow these steps:
