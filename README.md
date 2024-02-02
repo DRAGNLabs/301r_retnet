@@ -87,7 +87,6 @@ Check if your computer has an Nvidia GPU, as CUDA is required for some functiona
 CUDA comes as part of the requirements in the torch package. Check with the command
 ```nvidia-smi```.
 If you don't have an Nvidia GPU, you can still run the project on a CPU, but some functionalities might be limited.
-If you choose to do this, you will need to add '
 Alternatively, consider using a supercomputer if available, but ensure there are not a ton of parameters to train.
 
 ## Features
@@ -100,8 +99,8 @@ The Grid Search feature is designed to systematically explore a range of hyperpa
 
 We implement the grid search process as follows:
 
-- **Hyperparameters Tested:** Learning rates (`0.01`, `0.001`, `0.0001`), embedding dimensions (`768`, `1024`, `1280`), and batch sizes (`16`, `32`, `64`).
-- **Evaluation Metric:** The models are compared based on their test loss, with a custom function `evaluate_models` returning a similarity score indicating which model performed better.
+- **Hyperparameters Tested:** Learning rates (`0.001`, `0.0005`, `0.0001`), embedding dimensions (`768`, `1024`, `1280`), feed-forward dimension (`1024`, `2048`), heads, (`4`, `8`), and sequence length (`256`, `512`).
+- **Evaluation Metric:** The models are compared based on their test loss, with a custom function `evaluate_models` indicating which model performed better.
 - **Output:** Results are recorded in a CSV file, including each combination's average loss for both models, similarity scores, and training times.
 
 **Key Functions:**
