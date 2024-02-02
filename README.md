@@ -90,12 +90,6 @@ Alternatively, consider using a supercomputer if available, but ensure there are
 
 ## Features
 
-To document the "Grid Search" feature in your README with a focus on the provided Python code, you can follow this structured approach. This format highlights the functionality and purpose of the code while using Markdown formatting to ensure clarity and readability.
-
----
-
-## Features
-
 ### Grid Search
 
 The Grid Search feature is designed to systematically explore a range of hyperparameters to find the optimal settings for our models. It evaluates the performance of the RetNet and Transformer models under various combinations of learning rates, embedding dimensions, and batch sizes. The goal is to identify the configuration that results in the best model performance, measured in terms of loss and training efficiency.
@@ -121,7 +115,50 @@ To run the grid search, ensure your configuration file is correctly set up, then
 python your_script_name.py path/to/your/config_file.yaml
 ```
 
-- Hugging Face
+### Hugging Face Integration
+
+This feature introduces custom models built upon the Hugging Face Transformers framework, enabling the incorporation of RetNet and Transformer architectures into a wide range of NLP tasks. Leveraging Hugging Face's `PreTrainedModel` class, we've developed `RetNetModelHF` and `TransformerModelHF` classes to seamlessly integrate with Hugging Face's ecosystem, facilitating easy model training, evaluation, and deployment.
+
+**Code Overview:**
+
+- **`RetNetModelHF`**: Implements the RetNet architecture as a subclass of `PreTrainedModel`, utilizing Hugging Face's utilities and standards for model configuration, serialization, and compatibility with the Transformers library.
+- **`TransformerModelHF`**: Adapts the traditional Transformer architecture within the Hugging Face framework, following similar principles as the RetNet model for easy integration and use.
+
+**Key Components:**
+
+- **Configuration Classes**: Both models utilize specific configuration classes (`RetNetConfig` for RetNetModelHF and `DecoderConfig` for TransformerModelHF) to define model parameters, ensuring flexibility and ease of customization.
+- **Embedding Layer**: Initializes text embeddings with a dedicated padding index, supporting efficient token representation and processing.
+- **Decoder Stacks**: Incorporates specialized decoder architectures (`RetNetDecoder` and `Decoder`) tailored to each model's needs, facilitating the core computational logic for sequence processing.
+- **Forward Method**: Defines the computation performed at every call, taking input tensors and producing predictions, showcasing the model's application to sequence-to-sequence tasks.
+
+**Usage:**
+
+To use these models within your Hugging Face-based projects, follow these steps:
+
+1. **Initialization**: Instantiate the model with the desired configuration, which can be a predefined object, a path to a configuration file, or left as default for automatic configuration.
+
+   ```python
+   from your_module import RetNetModelHF, TransformerModelHF
+
+   retnet_model = RetNetModelHF(config="path/to/retnet/config")
+   transformer_model = TransformerModelHF(config="path/to/transformer/config")
+   ```
+
+2. **Forward Pass**: Call the model with input data tensors to receive output predictions.
+
+   ```python
+   input_ids = ...  # Your input tensor here
+   retnet_output = retnet_model(input_ids)
+   transformer_output = transformer_model(input_ids)
+   ```
+
+3. **Parameter Access**: Retrieve model hyperparameters for inspection or further processing.
+
+   ```python
+   retnet_params = retnet_model.get_params()
+   transformer_params = transformer_model.get_params()
+   ```
+
 - Lightning
 - Torchscale
 
