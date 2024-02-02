@@ -90,9 +90,40 @@ Alternatively, consider using a supercomputer if available, but ensure there are
 
 ## Features
 
-- [Feature 1]
-- [Feature 2]
-- [Feature 3]
+To document the "Grid Search" feature in your README with a focus on the provided Python code, you can follow this structured approach. This format highlights the functionality and purpose of the code while using Markdown formatting to ensure clarity and readability.
+
+---
+
+## Features
+
+### Grid Search
+
+The Grid Search feature is designed to systematically explore a range of hyperparameters to find the optimal settings for our models. It evaluates the performance of the RetNet and Transformer models under various combinations of learning rates, embedding dimensions, and batch sizes. The goal is to identify the configuration that results in the best model performance, measured in terms of loss and training efficiency.
+
+**Code Overview:**
+
+The provided Python code implements the grid search process as follows:
+
+- **Hyperparameters Tested:** Learning rates (`0.01`, `0.001`, `0.0001`), embedding dimensions (`768`, `1024`, `1280`), and batch sizes (`16`, `32`, `64`).
+- **Evaluation Metric:** The models are compared based on their test loss, with a custom function `evaluate_models` returning a similarity score indicating which model performed better.
+- **Output:** Results are recorded in a CSV file, including each combination's average loss for both models, similarity scores, and training times.
+
+**Key Functions:**
+
+- `evaluate_models(model1, model2, model1_loss, model2_loss)`: Compares two models based on their test losses, returning a score that reflects their performance relative to each other.
+- `grid_search(config)`: Conducts the grid search over the predefined ranges of hyperparameters, training both RetNet and Transformer models with each combination and logging the results.
+
+**Usage:**
+
+To run the grid search, ensure your configuration file is correctly set up, then execute the script with the path to your config file as an argument:
+
+```bash
+python your_script_name.py path/to/your/config_file.yaml
+```
+
+- Hugging Face
+- Lightning
+- Torchscale
 
 ## Benchmarking and Results
 
