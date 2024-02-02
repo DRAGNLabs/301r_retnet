@@ -373,11 +373,9 @@ def train_model(config: Struct):
     
     trainer.fit(model, datamodule=dm)
 
-    generate_specific_text(config)
+    print('Finished training!')
     
-
-    # TODO: implement this loss value better for grid search.
-    # return model, trainer.callback_metrics['test_loss'].item()
+    return model, trainer.callback_metrics['val_loss'].item()
 
 if __name__ == "__main__":
     args = sys.argv
@@ -393,24 +391,6 @@ if __name__ == "__main__":
     model, test_loss = train_model(config)
 
     end_time = time.time()
-
-    if config.grid_search_out_file is not None:
-        with open(config.grid_search_out_file, "a") as results_file:
-            results_file.write(",".join(map(str, [
-                config.learning_rate,
-                config.embed_dim,
-                config.ffn_dim,
-                config.heads,
-                config.seq_len,
-                test_loss,
-                end_time - start_time])) + "\n")
-    print(f"""\nGRID SEARCH PARAMS: Learning Rate: {config.lr}, 
-          Embedding Dimension: {config.embed_dim}, 
-          FFN Dimension: {config.ffn_dim}, 
-          Heads: {config.heads}, 
-          Sequence Length: {config.seq_len}, 
-          Test Loss: {test_loss}, 
-          Training Time: {end_time - start_time} \n""")
 
 
     

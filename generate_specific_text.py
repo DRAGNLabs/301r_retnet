@@ -1,13 +1,10 @@
 from models import RetNetModel
 import torch
-from torch import Tensor
-import torch.nn as nn
 
 import yaml
 import sys
 from utils import Struct, generate_text
-import inference_test
-
+from transformers import PreTrainedTokenizerFast
 
 def generate_specific_text(config):
 
@@ -18,11 +15,11 @@ def generate_specific_text(config):
         "= valkyria",
         "= = reception ="]
 
-
     if config.model_type.lower() == "retnet":
         model = RetNetModel(config)
 
-    model.load_state_dict(torch.load(config.checkpoints_path))
+    checkpoint = torch.load(config.checkpoint_path)
+    model.load_state_dict(checkpoint['state_dict'])
 
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
 

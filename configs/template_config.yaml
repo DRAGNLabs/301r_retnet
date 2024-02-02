@@ -44,6 +44,9 @@ models_path: "/YOUR/PATH/HERE/data/models"
 # TensorBoard Path
 tboard_path: ~
 
+# Checkpoint Path: path to checkpoint to load for generation/inference
+checkpoint_path: ~
+
 # Splits: Train split, Validation Split, and Test Split
 splits:
   - 0.7
