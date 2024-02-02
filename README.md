@@ -70,6 +70,14 @@ Run `download_data.sh` to fetch the necessary data.
 Execute `train_tokenizer.sh` to prepare the tokenizer.
 Use `tokenize_data.sh` for data tokenization.
 Finally, `run retnet.sh` or `transformer.sh` depending on your project needs.
+For example, if you want to run retnet:
+
+```bash
+./download_data.sh
+./train_tokenizer.sh
+./tokenize_data.sh
+./retnet.sh
+```
 
 ### Note on CUDA
 
