@@ -9,25 +9,18 @@ import yaml
 
 # Torch
 import torch
-from torch import Tensor
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary as model_summary
 
 # PyTorch Lightning
-from pytorch_lightning import LightningModule, Trainer
+from pytorch_lightning import Trainer
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from pytorch_lightning.callbacks import ModelCheckpoint
 
-# Hugging Face
-from datasets import load_dataset
-from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
+from transformers import set_seed
 
 # Other
 from pathlib import Path
 from tabulate import tabulate
-from tqdm import tqdm
 
 # Local
 from models import RetNetModel, TransformerModel

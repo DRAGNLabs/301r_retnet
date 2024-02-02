@@ -1,48 +1,15 @@
-# General
-from datetime import datetime
-import json
-import os
-import signal
-import sys
-import time
-import yaml
-
-# Torch
 import torch
 from torch import Tensor
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.tensorboard import SummaryWriter
-from torchinfo import summary as model_summary
-
-from pytorch_lightning import LightningModule, Trainer
-from pytorch_lightning.plugins.environments import SLURMEnvironment
-from pytorch_lightning.callbacks import ModelCheckpoint
-
-# Hugging Face
-from datasets import load_dataset
-from transformers import set_seed, AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
-
-# Other
-from pathlib import Path
-from tabulate import tabulate
-from tqdm import tqdm
-
-# Local
-from dataset import DataModule
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from utils import Struct
 
-# TODO: clean up all these imports
-import torch.nn as nn
-
-from torch import Tensor
 from typing import Optional, Union
-from torchscale.architecture.config import DecoderConfig, RetNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
 from transformers import PreTrainedModel
 
+from pytorch_lightning import LightningModule
 
 class RetNetModel(LightningModule):
     """ Create model with RetNet architecture. """
