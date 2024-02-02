@@ -198,7 +198,7 @@ Our project specifically benefits from TorchScale's:
 
 **Usage in Our Project:**
 
-TorchScale's integration into our workflow has been seamless, with its utilities being utilized across various stages of model development—from initial training to final evaluation. This has enabled us to conduct a thorough and nuanced comparison of RetNet and Transformer models, contributing valuable insights to the field of deep learning.
+TorchScale's integration into our workflow has been very helpful, with its utilities being utilized across various stages of model development—from initial training to final evaluation. This has enabled us to conduct a thorough and nuanced comparison of RetNet and Transformer models.
 
 ## Benchmarking and Results
 
