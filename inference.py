@@ -11,7 +11,6 @@ from models import RetNetModel, TransformerModel
 import torch
 import yaml
 import sys
-import os
 import signal
 
 from utils import Struct

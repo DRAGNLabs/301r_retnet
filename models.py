@@ -16,6 +16,7 @@ class RetNetModel(LightningModule):
     def __init__(self, config: Struct):
         super().__init__()
         self.learning_rate = config.learning_rate
+        self.gamma = config.gamma
 
         # Create RetNet configuration
         hf_config = RetNetConfig(
@@ -104,9 +105,9 @@ class RetNetModel(LightningModule):
         return self.model_hf.get_params()
     
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate) # model_hf.decoder_stack
-        #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma) # TODO: Implement this
-        return [optimizer]#, [lr_scheduler]
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.gamma)
+        return [optimizer], [lr_scheduler]
     
     def save_pretrained(self, save_folder: str):
         """ Save model weights and parameters to folder. """
@@ -116,6 +117,7 @@ class TransformerModel(LightningModule):
     def __init__(self, config: Struct):
         super().__init__()
         self.learning_rate = config.learning_rate
+        self.gamma = config.gamma
 
         # Create Transformer Decoder configuration
         config = DecoderConfig(
@@ -204,8 +206,8 @@ class TransformerModel(LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model_hf.decoder_stack.parameters(), lr=self.learning_rate)
-        #lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
-        return [optimizer]#, [lr_scheduler]
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.gamma)
+        return [optimizer], [lr_scheduler]
     
     def save_pretrained(self, save_folder: str):
         """ Save model weights and parameters to folder. """
