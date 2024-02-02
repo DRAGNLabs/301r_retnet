@@ -4,7 +4,7 @@ This project focuses on the comparison and analysis of RetNet vs Transformers, u
 
 ## Reference to Original Paper
 
-This project is based on research detailed in the paper titled [Retentive Network: A Successor to Transformer for Large Language Models](https://arxiv.org/abs/2307.08621) For more in-depth information and methodology, refer to the original paper.
+This project is based on research detailed in the paper titled [Retentive Network: A Successor to Transformer for Large Language Models](https://arxiv.org/abs/2307.08621). For more in-depth information and methodology, refer to the original paper.
 
 ## Base Architecture - Microsoft TorchScale
 
@@ -46,13 +46,13 @@ mamba activate retnet_env
 For running any .sh scripts, grant execution permissions using:
 
 ```bash
-chmod +x retnet.sh
+chmod +x <some_script>.sh
 ```
 
 Then, execute the script with:
 
 ```bash
-./script.sh
+./<some_script>.sh
 ```
 
 ### Preparing the Environment
