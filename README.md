@@ -87,7 +87,6 @@ Check if your computer has an Nvidia GPU, as CUDA is required for some functiona
 CUDA comes as part of the requirements in the torch package. Check with the command
 ```nvidia-smi```.
 If you don't have an Nvidia GPU, you can still run the project on a CPU, but some functionalities might be limited.
-Alternatively, consider using a supercomputer if available, but ensure there are not a ton of parameters to train.
 
 ## Features
 
