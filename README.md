@@ -84,8 +84,8 @@ For example, if you want to run retnet:
 ### Note on CUDA
 
 Check if your computer has an Nvidia GPU, as CUDA is required for some functionalities.
-CUDA comes as part of the requirements in the torch package. Check with the following command:
-```nvidia-smi```
+CUDA comes as part of the requirements in the torch package. Check with the command
+```nvidia-smi```.
 If you don't have an Nvidia GPU, you can still run the project on a CPU, but some functionalities might be limited.
 If you choose to do this, you will need to add '
 Alternatively, consider using a supercomputer if available, but ensure there are not a ton of parameters to train.
