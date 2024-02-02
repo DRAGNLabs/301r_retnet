@@ -96,7 +96,7 @@ The Grid Search feature is designed to systematically explore a range of hyperpa
 
 **Code Overview:**
 
-The provided Python code implements the grid search process as follows:
+We implement the grid search process as follows:
 
 - **Hyperparameters Tested:** Learning rates (`0.01`, `0.001`, `0.0001`), embedding dimensions (`768`, `1024`, `1280`), and batch sizes (`16`, `32`, `64`).
 - **Evaluation Metric:** The models are compared based on their test loss, with a custom function `evaluate_models` returning a similarity score indicating which model performed better.
@@ -169,13 +169,6 @@ PyTorch Lightning is leveraged in our project to streamline the training process
 - **Multi-Core and Distributed Training**: Lightning's built-in support for distributed training and multi-core processing significantly speeds up training times, allowing our models to leverage multiple GPUs seamlessly.
 - **Automated Checkpointing**: The custom checkpointing system, `CustomCheckpoint`, automatically saves model checkpoints and Hugging Face compatible weights during training, facilitating model preservation and reproducibility.
 - **Advanced Logging**: Integration with TensorBoard for detailed logging of training and validation metrics, helping in monitoring model performance and debugging.
-
-**Code Overview:**
-
-The provided Python code includes two main classes based on PyTorch Lightning:
-
-- **`RetNetModel` and `TransformerModel` Classes**: Both inherit from `LightningModule`, encapsulating the entire logic for model training, validation, and testing. This structure includes forward pass definitions, loss computation, and optimizer configurations.
-- **`CustomCheckpoint` Callback**: An extension of Lightning's `ModelCheckpoint` that additionally saves Hugging Face-compatible model checkpoints, enhancing model management and deployment capabilities.
 
 **Usage:**
 
