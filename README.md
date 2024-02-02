@@ -159,7 +159,33 @@ To use these models within your Hugging Face-based projects, follow these steps:
    transformer_params = transformer_model.get_params()
    ```
 
-- Lightning
+To document the "PyTorch Lightning Integration" feature in your README, here's a structured approach that highlights how PyTorch Lightning enhances your models' training, evaluation, and scalability, particularly focusing on multi-core and distributed training capabilities. This documentation uses Markdown for clarity and engagement.
+
+### PyTorch Lightning Integration
+
+PyTorch Lightning is leveraged in our project to streamline the training process of the RetNet and Transformer models, enabling efficient multi-core processing, easier scalability, and cleaner code by abstracting the boilerplate training loops. PyTorch Lightning's integration facilitates advanced functionalities like distributed training, automated logging, and checkpointing without complicating the model's architecture or training logic.
+
+**Key Advantages:**
+
+- **Simplified Training Loop**: By abstracting the complexity of the training loop, PyTorch Lightning allows us to focus on the model architecture and the experiment itself, rather than boilerplate code.
+- **Multi-Core and Distributed Training**: Lightning's built-in support for distributed training and multi-core processing significantly speeds up training times, allowing our models to leverage multiple GPUs seamlessly.
+- **Automated Checkpointing**: The custom checkpointing system, `CustomCheckpoint`, automatically saves model checkpoints and Hugging Face compatible weights during training, facilitating model preservation and reproducibility.
+- **Advanced Logging**: Integration with TensorBoard for detailed logging of training and validation metrics, helping in monitoring model performance and debugging.
+
+**Code Overview:**
+
+The provided Python code includes two main classes based on PyTorch Lightning:
+
+- **`RetNetModel` and `TransformerModel` Classes**: Both inherit from `LightningModule`, encapsulating the entire logic for model training, validation, and testing. This structure includes forward pass definitions, loss computation, and optimizer configurations.
+- **`CustomCheckpoint` Callback**: An extension of Lightning's `ModelCheckpoint` that additionally saves Hugging Face-compatible model checkpoints, enhancing model management and deployment capabilities.
+
+**Usage:**
+
+1. **Model Initialization**: Instantiate a model class with the desired configuration. The configuration should include model hyperparameters, training parameters, and dataset specifics.
+2. **Trainer Setup**: Configure a `Trainer` object from PyTorch Lightning, specifying training options such as the number of GPUs, distributed backend, and callbacks like model checkpointing.
+3. **Training Execution**: Use the `Trainer` to train the model by passing the model instance and the data module. The training process automatically handles device placement, distributed training, and logging.
+4. **Evaluation and Testing**: After training, use the `Trainer` for evaluating the model on a validation set and testing it on a test set, leveraging the best model checkpoint saved during training.
+
 - Torchscale
 
 ## Benchmarking and Results
