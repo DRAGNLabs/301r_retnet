@@ -1,6 +1,6 @@
 # RetNet VS Transformers
 
-This project focuses on the comparison and analysis of RetNet vs Transformers, utilizing Microsoft's TorchScale as the base architecture. More information can be found on our paper [Are You Using Retentive Networks?]().
+This project focuses on the comparison and analysis of RetNet vs Transformers, utilizing Microsoft's TorchScale as the base architecture. More information can be found on our paper [Are You Using Retentive Networks?](https://www.).  TODO: Post a link to pdf, not Overleaf
 
 ## Reference to Original Paper
 
