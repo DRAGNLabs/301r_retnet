@@ -99,7 +99,7 @@ The Grid Search feature is designed to systematically explore a range of hyperpa
 
 We implement the grid search process as follows:
 
-- **Hyperparameters Tested:** Learning rates (`0.001`, `0.0005`, `0.0001`), embedding dimensions (`768`, `1024`, `1280`), feed-forward dimension (`1024`, `2048`), heads, (`4`, `8`), and sequence length (`256`, `512`).
+- **Hyperparameters Tested:** Learning rates (`0.001`, `0.0005`, `0.0001`), embedding dimensions (`768`, `1024`, `1280`), feed-forward dimension (`1024`, `2048`), heads, (`4`, `8`), and sequence length (`256`, `512`) for a total of 72 unique combinations.
 - **Evaluation Metric:** The models are compared based on their test loss, with a custom function `evaluate_models` indicating which model performed better.
 - **Output:** Results are recorded in a CSV file, including each combination's average loss for both models, similarity scores, and training times.
 
