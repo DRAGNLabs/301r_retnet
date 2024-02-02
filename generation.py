@@ -1,4 +1,4 @@
-from models import RetNetModel
+from models import RetNetModel, TransformerModel
 import torch
 
 import yaml
@@ -17,6 +17,8 @@ def generate_specific_text(config):
 
     if config.model_type.lower() == "retnet":
         model = RetNetModel(config)
+    elif config.model_type.lower() == "transformer":
+        model = TransformerModel(config)
 
     checkpoint = torch.load(config.checkpoint_path)
     model.load_state_dict(checkpoint['state_dict'])

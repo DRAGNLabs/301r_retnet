@@ -17,17 +17,15 @@ from utils import Struct
 
 #TODO: this still doesn't work, needs to be fixed. But not completely necessary, we are running test set at end of training
 def inference(config: Struct):
-    # if config.model_type.lower() == "retnet":
-    #     model = RetNetModel(config)
-    # elif config.model_type.lower() == "transformer":
-    #     model = TransformerModel(config)
-    # else:
-    #     raise ValueError(f"Model type '{config.model_type}' not supported!")
-    model = RetNetModel.load_from_checkpoint(
-            checkpoint_path=config.checkpoint_path,
-            #hparams_file="/path/to/experiment/version/hparams.yaml",
-            map_location=None,
-            )
+    if config.model_type.lower() == "retnet":
+        model = RetNetModel(config)
+    elif config.model_type.lower() == "transformer":
+        model = TransformerModel(config)
+    else:
+        raise ValueError(f"Model type '{config.model_type}' not supported!")
+    
+    checkpoint = torch.load(config.checkpoint_path)
+    model.load_state_dict(checkpoint['state_dict'])
     
     dm = DataModule(config, num_workers=1)
 
@@ -53,8 +51,8 @@ def inference(config: Struct):
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)]
             )
 
-    print("\nDone training! Now testing model...")
-    trainer.test(model, datamodule=dm) # Automatically loads best checkpoint, and tests with test dataloader
+    print("\nTesting model...")
+    trainer.test(model, datamodule=dm)
 
 if __name__ == "__main__":
     args = sys.argv
