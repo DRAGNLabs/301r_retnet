@@ -66,8 +66,6 @@ strategy: "ddp" # Options: "ddp", "ddp_spawn".
 rand_seed: 42
 # epochs (int): Number of epochs to train for.
 epochs: 1
-# validation_frequency (int): How often to validate per epoch
-validation_frequency: 3
 # lr (float): Learning rate of model to train.
 learning_rate: 0.001 # lr
 # save_top_k (int): Number of best models to save.
@@ -86,8 +84,6 @@ accumulate_grad_batches: 1
 # Activation Dropout (float): Probability of an element to be zeroed during
 # dropout after activation between FFN layers
 activation_dropout: 0.0
-# attention_heads (int): Number of attention heads in MHA module.
-attention_heads: 2
 # Batch Size (int): Batch size for training
 batch_size: 8
 # Checkpoints (bool): Whether to save checkpoints during training
@@ -100,23 +96,16 @@ embed_dim: 80
 epochs: 1
 # FFN Dimension (int): Hidden layer size of Feed Forward Network (FFN)
 ffn_dim: 12
-# Fully Sharded Data Parallel (bool): Whether to shard Module parameters across
-# data parallel workers or not (with the FairScale library)
-fsdp: false
 # Heads (int): Number of heads. Head architecture changes based on model
 heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
 # heads (int): Number of heads. Head architecture changes based on model.
-heads: 4 # TODO: is this parameter obselete now?
+heads: 4 
 # Model Type (str): Name of model architecture to train
 model_type: retnet # Choices: "retnet", "transformer"
-# retention_heads (int): Number of retention heads in MSR module.
-retention_heads: 2
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
-# Validation Frequency (int): Number of times to validate per epoch
-validation_frequency: 3
 # Value Embedding Dimension (int): Value embed dimension size
 value_embed_dim: 12
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
