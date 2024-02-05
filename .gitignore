@@ -35,3 +35,6 @@ data/
 **/test.json
 !/data_run/*.csv
 core.*
+
+# Images
+*.png
