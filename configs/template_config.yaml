@@ -100,8 +100,6 @@ ffn_dim: 12
 heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
-# heads (int): Number of heads. Head architecture changes based on model.
-heads: 4 
 # Model Type (str): Name of model architecture to train
 model_type: retnet # Choices: "retnet", "transformer"
 # Sequence Length (int): Context window size by number of tokens
