@@ -1,15 +1,13 @@
+from pytorch_lightning import LightningModule
 import torch
 from torch import Tensor
 import torch.nn as nn
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
-from utils import Struct
-
-from typing import Optional, Union
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
 from transformers import PreTrainedModel
-
-from pytorch_lightning import LightningModule
+from typing import Optional, Union
+from utils import Struct
 
 class RetNetModel(LightningModule):
     """ Create model with RetNet architecture. """
@@ -22,7 +20,7 @@ class RetNetModel(LightningModule):
         hf_config = RetNetConfig(
             decoder_embed_dim=config.embed_dim,
             decoder_value_embed_dim=config.value_embed_dim,
-            decoder_retention_heads=config.retention_heads,
+            decoder_retention_heads=config.heads,
             decoder_ffn_embed_dim=config.ffn_dim,
             decoder_layers=config.layers,
             dropout=config.dropout,
@@ -60,7 +58,7 @@ class RetNetModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
-        self.log('train_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
+        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
         
         return loss
     
@@ -123,7 +121,7 @@ class TransformerModel(LightningModule):
         config = DecoderConfig(
             decoder_embed_dim=config.embed_dim,
             decoder_value_embed_dim=config.value_embed_dim,
-            decoder_attention_heads=config.attention_heads,
+            decoder_attention_heads=config.heads,
             decoder_ffn_embed_dim=config.ffn_dim,
             decoder_layers=config.layers,
             dropout=config.dropout,
@@ -224,7 +222,7 @@ class RetNetModelHF(PreTrainedModel):
         Args:
             embed_dim (int): Dimension size of each embedded token.
             value_embed_dim (int): Value embed dimension size.
-            retention_heads (int): Number of retention heads in MSR module.
+            heads (int): Number of retention heads in MSR module.
             ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
             layers (int): Number of retention network layers.
             dropout (float): Probability of an element to be zeroed during
@@ -291,7 +289,7 @@ class TransformerModelHF(PreTrainedModel):
         Args:
             embed_dim (int): Dimension size of each embedded token.
             value_embed_dim (int): Value embed dimension size.
-            attention_heads (int): Number of attention heads in MHA module.
+            heads (int): Number of attention heads in MHA module.
             ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
             layers (int): Number of retention network layers.
             dropout (float): Probability of an element to be zeroed during
