@@ -1,3 +1,4 @@
-- clean up code in train model lightning
 - ensure that logging is working as we want it to, that we're logging the right things, and that we can see the tensorboard logs. Look into torch lightning logging
+- implement inference.py fully
+- incorporate yaml stuff on run_eval.py, test run that
 - Test run a couple models on a larger dataset, to make sure everything is working correctly
