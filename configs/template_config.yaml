@@ -96,8 +96,6 @@ checkpoints: false
 dropout: 0.1
 # Embedding Dimension (int): Embedding dimension size of each token
 embed_dim: 80
-# Epochs (int): Number of epochs to train for
-epochs: 1
 # FFN Dimension (int): Hidden layer size of Feed Forward Network (FFN)
 ffn_dim: 12
 # Heads (int): Number of heads. Head architecture changes based on model
