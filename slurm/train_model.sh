@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --qos=cs
 #SBATCH --mem=64G   # memory per CPU core
-#SBATCH -J "train"   # job name
+#SBATCH -J "train_model"   # job name
 #SBATCH --output=%x_%j.out
 
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn. Does nothing if the program doesn't use OpenMP.
