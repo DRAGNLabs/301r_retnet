@@ -23,7 +23,7 @@ dataset_feature: "text"
 # HuggingFace Dataset Name (str)
 dataset_name: "wikitext"
 # HuggingFace Dataset Subset (str)
-dataset_subset: "wikitext-103-raw-v1"
+dataset_subset: "wikitext-2-v1"
 
 # Root Data Path: Useful for any new features that don't want to specify a new
 # path parameter in the config
