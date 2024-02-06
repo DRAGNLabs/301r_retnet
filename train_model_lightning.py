@@ -166,9 +166,8 @@ def train_model(config: Struct):
     trainer.test(datamodule=dm) # Automatically loads best checkpoint, and tests with test dataloader
 
     print('Finished training!')
-    #print('trainer.callback_metrics:', trainer.callback_metrics)
 
-    return model, trainer.callback_metrics['val_loss'].item()
+    return model, trainer.callback_metrics['test_loss'].item()
 
 if __name__ == "__main__":
     args = sys.argv
