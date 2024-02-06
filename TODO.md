@@ -1,2 +1,0 @@
-- incorporate yaml stuff on run_eval.py, test run that - this can wait until after the merge
-- Test run a couple models on a larger dataset, to make sure everything is working correctly
