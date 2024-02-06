@@ -210,6 +210,7 @@ TorchScale's integration into our workflow has been very helpful, with its utili
 ## Benchmarking and Results
 
 [Results and comparisons with graphs or tables]
+We use EleutherAI's open-source language model evaluation harness to empirically evaluate our models across a suite of different standardized tasks. 
 
 You can find more information in the Results section of our paper [Are You Using Retentive Networks?]().
 
@@ -230,6 +231,20 @@ We extend our heartfelt gratitude to the following individuals and institutions 
 This can also be found on the citation section or our paper [Are You Using Retentive Networks?]().
 
 ```
+@misc{eval-harness,
+  author       = {Gao, Leo and Tow, Jonathan and Abbasi, Baber and Biderman, Stella and Black, Sid and DiPofi, Anthony and Foster, Charles and Golding, Laurence and Hsu, Jeffrey and Le Noac'h, Alain and Li, Haonan and McDonell, Kyle and Muennighoff, Niklas and Ociepa, Chris and Phang, Jason and Reynolds, Laria and Schoelkopf, Hailey and Skowron, Aviya and Sutawika, Lintang and Tang, Eric and Thite, Anish and Wang, Ben and Wang, Kevin and Zou, Andy},
+  title        = {A framework for few-shot language model evaluation},
+  month        = 12,
+  year         = 2023,
+  publisher    = {Zenodo},
+  version      = {v0.4.0},
+  doi          = {10.5281/zenodo.10256836},
+  url          = {https://zenodo.org/records/10256836}
+}
+
+
+```
+```
 @article{torchscale,
   author    = {Shuming Ma and Hongyu Wang and Shaohan Huang and Wenhui Wang and Zewen Chi and Li Dong and Alon Benhaim and Barun Patra and Vishrav Chaudhary and Xia Song and Furu Wei},
   title     = {{TorchScale}: {Transformers} at Scale},
@@ -247,6 +262,8 @@ This can also be found on the citation section or our paper [Are You Using Reten
   volume    = {abs/2307.08621},
   year      = {2023}
 }
+
+
 ```
 
 ## Others
