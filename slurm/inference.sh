@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --qos=cs
 #SBATCH --mem=64G   # memory per CPU core
-#SBATCH -J "generate"   # job name
+#SBATCH -J "inference"   # job name
 #SBATCH --output=%x_%j.out
 
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn. Does nothing if the program doesn't use OpenMP.
@@ -14,4 +14,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate retnet
-python3 ../../generate.py ../../configs/user_configs/YOUR_CONFIG_HERE.yaml
+python3 ../../inference.py ../../configs/user_configs/YOUR_CONFIG_HERE.yaml
