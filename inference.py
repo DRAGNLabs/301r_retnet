@@ -15,7 +15,6 @@ import signal
 
 from utils import Struct
 
-#TODO: this still doesn't work, needs to be fixed. But not completely necessary, we are running test set at end of training
 def inference(config: Struct):
     if config.model_type.lower() == "retnet":
         model = RetNetModel(config)
