@@ -42,7 +42,7 @@ tokenized_dataset_path: "/YOUR/PATH/HERE/data/tokenized_dataset/wikitext"
 models_path: "/YOUR/PATH/HERE/data/models"
 
 # TensorBoard Path, optional
-tboard_path: ~
+tboard_path: "/YOUR/PATH/HERE/data/runs"
 
 # Checkpoint Path: path to checkpoint to load for generation/inference
 checkpoint_path: ~
@@ -54,6 +54,7 @@ splits:
   - 0.1
 
 # ------------------------ DEVICE CONFIGURATION ------------------------
+
 # device type (str): Device to train on
 device: "cuda" # Options: "cpu", "cuda"
 # num_nodes (int): Number of nodes

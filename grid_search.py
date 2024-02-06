@@ -5,7 +5,6 @@ import time
 import torch
 import yaml
 
-from argparse import ArgumentParser
 from pathlib import Path
 from train_model_lightning import train_model
 from utils import Struct

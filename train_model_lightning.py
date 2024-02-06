@@ -4,7 +4,6 @@ import json
 import os
 import signal
 import sys
-import time
 import yaml
 
 # Torch
@@ -15,6 +14,7 @@ from torchinfo import summary as model_summary
 from pytorch_lightning import Trainer
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning import loggers as pl_loggers
 
 # Hugging Face
 from transformers import set_seed
@@ -103,11 +103,14 @@ def train_model(config: Struct):
 
     # Create SummaryWriter to record logs for TensorBoard
     if config.tboard_path is None:
+        print("TensorBoard path not specified, saving logs in models directory.")
         tboard_log_dir = Path(config.models_path) / "logs" / model_label
     else:
-        tboard_log_dir = f"{config.tboard_path}/logs/{model_label}"
+        tboard_log_dir = f"{config.tboard_path}/{model_label}"
 
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
+
+    tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
 
     # Save all the variables in args as JSON inside folder
     json.dump(
@@ -142,7 +145,8 @@ def train_model(config: Struct):
             val_check_interval=config.val_check_interval,
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
-            callbacks=[model_checkpoint]
+            callbacks=[model_checkpoint],
+            logger=tb_logger
             )
     else:
         trainer = Trainer(
@@ -156,7 +160,8 @@ def train_model(config: Struct):
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
-            callbacks=[model_checkpoint]
+            callbacks=[model_checkpoint],
+            logger=tb_logger
             )
     
     trainer.fit(model, datamodule=dm)
