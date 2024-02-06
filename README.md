@@ -218,13 +218,13 @@ You can find more information in the Results section of our paper [Are You Using
 
 We extend our heartfelt gratitude to the following individuals and institutions for their invaluable contributions to this project:
 
-**BYU Office of Research Computing**: For providing the computational resources and support that were instrumental in conducting our experiments and analyses.
-
 **Nancy Fulda**: Our esteemed instructor, whose guidance and insights have significantly shaped the direction and execution of this research.
 
-**Microsoft TorchScale Team**: For developing and maintaining the TorchScale framework, which served as the foundational architecture for our project, enabling us to push the boundaries of what's possible in deep learning research.
+**BYU Office of Research Computing**: For providing the computational resources and support that were instrumental in conducting our experiments and analyses.
 
 **Authors of the Original RetNet Paper**: For their pioneering work in the field of deep learning, which inspired our research and provided a solid base for our explorations into RetNet and Transformers.
+
+**Microsoft TorchScale Team**: For developing and maintaining the TorchScale framework, which served as the foundational architecture for our project, enabling us to push the boundaries of what's possible in deep learning research.
 
 ## Citations
 
