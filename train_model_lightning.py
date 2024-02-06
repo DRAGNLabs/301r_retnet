@@ -166,6 +166,7 @@ def train_model(config: Struct):
     trainer.test(datamodule=dm) # Automatically loads best checkpoint, and tests with test dataloader
 
     print('Finished training!')
+    #print('trainer.callback_metrics:', trainer.callback_metrics)
 
     return model, trainer.callback_metrics['val_loss'].item()
 
@@ -178,11 +179,5 @@ if __name__ == "__main__":
         
     config = Struct(**config)
 
-    start_time = time.time()
-
     model, test_loss = train_model(config)
-
-    end_time = time.time()
-
-
     
