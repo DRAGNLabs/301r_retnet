@@ -245,16 +245,6 @@ This can also be found on the citation section or our paper [Are You Using Reten
 
 ```
 ```
-@article{torchscale,
-  author    = {Shuming Ma and Hongyu Wang and Shaohan Huang and Wenhui Wang and Zewen Chi and Li Dong and Alon Benhaim and Barun Patra and Vishrav Chaudhary and Xia Song and Furu Wei},
-  title     = {{TorchScale}: {Transformers} at Scale},
-  journal   = {CoRR},
-  volume    = {abs/2211.13184},
-  year      = {2022}
-}
-```
-
-```
 @article{retnet,
   author={Yutao Sun and Li Dong and Shaohan Huang and Shuming Ma and Yuqing Xia and Jilong Xue and Jianyong Wang and Furu Wei},
   title     = {Retentive Network: A Successor to {Transformer} for Large Language Models},
@@ -265,5 +255,15 @@ This can also be found on the citation section or our paper [Are You Using Reten
 
 
 ```
+```
+@article{torchscale,
+  author    = {Shuming Ma and Hongyu Wang and Shaohan Huang and Wenhui Wang and Zewen Chi and Li Dong and Alon Benhaim and Barun Patra and Vishrav Chaudhary and Xia Song and Furu Wei},
+  title     = {{TorchScale}: {Transformers} at Scale},
+  journal   = {CoRR},
+  volume    = {abs/2211.13184},
+  year      = {2022}
+}
+```
+
 
 ## Others
