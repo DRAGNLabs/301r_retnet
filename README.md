@@ -209,8 +209,7 @@ TorchScale's integration into our workflow has been very helpful, with its utili
 
 ## Benchmarking and Results
 
-[Results and comparisons with graphs or tables]
-We use EleutherAI's open-source language model evaluation harness to empirically evaluate our models across a suite of different standardized tasks. 
+We use EleutherAI's open-source language model evaluation harness to empirically evaluate our models across a suite of different standardized tasks. These are largely 2-5 option multiple choice tasks, thus a randomly initialized language model will score 50-20% randomly guessing.
 
 You can find more information in the Results section of our paper [Are You Using Retentive Networks?]().
 
