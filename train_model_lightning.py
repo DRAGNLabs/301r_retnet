@@ -93,12 +93,12 @@ def train_model(config: Struct):
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
-    model_dir.mkdir(parents=True, exist_ok=False)
+    model_dir.mkdir(parents=True, exist_ok=True)
     print(f"Saving model files in {model_dir}")
 
     # Initialize checkpoints directory
     checkpoints_dir = model_dir / "checkpoints"
-    checkpoints_dir.mkdir(parents=False, exist_ok=False)
+    checkpoints_dir.mkdir(parents=False, exist_ok=True)
     print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
