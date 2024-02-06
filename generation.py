@@ -1,13 +1,13 @@
-from models import RetNetModel, TransformerModel
 import torch
-
-import yaml
 import sys
-from utils import Struct, generate_text
+import yaml
+
 from transformers import PreTrainedTokenizerFast
 
-def generate_specific_text(config):
+from models import RetNetModel, TransformerModel
+from utils import Struct, generate_text
 
+def generate_specific_text(config):
     # Generate text from the model
     print("\nGenerating text...")
     input_starting_strings = [
