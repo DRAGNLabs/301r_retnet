@@ -22,6 +22,5 @@ TASKS=winogrande
 # You do not need to let it run to completion, just until the datasets and benchmarks are downloaded and cached.
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
-nvidia-smi
 mamba activate retnet
-python ../run_eval.py --model-path-dir ${MODEL_PATH_DIR} --tokenizer-path-dir ${TOKENIZER_PATH_DIR} --tasks ${TASKS}
+python3 ../../run_eval.py --model-path-dir ${MODEL_PATH_DIR} --tokenizer-path-dir ${TOKENIZER_PATH_DIR} --tasks ${TASKS}

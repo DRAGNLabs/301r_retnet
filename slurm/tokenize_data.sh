@@ -13,4 +13,3 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate retnet
 python3 ../../tokenize_data.py ../../configs/user_configs/YOUR_CONFIG_HERE.yaml
-
