@@ -32,7 +32,7 @@ from utils import Struct
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
 
-class CustomCheckpoint(ModelCheckpoint):
+class CustomModelCheckpoint(ModelCheckpoint):
     def __init__(self, dirpath, filename, monitor, save_top_k, mode):
         super().__init__(
             dirpath=dirpath,
@@ -140,7 +140,7 @@ def train_model(config: Struct):
     dm = DataModule(config)
 
     # Implement callbacks
-    model_checkpoint = CustomCheckpoint(
+    model_checkpoint = CustomModelCheckpoint(
         dirpath=checkpoints_dir,
         filename="epoch_{epoch}_validation_{val_loss:.2f}",
         monitor="val_loss",
