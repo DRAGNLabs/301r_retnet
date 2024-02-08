@@ -10,13 +10,18 @@ from typing import Optional, Union
 from utils import Struct
 
 class RetNetModel(LightningModule):
-    """ Create model with RetNet architecture. """
+    """ 
+    Create model with RetNet architecture.
+
+    This is a LightningModule that wraps around a 
+    HuggingFace class, containing the RetNet architecture.
+    """
     def __init__(self, config: Struct):
         super().__init__()
         self.learning_rate = config.learning_rate
         self.gamma = config.gamma
 
-        # Create RetNet configuration
+        # Create RetNet configuration for HuggingFace model
         hf_config = RetNetConfig(
             decoder_embed_dim=config.embed_dim,
             decoder_value_embed_dim=config.value_embed_dim,
@@ -48,7 +53,11 @@ class RetNetModel(LightningModule):
         preds = self.model_hf(x)
         return preds
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Tensor, batch_idx: int):
+        """
+        Training step, called automatically by PyTorch Lightning.
+        """
+        # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
@@ -73,7 +82,11 @@ class RetNetModel(LightningModule):
 
         return loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch: Tensor, batch_idx: int):
+        """
+        Validation step, called automatically by PyTorch Lightning.
+        """
+        # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
@@ -98,7 +111,11 @@ class RetNetModel(LightningModule):
 
         return loss
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch: Tensor, batch_idx: int):
+        """
+        Test step, called automatically by PyTorch Lightning.
+        """
+        # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
@@ -128,6 +145,7 @@ class RetNetModel(LightningModule):
         return self.model_hf.get_params()
 
     def configure_optimizers(self):
+        """Configure optimizer and learning rate scheduler for Lightning to use."""
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.gamma)
         return [optimizer], [lr_scheduler]
@@ -138,12 +156,18 @@ class RetNetModel(LightningModule):
 
 
 class TransformerModel(LightningModule):
+    """
+    Create model with Transformer architecture.
+
+    This is a LightningModule that wraps around a
+    HuggingFace class, containing the Transformer architecture.
+    """
     def __init__(self, config: Struct):
         super().__init__()
         self.learning_rate = config.learning_rate
         self.gamma = config.gamma
 
-        # Create Transformer Decoder configuration
+        # Create Transformer Decoder configuration for HuggingFace model
         config = DecoderConfig(
             decoder_embed_dim=config.embed_dim,
             decoder_value_embed_dim=config.value_embed_dim,
@@ -173,7 +197,11 @@ class TransformerModel(LightningModule):
         preds = self.model_hf(x)
         return preds
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: Tensor, batch_idx: int):
+        """
+        Training step, called automatically by PyTorch Lightning.
+        """
+        # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
@@ -197,7 +225,11 @@ class TransformerModel(LightningModule):
 
         return loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch: Tensor, batch_idx: int):
+        """
+        Validation step, called automatically by PyTorch Lightning.
+        """
+        # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
@@ -221,7 +253,11 @@ class TransformerModel(LightningModule):
 
         return loss
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch: Tensor, batch_idx: int):
+        """
+        Test step, called automatically by PyTorch Lightning.
+        """
+        # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
@@ -250,6 +286,7 @@ class TransformerModel(LightningModule):
         return self.model_hf.get_params()
 
     def configure_optimizers(self):
+        """ Configure optimizer and learning rate scheduler for Lightning to use. """
         optimizer = torch.optim.Adam(
             self.model_hf.decoder_stack.parameters(),
             lr=self.learning_rate)
@@ -270,21 +307,8 @@ class RetNetModelHF(PreTrainedModel):
             config: Optional[Union[RetNetConfig, str]] = None):
         """ Use parameters to create corresponding RetNet model.
         Args:
-            embed_dim (int): Dimension size of each embedded token.
-            value_embed_dim (int): Value embed dimension size.
-            heads (int): Number of retention heads in MSR module.
-            ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
-            layers (int): Number of retention network layers.
-            dropout (float): Probability of an element to be zeroed during
-                dropout.
-            activation_dropout (float): Probability of an element to be zeroed
-                during dropout after activation between FFN layers.
-            vocab_size (int): Maximum vocabulary size (number of unique tokens
-                in vocabulary.
-            fsdp (bool): Whether to shard Module parameters across data parallel
-                workers or not (with the FairScale library).
-            max_seq_len (int): Size of context window.
-            config (str): Path to RetNet configuration file.
+            config (Union[RetNetConfig, str]): RetNet configuration object or
+                string name of a RetNet model.
         """
         # Create RetNet configuration
         if not config:
@@ -338,20 +362,8 @@ class TransformerModelHF(PreTrainedModel):
             self, config: Optional[Union[DecoderConfig, str]] = None):
         """ Use parameters to create corresponding Transformer model.
         Args:
-            embed_dim (int): Dimension size of each embedded token.
-            value_embed_dim (int): Value embed dimension size.
-            heads (int): Number of attention heads in MHA module.
-            ffn_dim (int): Hidden layer size of Feed Forward Network (FFN).
-            layers (int): Number of retention network layers.
-            dropout (float): Probability of an element to be zeroed during
-                dropout.
-            activation_dropout (float): Probability of an element to be zeroed
-                during dropout after activation between FFN layers.
-            vocab_size (int): Maximum vocabulary size (number of unique tokens
-                in vocabulary.
-            fsdp (bool): Whether to shard Module parameters across data parallel
-                workers or not (with the FairScale library).
-            max_seq_len (int): Size of context window.
+            config (Union[DecoderConfig, str]): Transformer configuration object
+                or string name of a Transformer model.
         """
         # Create Transformer configuration
         if not config:
