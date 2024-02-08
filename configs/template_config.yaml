@@ -18,12 +18,18 @@
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
+# Checkpoint Path: path to checkpoint to load for generation/inference
+checkpoint_path: ~
+
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: "text"
 # HuggingFace Dataset Name (str)
 dataset_name: "wikitext"
 # HuggingFace Dataset Subset (str)
 dataset_subset: "wikitext-2-v1"
+
+# Train Model: Path to model folder
+models_path: "/YOUR/PATH/HERE/data/models"
 
 # Root Data Path: Useful for any new features that don't want to specify a new
 # path parameter in the config
@@ -32,35 +38,29 @@ root_data_path: "/YOUR/PATH/HERE/data"
 # Download Data: Path to raw dataset folder
 raw_dataset_path: "/YOUR/PATH/HERE/data/datasets/wikitext"
 
-# Train Tokenizer: Path to tokenizer folder
-tokenizer_path: "/YOUR/PATH/HERE/data/tokenizers/wikitext_tokenizer"
-
-# Tokenize Data: Path to tokenized dataset folder
-tokenized_dataset_path: "/YOUR/PATH/HERE/data/tokenized_dataset/wikitext"
-
-# Train Model: Path to model folder
-models_path: "/YOUR/PATH/HERE/data/models"
-
-# TensorBoard Path, optional
-tboard_path: "/YOUR/PATH/HERE/data/runs"
-
-# Checkpoint Path: path to checkpoint to load for generation/inference
-checkpoint_path: ~
-
 # Splits: Train split, Validation Split, and Test Split
 splits:
   - 0.7
   - 0.2
   - 0.1
 
+# Train Tokenizer: Path to tokenizer folder
+tokenizer_path: "/YOUR/PATH/HERE/data/tokenizers/wikitext_tokenizer"
+
+# Tokenize Data: Path to tokenized dataset folder
+tokenized_dataset_path: "/YOUR/PATH/HERE/data/tokenized_dataset/wikitext"
+
+# TensorBoard Path, optional
+tboard_path: "/YOUR/PATH/HERE/data/runs"
+
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
 # Device Type (str): Device to train on
 device: "cuda" # Options: "cpu", "cuda"
+# Number of GPUs (int)
+num_devices: 1
 # Number of Nodes (int)
 num_nodes: 1
-# Number of GPUs (int)
-num_devices: 1 
 # Strategy (string): Distributed strategy for training. Likely no need to change
 strategy: "ddp" # Options: "ddp", "ddp_spawn"
 # Use Slurm (bool): Whether to use Slurm for training
