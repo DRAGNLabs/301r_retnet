@@ -6,10 +6,10 @@ from torch.utils.data import DataLoader
 from datasets import load_dataset
 
 class DataModule(LightningDataModule):
-    def __init__(self, config, num_workers=0):
+    def __init__(self, config):
         super().__init__()
         self.batch_size = config.batch_size
-        self.num_workers = num_workers
+        self.num_workers = config.num_workers
         self.tokenized_dataset_path = config.tokenized_dataset_path
 
     def setup(self, stage: str):

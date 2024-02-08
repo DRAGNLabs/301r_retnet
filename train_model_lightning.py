@@ -137,7 +137,7 @@ def train_model(config: Struct):
     # Loads Tokenized data
     print(f"\nNow loading '{config.dataset_name}'")
 
-    dm = DataModule(config, num_workers=1)
+    dm = DataModule(config)
 
     # Implement callbacks
     model_checkpoint = CustomCheckpoint(

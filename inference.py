@@ -48,7 +48,7 @@ def inference(config: Struct):
     checkpoint = torch.load(config.checkpoint_path)
     model.load_state_dict(checkpoint['state_dict'])
     
-    dm = DataModule(config, num_workers=1)
+    dm = DataModule(config)
 
     if not config.use_slurm:
         trainer = Trainer(

@@ -61,6 +61,8 @@ device: "cuda" # Options: "cpu", "cuda"
 num_devices: 1
 # Number of Nodes (int)
 num_nodes: 1
+# Num Workers (int): Number of workers for dataloaders
+num_workers: 0
 # Strategy (string): Distributed strategy for training. Likely no need to change
 strategy: "ddp" # Options: "ddp", "ddp_spawn"
 # FSDP (bool): Whether to use Fully Sharded Data Parallelism, for HuggingFace? Only used in train_model.py
