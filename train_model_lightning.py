@@ -33,24 +33,32 @@ from utils import Struct
 torch.backends.cuda.matmul.allow_tf32 = True
 
 class CustomCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, filename, save_top_k, monitor, mode):
-        super().__init__(dirpath=dirpath, filename=filename, save_top_k=save_top_k, monitor=monitor, mode=mode)
+    def __init__(self, dirpath, filename, monitor, save_top_k, mode):
+        super().__init__(
+            dirpath=dirpath,
+            filename=filename,
+            monitor=monitor,
+            save_top_k=save_top_k,
+            mode=mode)
         self.num_ckpts = 0
-    
+
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
-        super().on_save_checkpoint(trainer=trainer, pl_module=pl_module, checkpoint=checkpoint)
-        pl_module.save_pretrained(os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
+        super().on_save_checkpoint(
+            trainer=trainer,
+            pl_module=pl_module,
+            checkpoint=checkpoint)
+        pl_module.save_pretrained(
+            os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
         self.num_ckpts += 1
 
-def train_model(config: Struct):
-    arg_dict = locals()
 
+def train_model(config: Struct):
     # Test that the head dimension will be an even, whole number
     assert config.embed_dim % (config.heads * 2) == 0, \
         "Head Dimension must be even to perform Rotary Position Embedding " + \
-        f"({config.embed_dim} / {config.heads} = {config.embed_dim / config.heads} " + \
-        "-- not an even, whole number)! Try changing the Embedding " + \
-        "Dimension or number of heads."
+        f"({config.embed_dim} / {config.heads} = " + \
+        f"{config.embed_dim / config.heads} -- not an even, whole number)! " + \
+        "Try changing the Embedding Dimension or number of heads."
 
     # Test that the value embedding dimension is divisible by number of heads
     assert config.value_embed_dim % config.heads == 0, \
@@ -73,8 +81,8 @@ def train_model(config: Struct):
     print("Arguments:")
     arg_table = []
     row = []
-    for i, arg in enumerate(arg_dict.keys()):
-        row.append(f"{arg}: {arg_dict[arg]}")
+    for i, (key, value) in enumerate(config.get_config_dict().items()):
+        row.append(f"{key}: {value}")
         if (i + 1) % 4 == 0:
             arg_table.append(row)
             row = []
@@ -87,9 +95,13 @@ def train_model(config: Struct):
     total_params = model_summary(
         model,
         input_data=torch.ones(1, config.seq_len).long()).total_params
-    
-    # Create unique label for model (model type, parameter count, hyperparameters**)
-    model_label = f"{config.model_type}_{total_params}_LR{config.learning_rate}_ED{config.embed_dim}_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}_{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
+
+    # Create unique label for model (model type, parameter count,
+    # **hyperparameters, timestamp)
+    model_label = f"{config.model_type}_{total_params}" + \
+        f"_LR{config.learning_rate}_ED{config.embed_dim}" + \
+        f"_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}" + \
+        f"_{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
@@ -103,7 +115,6 @@ def train_model(config: Struct):
 
     # Create SummaryWriter to record logs for TensorBoard
     if config.tboard_path is None:
-        print("TensorBoard path not specified, saving logs in models directory.")
         tboard_log_dir = Path(config.models_path) / "logs" / model_label
     else:
         tboard_log_dir = f"{config.tboard_path}/{model_label}"
@@ -127,15 +138,16 @@ def train_model(config: Struct):
     print(f"\nNow loading '{config.dataset_name}'")
 
     dm = DataModule(config, num_workers=1)
-    
+
     # Implement callbacks
     model_checkpoint = CustomCheckpoint(
         dirpath=checkpoints_dir,
-        filename='epoch_{epoch}_validation_{val_loss:.2f}',
+        filename="epoch_{epoch}_validation_{val_loss:.2f}",
+        monitor="val_loss",
         save_top_k=config.save_top_k,
-        monitor='val_loss',
-        mode='min')
-    
+        mode="min")
+
+    # Setup Trainer based on if using Slurm or not
     if not config.use_slurm:
         trainer = Trainer(
             default_root_dir=model_dir, # main directory for run
@@ -146,8 +158,7 @@ def train_model(config: Struct):
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
             callbacks=[model_checkpoint],
-            logger=tb_logger
-            )
+            logger=tb_logger)
     else:
         trainer = Trainer(
             default_root_dir=model_dir, # main directory for run
@@ -161,27 +172,27 @@ def train_model(config: Struct):
             sync_batchnorm=True,
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[model_checkpoint],
-            logger=tb_logger
-            )
-    
+            logger=tb_logger)
+
     trainer.fit(model, datamodule=dm)
 
     print("\nDone training! Now testing model...")
 
-    trainer.test(datamodule=dm) # Automatically loads best checkpoint, and tests with test dataloader
+    # Automatically load best checkpoint and test with test dataloader
+    trainer.test(datamodule=dm)
 
-    print('Finished training!')
+    print("Finished training!")
 
-    return model, trainer.callback_metrics['test_loss'].item()
+    return model, trainer.callback_metrics["test_loss"].item()
+
 
 if __name__ == "__main__":
     args = sys.argv
-    config_path =args[1]
+    config_path = args[1]
 
-    with open(config_path, 'r') as f:
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
-        
+
     config = Struct(**config)
 
     model, test_loss = train_model(config)
-    

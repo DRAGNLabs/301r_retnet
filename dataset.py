@@ -10,6 +10,7 @@ class DataModule(LightningDataModule):
         super().__init__()
         self.batch_size = config.batch_size
         self.num_workers = num_workers
+        self.tokenized_dataset_path = config.tokenized_dataset_path
 
     def setup(self, stage: str):
         if stage == "fit":
@@ -17,12 +18,12 @@ class DataModule(LightningDataModule):
             train_tokenized_dataset = load_dataset(
                 "parquet",
                 data_files=str(
-                    Path(config.tokenized_dataset_path) / "train.parquet"),
+                    Path(self.tokenized_dataset_path) / "train.parquet"),
                 split="all")
             val_tokenized_dataset = load_dataset(
                 "parquet",
                 data_files=str(
-                    Path(config.tokenized_dataset_path) / "validation.parquet"),
+                    Path(self.tokenized_dataset_path) / "validation.parquet"),
                 split="all")
 
             # Convert datasets into PyTorch format
@@ -36,7 +37,7 @@ class DataModule(LightningDataModule):
             test_tokenized_dataset = load_dataset(
                 "parquet",
                 data_files=str(
-                    Path(config.tokenized_dataset_path) / "test.parquet"),
+                    Path(self.tokenized_dataset_path) / "test.parquet"),
                 split="all")
 
             # Convert datasets into PyTorch format
@@ -48,9 +49,9 @@ class DataModule(LightningDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True)
-    
+
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size)
-    
+
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size)
