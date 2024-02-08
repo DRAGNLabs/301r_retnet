@@ -1,7 +1,7 @@
 #!/bin/bash --login
 
 #SBATCH --time=10:00:00   # walltime
-#SBATCH --ntasks-per-node=1# number of processor cores (i.e. tasks)
+#SBATCH --ntasks-per-node=1 # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --gres=gpu:1
 #SBATCH --qos=cs
@@ -16,4 +16,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate retnet
-srun python3 ../../train_model_lightning.py ../../configs/user_configs/YOUR_CONFIG_HERE.yaml
+srun python3 ../../train_model.py ../../configs/user_configs/YOUR_CONFIG_HERE.yaml
