@@ -7,7 +7,7 @@ import yaml
 
 from datasets import (load_dataset as load_ds)
 from datetime import datetime
-from hugging_face_model import RetNetModelHF, TransformerModelHF
+from models import RetNetModelHF, TransformerModelHF
 from pathlib import Path
 from tabulate import tabulate
 from torch.utils.data import DataLoader
