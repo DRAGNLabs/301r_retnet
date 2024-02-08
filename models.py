@@ -33,6 +33,8 @@ class RetNetModel(LightningModule):
 
         self.loss_fn = nn.CrossEntropyLoss(reduction="mean")
 
+        self.save_hyperparameters(self.model_hf.get_params())
+
     def forward(self, x: Tensor) -> Tensor:
         """
         Args:
@@ -45,11 +47,12 @@ class RetNetModel(LightningModule):
         """
         preds = self.model_hf(x)
         return preds
-    
+
     def training_step(self, batch, batch_idx):
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
 
+        # Get predictions
         preds = self.model_hf(inputs)
 
         # Reshape the model predictions for Cross Entropy
@@ -58,58 +61,81 @@ class RetNetModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
-        
+        self.log(
+            name="train_loss",
+            value=loss,
+            prog_bar=True,
+            logger=True,
+            on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
+
         return loss
-    
+
     def validation_step(self, batch, batch_idx):
-        # Put validation inputs and targets on device
-        val_inputs = batch[:, :-1]
-        val_targets = batch[:, 1:]
+        inputs = batch[:, :-1]
+        targets = batch[:, 1:]
 
-        # Get validation predictions
-        val_predictions = self.model_hf(val_inputs)
+        # Get predictions
+        preds = self.model_hf(inputs)
 
         # Reshape the model predictions for Cross Entropy
-        val_predictions = val_predictions.transpose(-2, -1)
+        preds = preds.transpose(-2, -1)
 
-        # Calculate validation loss
-        val_loss = self.loss_fn(val_predictions, val_targets)
+        # Calculate loss
+        loss = self.loss_fn(preds, targets)
 
-        self.log('val_loss', val_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
+        self.log(
+            name="val_loss",
+            value=loss,
+            prog_bar=True,
+            logger=True,
+            on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
 
-        return val_loss
-    
+        return loss
+
     def test_step(self, batch, batch_idx):
-        # Put validation inputs and targets on device
-        test_inputs = batch[:, :-1]
-        test_targets = batch[:, 1:]
+        inputs = batch[:, :-1]
+        targets = batch[:, 1:]
 
-        # Get validation predictions
-        test_predictions = self.model_hf(test_inputs)
+        # Get predictions
+        preds = self.model_hf(inputs)
 
         # Reshape the model predictions for Cross Entropy
-        test_predictions = test_predictions.transpose(-2, -1)
+        preds = preds.transpose(-2, -1)
 
-        # Calculate validation loss
-        test_loss = self.loss_fn(test_predictions, test_targets)
+        # Calculate loss
+        loss = self.loss_fn(preds, targets)
 
-        self.log('test_loss', test_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
-        
-        return test_loss
+        self.log(
+            name="test_loss",
+            value=loss,
+            prog_bar=True,
+            logger=True,
+            on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
+
+        return loss
 
     def get_params(self) -> dict:
         """ Get model parameters dictionary. """
         return self.model_hf.get_params()
-    
+
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.gamma)
         return [optimizer], [lr_scheduler]
-    
+
     def save_pretrained(self, save_folder: str):
         """ Save model weights and parameters to folder. """
         self.model_hf.save_pretrained(save_folder)
+
 
 class TransformerModel(LightningModule):
     def __init__(self, config: Struct):
@@ -132,6 +158,7 @@ class TransformerModel(LightningModule):
 
         self.loss_fn = nn.CrossEntropyLoss(reduction="mean")
 
+        self.save_hyperparameters(self.model_hf.get_params())
 
     def forward(self, x: Tensor) -> Tensor:
         """
@@ -145,7 +172,7 @@ class TransformerModel(LightningModule):
         """
         preds = self.model_hf(x)
         return preds
-    
+
     def training_step(self, batch, batch_idx):
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
@@ -158,58 +185,81 @@ class TransformerModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
+        self.log(
+            name="train_loss",
+            value=loss,
+            prog_bar=True,
+            logger=True,
+            on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
 
         return loss
-    
+
     def validation_step(self, batch, batch_idx):
-        # Put validation inputs and targets on device
-        val_inputs = batch[:, :-1]
-        val_targets = batch[:, 1:]
+        inputs = batch[:, :-1]
+        targets = batch[:, 1:]
 
-        # Get validation predictions
-        val_predictions = self.model_hf(val_inputs)
+        preds = self.model_hf(inputs)
 
         # Reshape the model predictions for Cross Entropy
-        val_predictions = val_predictions.transpose(-2, -1)
+        preds = preds.transpose(-2, -1)
 
-        # Calculate validation loss
-        val_loss = self.loss_fn(val_predictions, val_targets)
+        # Calculate loss
+        loss = self.loss_fn(preds, targets)
 
-        self.log('val_loss', val_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
+        self.log(
+            name="val_loss",
+            value=loss,
+            prog_bar=True,
+            logger=True,
+            on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
 
-        return val_loss
-    
+        return loss
+
     def test_step(self, batch, batch_idx):
-        # Put validation inputs and targets on device
-        test_inputs = batch[:, :-1]
-        test_targets = batch[:, 1:]
+        inputs = batch[:, :-1]
+        targets = batch[:, 1:]
 
-        # Get validation predictions
-        test_predictions = self.model_hf(test_inputs)
+        preds = self.model_hf(inputs)
 
         # Reshape the model predictions for Cross Entropy
-        test_predictions = test_predictions.transpose(-2, -1)
+        preds = preds.transpose(-2, -1)
 
-        # Calculate validation loss
-        test_loss = self.loss_fn(test_predictions, test_targets)
+        # Calculate loss
+        loss = self.loss_fn(preds, targets)
 
-        self.log('test_loss', test_loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True, add_dataloader_idx=True)
-        
-        return test_loss
+        self.log(
+            name="test_loss",
+            value=loss,
+            prog_bar=True,
+            logger=True,
+            on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
+
+        return loss
 
     def get_params(self) -> dict:
         """ Get model parameters dictionary. """
         return self.model_hf.get_params()
-    
+
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.model_hf.decoder_stack.parameters(), lr=self.learning_rate)
+        optimizer = torch.optim.Adam(
+            self.model_hf.decoder_stack.parameters(),
+            lr=self.learning_rate)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.gamma)
         return [optimizer], [lr_scheduler]
-    
+
     def save_pretrained(self, save_folder: str):
         """ Save model weights and parameters to folder. """
         self.model_hf.save_pretrained(save_folder)
+
 
 class RetNetModelHF(PreTrainedModel):
     """ Create model with RetNet architecture. """
@@ -236,7 +286,6 @@ class RetNetModelHF(PreTrainedModel):
             max_seq_len (int): Size of context window.
             config (str): Path to RetNet configuration file.
         """
-
         # Create RetNet configuration
         if not config:
             self.config = RetNetConfig()
@@ -255,7 +304,9 @@ class RetNetModelHF(PreTrainedModel):
             embedding_dim=int(self.config.decoder_embed_dim),
             padding_idx=0)
 
-        self.decoder_stack = RetNetDecoder(self.config, embed_tokens=text_embeddings)
+        self.decoder_stack = RetNetDecoder(
+            self.config,
+            embed_tokens=text_embeddings)
 
     def forward(self, x: Tensor) -> Tensor:
         """
@@ -302,7 +353,6 @@ class TransformerModelHF(PreTrainedModel):
                 workers or not (with the FairScale library).
             max_seq_len (int): Size of context window.
         """
-
         # Create Transformer configuration
         if not config:
             self.config = DecoderConfig()
