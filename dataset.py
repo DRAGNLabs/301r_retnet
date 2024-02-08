@@ -1,12 +1,17 @@
 from pathlib import Path
 from pytorch_lightning import LightningDataModule
-from typing import Optional
 from torch.utils.data import DataLoader
 
 from datasets import load_dataset
+from utils import Struct
 
 class DataModule(LightningDataModule):
-    def __init__(self, config):
+    """
+    DataModule class for Lightning. This class is used to load and prepare the
+    dataset for training, validation, and testing. It also provides the
+    dataloaders for each of the three stages.
+    """
+    def __init__(self, config: Struct):
         super().__init__()
         self.batch_size = config.batch_size
         self.num_workers = config.num_workers
