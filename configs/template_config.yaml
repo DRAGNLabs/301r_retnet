@@ -16,7 +16,7 @@
 #
 # Do not Add a YAML config to a git commit unless you have a good reason.
 
-# ---------------------------- DATASET AND PATH CONFIGURATION ---------------------------
+# ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: "text"
@@ -53,37 +53,37 @@ splits:
   - 0.2
   - 0.1
 
-# ------------------------ DEVICE CONFIGURATION ------------------------
+# ---------------------------- DEVICE CONFIGURATION ----------------------------
 
-# device type (str): Device to train on
+# Device Type (str): Device to train on
 device: "cuda" # Options: "cpu", "cuda"
-# num_nodes (int): Number of nodes
+# Number of Nodes (int)
 num_nodes: 1
 # Number of GPUs (int)
 num_devices: 1 
-# strategy (string): Distributed strategy for training. You probably don't need to change this
-strategy: "ddp" # Options: "ddp", "ddp_spawn".
-# use_slurm (bool): Whether to use SLURM for training.
+# Strategy (string): Distributed strategy for training. Likely no need to change
+strategy: "ddp" # Options: "ddp", "ddp_spawn"
+# Use Slurm (bool): Whether to use Slurm for training
 use_slurm: true
 
-# ------------------------ TRAINING CONFIGURATION ------------------------
+# --------------------------- TRAINING CONFIGURATION ---------------------------
 
-# accumulate_grad_batches (int): Accumulate gradients over n batches.
+# Accumulate Gradient Batches (int): Accumulate gradients over n batches
 accumulate_grad_batches: 1
-# epochs (int): Number of epochs to train for.
+# Epochs (int): Number of epochs to train for
 epochs: 1
-# gamma (float): Learning rate scheduler gamma.
+# Gamma (float): Learning rate scheduler gamma
 gamma: 0.85
-# lr (float): Learning rate of model to train.
-learning_rate: 0.001 # lr
-# rand_seed (int): Random seed for reproducibility
+# Learning Rate (float): Learning rate of model to train
+learning_rate: 0.001
+# Random Seed (int): Random seed for reproducibility
 rand_seed: 42
-# save_top_k (int): Number of best models to save.
+# Save Top K (int): Number of best models to save
 save_top_k: 3
-# val_check_interval (float): How often to validate as a fraction of an epoch.
+# Validation Check Interval (float): Validation frequency (fraction of an epoch)
 val_check_interval: 0.5
 
-# ------------------------ MODEL CONFIGURATION ------------------------
+# ---------------------------- MODEL CONFIGURATION -----------------------------
 
 # Activation Dropout (float): Probability of an element to be zeroed during
 # dropout after activation between FFN layers
