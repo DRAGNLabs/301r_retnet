@@ -13,7 +13,7 @@ from torchinfo import summary as model_summary
 # PyTorch Lightning
 from pytorch_lightning import Trainer
 from pytorch_lightning.plugins.environments import SLURMEnvironment
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import loggers as pl_loggers
 
 # Hugging Face
@@ -146,6 +146,8 @@ def train_model(config: Struct):
         monitor="val_loss",
         save_top_k=config.save_top_k,
         mode="min")
+    
+    early_stopping = EarlyStopping('val_loss', patience=config.early_stopping, mode='min', verbose=True)
 
     # Setup Trainer based on if using Slurm or not
     if not config.use_slurm:
@@ -157,7 +159,7 @@ def train_model(config: Struct):
             val_check_interval=config.val_check_interval,
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
-            callbacks=[model_checkpoint],
+            callbacks=[early_stopping, model_checkpoint],
             logger=tb_logger)
     else:
         trainer = Trainer(
@@ -171,7 +173,7 @@ def train_model(config: Struct):
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
-            callbacks=[model_checkpoint],
+            callbacks=[early_stopping, model_checkpoint],
             logger=tb_logger)
 
     trainer.fit(model, datamodule=dm)

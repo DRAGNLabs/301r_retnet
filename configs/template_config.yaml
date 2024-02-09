@@ -74,6 +74,8 @@ use_slurm: true
 
 # Accumulate Gradient Batches (int): Accumulate gradients over n batches
 accumulate_grad_batches: 1
+# Early Stopping (int): Number of epochs to wait before stopping training
+early_stopping: 3
 # Epochs (int): Number of epochs to train for
 epochs: 1
 # Gamma (float): Learning rate scheduler gamma
