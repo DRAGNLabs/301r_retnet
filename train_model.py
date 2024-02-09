@@ -218,7 +218,7 @@ def train_model(config: Struct):
             avg_val_loss = 0
             avg_train_loss = 0
             if config.val_check_interval > 0 \
-                    and (num_val_runs + 1) / config.val_check_interval \
+                    and (num_val_runs + 1) * config.val_check_interval \
                         <= (batch_idx + 1) / len(train_loader):
                 # Print average train loss
                 avg_train_loss = train_total_loss / train_total_samples
