@@ -146,8 +146,12 @@ def train_model(config: Struct):
         monitor="val_loss",
         save_top_k=config.save_top_k,
         mode="min")
-    
-    early_stopping = EarlyStopping('val_loss', patience=config.early_stopping, mode='min', verbose=True)
+
+    early_stopping = EarlyStopping(
+        "val_loss",
+        patience=config.early_stopping,
+        mode="min",
+        verbose=True)
 
     # Setup Trainer based on if using Slurm or not
     if not config.use_slurm:

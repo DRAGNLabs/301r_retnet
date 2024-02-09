@@ -96,8 +96,6 @@ val_check_interval: 0.5
 activation_dropout: 0.0
 # Batch Size (int): Batch size for training
 batch_size: 8
-# Checkpoints (bool): Whether to save checkpoints during training
-checkpoints: false
 # Dropout (float): Probability of an element to be zeroed during dropout
 dropout: 0.1
 # Embedding Dimension (int): Embedding dimension size of each token
