@@ -16,13 +16,19 @@ def run_eval(config):
     Run evaluation on all tasks
     :return: None
     """
+
+    if config.model_path_dir is None:
+        raise ValueError("model_path_dir requires a path, but none was given.")
+    if config.results_out_path is None:
+        raise ValueError("results_out_path requires a path, but none was given.")
+    
     AutoConfig.register("retnet", RetNetConfig)
     AutoConfig.register("custom_transformer", DecoderConfig)
     AutoModel.register(RetNetConfig, RetNetModelHF)
     AutoModel.register(DecoderConfig, TransformerModelHF)
     AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
     AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
-
+    
     lm_eval.tasks.initialize_tasks()
     if config.tokenizer_path:
         results = lm_eval.simple_evaluate(
@@ -42,14 +48,8 @@ def run_eval(config):
         )
 
     print(results["results"])
-    model_name = Path(config.model_path_dir).name
-    results_out_path = config.results_out_path
 
-    if not results_out_path:
-        print(f"No results path specified, saving to {model_name}_results.json")
-        results_out_path = f"{model_name}_results.json"
-
-    with open(results_out_path, "w") as f:
+    with open(config.results_out_path, "w") as f:
         json.dump(results["results"], f, indent=4)
 
 if __name__ == "__main__":
