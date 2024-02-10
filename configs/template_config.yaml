@@ -65,8 +65,6 @@ num_nodes: 1
 num_workers: 0
 # Strategy (string): Distributed strategy for training. Likely no need to change
 strategy: "ddp" # Options: "ddp", "ddp_spawn"
-# FSDP (bool): Whether to use Fully Sharded Data Parallelism, for HuggingFace? Only used in train_model.py
-fsdp: false
 # Use Slurm (bool): Whether to use Slurm for training
 use_slurm: true
 
