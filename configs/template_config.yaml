@@ -31,6 +31,12 @@ results_out_path: "/YOUR/PATH/HERE/ TODO"
 tasks: 
   - "hellaswag"
 
+# Input Starting STrings (List[str]): A list of starting strings for generation.py.
+input_starting_strings :
+  - "Once upon a time, there was"
+  - "A long time ago, in a galaxy far, far"
+  - "It truly happened so suddenly! In one moment"
+
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 

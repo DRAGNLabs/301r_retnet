@@ -11,10 +11,6 @@ def generate_specific_text(config: Struct):
     Args:
         config (Struct): A Struct object with all configuration fields.
     """
-    input_starting_strings = [
-        "Once upon a time, there was",
-        "A long time ago, in a galaxy far, far",
-        "It truly happened so suddenly! In one moment"]
 
     # Create appropriate model type
     if config.model_type.lower() == "retnet":
@@ -40,7 +36,7 @@ def generate_specific_text(config: Struct):
     generated_strings = generate_text(
         model=model,
         tokenizer=tokenizer,
-        start_string_list=input_starting_strings,
+        start_string_list=config.input_starting_strings,
         device=device,
         seq_len=config.seq_len,
         generation_length=config.gen_len)
