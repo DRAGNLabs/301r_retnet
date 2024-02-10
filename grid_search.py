@@ -5,20 +5,19 @@ import time
 import torch
 import yaml
 
-from argparse import ArgumentParser
 from pathlib import Path
 from train_model import train_model
 from utils import Struct
 
 def evaluate_models(
-        model1: torch.nn.Module,
-        model2: torch.nn.Module,
+        model1_path: str,
+        model2_path: str,
         model1_loss: float,
         model2_loss: float):
-    """ Give comparison of two different torch.nn.Module models.
+    """ Give comparison of two different models.
     Args:
-        model1 (torch.nn.Module): First instance of model to compare.
-        model2 (torch.nn.Module): Second instance of model to compare.
+        model1_path (str): Path to first instance of model to compare.
+        model2_path (str): Path to second instance of model to compare.
         model1_loss (float): Test loss of first model.
         model2_loss (float): Test loss of second model.
 
@@ -29,7 +28,10 @@ def evaluate_models(
 
 
 def grid_search(config: Struct):
-    """ Perform grid search on the hyperparameters of the model."""
+    """ Perform grid search on the hyperparameters of the model.
+    Args:
+        config (Struct): A Struct object with all configuration fields.
+    """
     # Hyperparameters ranges to test
     learning_rates = [0.01, 0.001, 0.0001]
     embed_dims = [768, 1024, 1280]
@@ -77,12 +79,12 @@ def grid_search(config: Struct):
 
         # Train RetNet model
         retnet_start_time = time.time()
-        retnet_model, avg_loss_retnet = train_model(retnet_config)
+        retnet_model_path, retnet_best_score = train_model(retnet_config)
         retnet_training_time=time.time() - retnet_start_time
 
         # Train Transformer model with same hyperparameters as RetNet model
         transformer_start_time = time.time()
-        transformer_model, avg_loss_transformer = train_model(transformer_config)
+        transformer_model_path, transformer_best_score = train_model(transformer_config)
         transformer_training_time = time.time() - transformer_start_time
 
         # Track how much time both models combined took to train
@@ -90,10 +92,10 @@ def grid_search(config: Struct):
 
         # Compare both models
         similarity_score = evaluate_models(
-            model1=retnet_model,
-            model2=transformer_model,
-            model1_loss=avg_loss_retnet,
-            model2_loss=avg_loss_transformer)
+            model1_path=retnet_model_path,
+            model2_path=transformer_model_path,
+            model1_loss=retnet_best_score,
+            model2_loss=transformer_best_score)
 
         # Record results in CSV
         with open(Path(config.root_data_path) / "grid_search_results.csv",
@@ -103,8 +105,8 @@ def grid_search(config: Struct):
                 lr,
                 embed_dim,
                 batch_size,
-                avg_loss_retnet,
-                avg_loss_transformer,
+                retnet_best_score,
+                transformer_best_score,
                 similarity_score,
                 retnet_training_time,
                 transformer_training_time,

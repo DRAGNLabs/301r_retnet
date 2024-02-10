@@ -1,38 +1,48 @@
+# General
 import json
+import os
+import signal
 import sys
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import yaml
 
-from datasets import (load_dataset as load_ds)
+from dataset import DataModule
 from datetime import datetime
-from hugging_face_model import RetNetModelHF, TransformerModelHF
+from models import RetNetModel, TransformerModel
 from pathlib import Path
+from pytorch_lightning import Trainer, loggers as pl_loggers
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
+from pytorch_lightning.plugins.environments import SLURMEnvironment
 from tabulate import tabulate
-from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
+from transformers import set_seed
 from torchinfo import summary as model_summary
-from torchscale.architecture.config import RetNetConfig, DecoderConfig
-from tqdm import tqdm
-from transformers import (
-    AutoConfig,
-    AutoModel,
-    AutoModelForCausalLM,
-    PreTrainedTokenizerFast,
-    set_seed)
 from utils import Struct
 
 # Allow torch to run float32 matrix multiplications in lower precision for
 # better performance while training if hardware is capable
 torch.backends.cuda.matmul.allow_tf32 = True
 
-def train_model(config: Struct):
-    """ Use parameters to run train_model().
+class CustomModelCheckpoint(ModelCheckpoint):
+    def __init__(self, dirpath, filename, monitor, save_top_k, mode):
+        super().__init__(
+            dirpath=dirpath,
+            filename=filename,
+            monitor=monitor,
+            save_top_k=save_top_k,
+            mode=mode)
+        self.num_ckpts = 0
 
-        Returns:
-            A tuple of the trained model instance and the test average loss.
-    """
+    def on_save_checkpoint(self, trainer, pl_module, checkpoint):
+        super().on_save_checkpoint(
+            trainer=trainer,
+            pl_module=pl_module,
+            checkpoint=checkpoint)
+        pl_module.save_pretrained(
+            os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
+        self.num_ckpts += 1
+
+
+def train_model(config: Struct):
     # Test that the head dimension will be an even, whole number
     assert config.embed_dim % (config.heads * 2) == 0, \
         "Head Dimension must be even to perform Rotary Position Embedding " + \
@@ -50,39 +60,12 @@ def train_model(config: Struct):
         set_seed(config.rand_seed)
 
     # Create requested model
-    if config.model_type == "retnet":
-        AutoConfig.register("retnet", RetNetConfig)
-        AutoModel.register(RetNetConfig, RetNetModelHF)
-        AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
-        HF_config = RetNetConfig(
-            decoder_embed_dim=config.embed_dim,
-            decoder_value_embed_dim=config.value_embed_dim,
-            decoder_retention_heads=config.heads,
-            decoder_ffn_embed_dim=config.ffn_dim,
-            decoder_layers=config.layers,
-            dropout=config.dropout,
-            activation_dropout=config.activation_dropout,
-            vocab_size=config.vocab_size,
-            fsdp=config.fsdp,
-            max_seq_len=config.seq_len)
-        model = RetNetModelHF(HF_config)
-
-    elif config.model_type == "transformer":
-        AutoConfig.register("custom_transformer", DecoderConfig)
-        AutoModel.register(DecoderConfig, TransformerModelHF)
-        AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
-        HF_config = DecoderConfig(
-            decoder_embed_dim=config.embed_dim,
-            decoder_value_embed_dim=config.value_embed_dim,
-            decoder_attention_heads=config.heads,
-            decoder_ffn_embed_dim=config.ffn_dim,
-            decoder_layers=config.layers,
-            dropout=config.dropout,
-            activation_dropout=config.activation_dropout,
-            vocab_size=config.vocab_size,
-            fsdp=config.fsdp,
-            max_seq_len=config.seq_len)
-        model = TransformerModelHF(HF_config)
+    if config.model_type.lower() == "retnet":
+        model = RetNetModel(config)
+    elif config.model_type.lower() == "transformer":
+        model = TransformerModel(config)
+    else:
+        raise ValueError(f"Model type '{config.model_type}' not supported!")
 
     # Print all arguments for recordkeeping
     print("Arguments:")
@@ -103,31 +86,36 @@ def train_model(config: Struct):
         model,
         input_data=torch.ones(1, config.seq_len).long()).total_params
 
-    # Create unique label for model (timestamp, model type, parameter count)
-    model_label = f"{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}_" + \
-        f"{config.model_type}_{total_params}"
+    # Create unique label for model (model type, parameter count,
+    # **hyperparameters, timestamp)
+    model_label = f"{config.model_type}_{total_params}" + \
+        f"_LR{config.learning_rate}_ED{config.embed_dim}" + \
+        f"_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}" + \
+        f"_{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
-    model_dir.mkdir(parents=True, exist_ok=False)
+    model_dir.mkdir(parents=True, exist_ok=True)
     print(f"Saving model files in {model_dir}")
 
-    # Initialize weights directory
-    weights_dir = model_dir / "weights"
-    weights_dir.mkdir(parents=False, exist_ok=False)
-    print(f"Saving weight files in {weights_dir}")
+    # Initialize checkpoints directory
+    checkpoints_dir = model_dir / "checkpoints"
+    checkpoints_dir.mkdir(parents=False, exist_ok=True)
+    print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
     if config.tboard_path is None:
         tboard_log_dir = Path(config.models_path) / "logs" / model_label
     else:
-        tboard_log_dir = f"{config.tboard_path}/logs/{model_label}"
-    writer = SummaryWriter(log_dir=tboard_log_dir)
+        tboard_log_dir = f"{config.tboard_path}/{model_label}"
+
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
+    tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
+
     # Save all the variables in args as JSON inside folder
-    json_string = json.dump(
-        obj=config.get_config_dict(),
+    json.dump(
+        obj=arg_table,
         fp=open(model_dir / "model_args.json", "w"),
         indent=4)
 
@@ -136,194 +124,68 @@ def train_model(config: Struct):
     print(f"-log(1 / {config.vocab_size}) = " + \
         f"{-torch.log(torch.tensor(1 / config.vocab_size))}")
 
-    # Get Tokenizer from local directory
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
-
     # Loads Tokenized data
-    tokenized_train = load_ds(
-        "parquet",
-        data_files=str(Path(config.tokenized_dataset_path) / "train.parquet"),
-        split="all")
-    tokenized_val = load_ds(
-        "parquet",
-        data_files=str(Path(
-            config.tokenized_dataset_path) / "validation.parquet"),
-        split="all")
-    tokenized_test = load_ds(
-        "parquet",
-        data_files=str(Path(config.tokenized_dataset_path) / "test.parquet"),
-        split="all")
+    print(f"\nNow loading '{config.dataset_name}'")
 
-    train_loader = DataLoader(
-        tokenized_train.with_format("torch")["input_ids"],
-        batch_size=config.batch_size,
-        shuffle=True)
-    valid_loader = DataLoader(
-        tokenized_val.with_format("torch")["input_ids"],
-        batch_size=config.batch_size)
-    test_loader = DataLoader(
-        tokenized_test.with_format("torch")["input_ids"],
-        batch_size=config.batch_size)
+    dm = DataModule(config)
 
-    # Define loss function
-    loss_fn = nn.CrossEntropyLoss(reduction="mean")
+    # Implement callbacks
+    model_checkpoint = CustomModelCheckpoint(
+        dirpath=checkpoints_dir,
+        filename="epoch_{epoch}_validation_{val_loss:.2f}",
+        monitor="val_loss",
+        save_top_k=config.save_top_k,
+        mode="min")
 
-    # Define optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
+    early_stopping = EarlyStopping(
+        "val_loss",
+        patience=config.early_stopping,
+        mode="min",
+        verbose=True)
 
-    # Define the device to use
-    device = torch.device(config.device)
+    # Setup Trainer based on if using Slurm or not
+    if not config.use_slurm:
+        trainer = Trainer(
+            default_root_dir=model_dir, # main directory for run
+            accelerator=config.device,
+            devices=config.num_devices,
+            max_epochs=config.epochs,
+            val_check_interval=config.val_check_interval,
+            accumulate_grad_batches=config.accumulate_grad_batches,
+            sync_batchnorm=True,
+            callbacks=[early_stopping, model_checkpoint],
+            logger=tb_logger)
+    else:
+        trainer = Trainer(
+            default_root_dir=model_dir, # main directory for run
+            accelerator=config.device,
+            num_nodes=config.num_nodes,
+            devices=config.num_devices,
+            strategy=config.strategy,
+            max_epochs=config.epochs,
+            val_check_interval=config.val_check_interval,
+            accumulate_grad_batches=config.accumulate_grad_batches,
+            sync_batchnorm=True,
+            plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
+            callbacks=[early_stopping, model_checkpoint],
+            logger=tb_logger)
 
-    # Compile model and put on device
-    model = torch.compile(model).to(device)
+    trainer.fit(model, datamodule=dm)
 
-    # Train the model
-    num_val_runs = 0
-    for num_epoch in range(config.epochs):
-        print(f"\nEpoch #{num_epoch}")
-
-        model.train()
-        train_total_loss = 0
-        train_total_samples = 0
-        for batch_idx, train_batch_seqs in enumerate(tqdm(
-                train_loader,
-                desc="Train")):
-            # Put inputs and targets on device
-            inputs = train_batch_seqs[:, :-1].to(device, non_blocking=True)
-            targets = train_batch_seqs[:, 1:].to(device, non_blocking=True)
-
-            # Zero out gradients
-            optimizer.zero_grad()
-
-            # Get model predictions
-            predictions = model(inputs)
-
-            # Reshape the model predictions for Cross Entropy
-            predictions = predictions.transpose(-2, -1)
-
-            # Calculate loss
-            loss = loss_fn(predictions, targets)
-            train_total_loss += loss * len(inputs)
-            train_total_samples += len(inputs)
-
-            # Backpropagate loss
-            loss.backward()
-
-            # Update parameters
-            optimizer.step()
-
-            # Run validation val_freq times per epoch. To do this, we split up
-            # the epoch into val_freq chunks and run validation after each chunk
-            # is finished.
-            avg_val_loss = 0
-            avg_train_loss = 0
-            if config.validation_frequency > 0 \
-                    and (num_val_runs + 1) / config.validation_frequency \
-                        <= (batch_idx + 1) / len(train_loader):
-                # Print average train loss
-                avg_train_loss = train_total_loss / train_total_samples
-                print("Average Train Loss Since Last Validation Run: " + \
-                    f"{avg_train_loss}")
-                train_total_loss = 0
-                train_total_samples = 0
-
-                print("Taking a break to run validation....")
-                model.eval()
-                val_total_loss = 0
-                val_total_samples = 0
-                with torch.inference_mode():
-                    for val_batch_seqs in tqdm(valid_loader, desc="Validate"):
-                        # Put validation inputs and targets on device
-                        val_inputs = val_batch_seqs[:, :-1].to(
-                            device,
-                            non_blocking=True)
-                        val_targets = val_batch_seqs[:, 1:].to(
-                            device,
-                            non_blocking=True)
-
-                        # Get validation predictions
-                        val_predictions = model(val_inputs)
-
-                        # Reshape the model predictions for Cross Entropy
-                        val_predictions = val_predictions.transpose(-2, -1)
-
-                        # Calculate validation loss
-                        val_loss = loss_fn(val_predictions, val_targets)
-                        val_total_loss += val_loss.item() * len(val_inputs)
-                        val_total_samples += len(val_inputs)
-
-                    # Print average validation loss
-                    avg_val_loss = val_total_loss / val_total_samples
-                    print(f"\nAverage Validation Loss: {avg_val_loss}")
-
-                # Log training and validation average loss
-                writer.add_scalar(
-                    tag="Loss/train",
-                    scalar_value=avg_train_loss,
-                    global_step=num_val_runs)
-                writer.add_scalar(
-                    tag="Loss/validation",
-                    scalar_value=avg_val_loss,
-                    global_step=num_val_runs)
-
-                # If checkpoints are to be saved
-                if config.checkpoints:
-                    # Save current weights of the model
-                    weight_filename = f"epoch_{num_epoch}_validation_" + \
-                        f"{num_val_runs}.pt"
-                    torch.save(
-                        model.state_dict(),
-                        weights_dir / weight_filename)
-                    print(f"Saved weights as {weight_filename}")
-
-                # Update how many validation runs there have been
-                num_val_runs += 1
-
-    # Test the model
     print("\nDone training! Now testing model...")
-    model.eval()
-    total_loss = 0
-    total_samples = 0
-    with torch.inference_mode():
-        for test_batch_seqs in tqdm(test_loader, desc="Test"):
-            # Put inputs and targets on device
-            inputs = test_batch_seqs[:, :-1].to(device, non_blocking=True)
-            targets = test_batch_seqs[:, 1:].to(device, non_blocking=True)
 
-            # Get model predictions
-            predictions = model(inputs)
+    # Automatically load best checkpoint and test with test dataloader
+    trainer.test(model, datamodule=dm)
 
-            # Reshape the model predictions for Cross Entropy
-            predictions = predictions.transpose(-2, -1)
+    print("Finished training!")
 
-            # Calculate loss
-            loss = loss_fn(predictions, targets)
-            total_loss += loss.item() * len(inputs)
-            total_samples += len(inputs)
+    # Retrieve info of the best checkpoint file
+    best_model_path = model_checkpoint.best_model_path
+    best_model_score = model_checkpoint.best_model_score
+    print(f"Best Checkpoint File Path: {best_model_path}")
+    print(f"Best Model Score: {best_model_score}")
 
-    # Print average testing loss
-    avg_loss = total_loss / total_samples
-    print(f"Average Test Loss: {avg_loss}")
-
-    # Save hyperparameters and metrics in logs
-    writer.add_hparams(
-        hparam_dict=model.get_params(),
-        metric_dict={
-            "Loss/train": avg_train_loss,
-            "Loss/validation": avg_val_loss,
-            "Loss/test": avg_loss})
-
-    # Close SummaryWriter
-    writer.close()
-
-    # Save completed model
-    model.save_pretrained(model_dir)
-    print(f"Saved completed model in {model_dir}")
-    weight_filename = "training_completed.pt"
-    torch.save(model.state_dict(), weights_dir / weight_filename)
-    print(f"Saved final weights as {weight_filename}")
-
-    return model, avg_loss
+    return best_model_path, best_model_score
 
 
 if __name__ == "__main__":

@@ -16,7 +16,35 @@
 #
 # Do not Add a YAML config to a git commit unless you have a good reason.
 
-# ---------------------------- DATASET CONFIGURATION ---------------------------
+# -------------------- TESTING AND GENERATION CONFIGURATION --------------------
+
+# Generation Length (int): Maximum number of tokens during generation
+gen_len: 100
+
+# Input Starting Strings (List[str]): Starting strings for generation.py
+input_starting_strings:
+  - "Once upon a time, there was"
+  - "A long time ago, in a galaxy far, far"
+  - "It truly happened so suddenly! In one moment"
+
+# Model Path Directory (str): Path to model to run test harness on.
+# Example: "/tmp/data/models/MODEL_NAME/checkpoints/hf_ckpt_{checkpoint_num}"
+model_path_dir: ~
+
+# Results Out Path (str): JSON file path where test harness results are stored.
+# Example: "/YOUR/PATH/HERE/data/models/MODEL_NAME/eval_results.json"
+results_out_path: ~
+
+# Tasks (List[str]): A list of tests to apply in the evaluation test harness
+tasks:
+  - "hellaswag"
+  - "winogrande"
+
+# ----------------------- DATASET AND PATH CONFIGURATION -----------------------
+
+# Checkpoint Path (str): Path to checkpoint to load for generation/inference.
+# Typically is the "best_model_path" from training
+checkpoint_path: ~
 
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: "text"
@@ -25,69 +53,87 @@ dataset_name: "wikitext"
 # HuggingFace Dataset Subset (str)
 dataset_subset: "wikitext-2-v1"
 
-# Root Data Path: Useful for any new features that don't want to specify a new
-# path parameter in the config
-root_data_path: "/YOUR/PATH/HERE/data"
-
-# Download Data: Path to raw dataset folder
-raw_dataset_path: "/YOUR/PATH/HERE/data/datasets/wikitext"
-
-# Train Tokenizer: Path to tokenizer folder
-tokenizer_path: "/YOUR/PATH/HERE/data/tokenizers/wikitext_tokenizer"
-
-# Tokenize Data: Path to tokenized dataset folder
-tokenized_dataset_path: "/YOUR/PATH/HERE/data/tokenized_dataset/wikitext"
-
-# Train Model: Path to model folder
+# Train Model (str): Path to model folder
 models_path: "/YOUR/PATH/HERE/data/models"
 
-# TensorBoard Path
-tboard_path: ~
+# Root Data Path (str): Useful for any new features that don't want to specify a
+# new path parameter in the config
+root_data_path: "/YOUR/PATH/HERE/data"
 
-# Splits: Train split, Validation Split, and Test Split
+# Download Data (str): Path to raw dataset folder
+raw_dataset_path: "/YOUR/PATH/HERE/data/datasets/wikitext"
+
+# Splits (List[int]): Train split, Validation Split, and Test Split
 splits:
   - 0.7
   - 0.2
   - 0.1
 
-# ------------------------ MODEL TRAINING CONFIGURATION ------------------------
+# Train Tokenizer (str): Path to tokenizer folder
+tokenizer_path: "/YOUR/PATH/HERE/data/tokenizers/wikitext_tokenizer"
+
+# Tokenize Data (str): Path to tokenized dataset folder
+tokenized_dataset_path: "/YOUR/PATH/HERE/data/tokenized_dataset/wikitext"
+
+# TensorBoard Path (str): Path for where TensorBoard files go, optional
+tboard_path: "/YOUR/PATH/HERE/data/runs"
+
+# ---------------------------- DEVICE CONFIGURATION ----------------------------
+
+# Device Type (str): Device to train on
+device: "cuda" # Options: "cpu", "cuda"
+# Number of GPUs (int)
+num_devices: 1
+# Number of Nodes (int)
+num_nodes: 1
+# Num Workers (int): Number of workers for dataloaders. Recommended to set to
+# one less than number of CPU cores available
+num_workers: 0
+# Strategy (string): Distributed strategy for training. Likely no need to change
+strategy: "ddp" # Options: "ddp", "ddp_spawn"
+# Use Slurm (bool): Whether to use Slurm for training
+use_slurm: true
+
+# --------------------------- TRAINING CONFIGURATION ---------------------------
+
+# Accumulate Gradient Batches (int): Accumulate gradients over n batches
+accumulate_grad_batches: 1
+# Early Stopping (int): Number of epochs to wait before stopping training
+early_stopping: 3
+# Epochs (int): Number of epochs to train for
+epochs: 1
+# Gamma (float): Learning rate scheduler gamma
+gamma: 0.85
+# Learning Rate (float): Learning rate of model to train
+learning_rate: 0.001
+# Random Seed (int): Random seed for reproducibility
+rand_seed: 42
+# Save Top K (int): Number of best models to save
+save_top_k: 3
+# Validation Check Interval (float): Validation frequency (fraction of an epoch)
+val_check_interval: 0.5
+
+# ---------------------------- MODEL CONFIGURATION -----------------------------
 
 # Activation Dropout (float): Probability of an element to be zeroed during
 # dropout after activation between FFN layers
 activation_dropout: 0.0
 # Batch Size (int): Batch size for training
 batch_size: 8
-# Checkpoints (bool): Whether to save checkpoints during training
-checkpoints: false
-# Device Configuration (str)
-device: "cuda" # Choices: "cpu", "cuda"
 # Dropout (float): Probability of an element to be zeroed during dropout
 dropout: 0.1
 # Embedding Dimension (int): Embedding dimension size of each token
 embed_dim: 80
-# Epochs (int): Number of epochs to train for
-epochs: 1
 # FFN Dimension (int): Hidden layer size of Feed Forward Network (FFN)
 ffn_dim: 12
-# Fully Sharded Data Parallel (bool): Whether to shard Module parameters across
-# data parallel workers or not (with the FairScale library)
-fsdp: false
 # Heads (int): Number of heads. Head architecture changes based on model
 heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
-# Learning Rate (float)
-learning_rate: 0.001
 # Model Type (str): Name of model architecture to train
 model_type: "retnet" # Choices: "retnet", "transformer"
-# Number of GPUs (int)
-num_devices: 1
-# Random Seed (int): For reproducibility
-rand_seed: 42
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
-# Validation Frequency (int): Number of times to validate per epoch
-validation_frequency: 3
 # Value Embedding Dimension (int): Value embed dimension size
 value_embed_dim: 12
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
