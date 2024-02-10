@@ -300,25 +300,18 @@ class TransformerModel(LightningModule):
 
 class RetNetModelHF(PreTrainedModel):
     """ Create model with RetNet architecture. """
-    config_class = RetNetConfig
-
-    def __init__(
-            self,
-            config: Optional[Union[RetNetConfig, str]] = None):
-        """ Use parameters to create corresponding RetNet model.
+    def __init__(self, config: Optional[RetNetConfig]=None):
+        """ Use configuration object to create corresponding RetNet model.
         Args:
-            config (Union[RetNetConfig, str]): RetNet configuration object or
-                string name of a RetNet model.
+            config (RetNetConfig): A RetNet configuration object.
         """
         # Create RetNet configuration
-        if not config:
+        if config is None:
             self.config = RetNetConfig()
-        elif isinstance(config, str):
-            self.config = RetNetConfig.from_pretrained(config)
         elif isinstance(config, RetNetConfig):
             self.config = config
         else:
-            raise ValueError("Config must be str or RetNetConfig object.")
+            raise ValueError("If given, config must be a RetNetConfig object.")
 
         super().__init__(self.config)
 
@@ -356,24 +349,19 @@ class RetNetModelHF(PreTrainedModel):
 
 
 class TransformerModelHF(PreTrainedModel):
-    config_class = DecoderConfig
-
-    def __init__(
-            self, config: Optional[Union[DecoderConfig, str]] = None):
-        """ Use parameters to create corresponding Transformer model.
+    """ Create model with Transformer architecture. """
+    def __init__(self, config: Optional[DecoderConfig]=None):
+        """ Use configuration object to create corresponding Transformer model.
         Args:
-            config (Union[DecoderConfig, str]): Transformer configuration object
-                or string name of a Transformer model.
+            config (DecoderConfig): A Decoder configuration object.
         """
         # Create Transformer configuration
         if not config:
             self.config = DecoderConfig()
-        elif isinstance(config, str):
-            self.config = DecoderConfig.from_pretrained(config)
         elif isinstance(config, DecoderConfig):
             self.config = config
         else:
-            raise ValueError("Config must be str or DecoderConfig object.")
+            raise ValueError("If given, config must be a DecoderConfig object.")
 
         super().__init__(self.config)
 
