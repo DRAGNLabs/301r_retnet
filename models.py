@@ -301,6 +301,8 @@ class TransformerModel(LightningModule):
 
 class RetNetModelHF(PreTrainedModel):
     """ Create model with RetNet architecture. """
+    config_class = RetNetConfig
+
     def __init__(self, config: Optional[RetNetConfig]=None):
         """ Use configuration object to create corresponding RetNet model.
         Args:
@@ -351,6 +353,8 @@ class RetNetModelHF(PreTrainedModel):
 
 class TransformerModelHF(PreTrainedModel):
     """ Create model with Transformer architecture. """
+    config_class = DecoderConfig
+
     def __init__(self, config: Optional[DecoderConfig]=None):
         """ Use configuration object to create corresponding Transformer model.
         Args:

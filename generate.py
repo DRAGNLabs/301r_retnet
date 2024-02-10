@@ -32,7 +32,7 @@ def generate_specific_text(config: Struct):
     device = torch.device(config.device)
 
     # Get completed strings
-    print("\nGenerating text...")
+    print("Generating text...")
     generated_strings = generate_text(
         model=model,
         tokenizer=tokenizer,

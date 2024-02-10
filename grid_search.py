@@ -10,14 +10,14 @@ from train_model import train_model
 from utils import Struct
 
 def evaluate_models(
-        model1: torch.nn.Module,
-        model2: torch.nn.Module,
+        model1_path: str,
+        model2_path: str,
         model1_loss: float,
         model2_loss: float):
-    """ Give comparison of two different torch.nn.Module models.
+    """ Give comparison of two different models.
     Args:
-        model1 (torch.nn.Module): First instance of model to compare.
-        model2 (torch.nn.Module): Second instance of model to compare.
+        model1_path (str): Path to first instance of model to compare.
+        model2_path (str): Path to second instance of model to compare.
         model1_loss (float): Test loss of first model.
         model2_loss (float): Test loss of second model.
 
@@ -92,8 +92,8 @@ def grid_search(config: Struct):
 
         # Compare both models
         similarity_score = evaluate_models(
-            model1=retnet_model,
-            model2=transformer_model,
+            model1_path=retnet_model_path,
+            model2_path=transformer_model_path,
             model1_loss=retnet_best_score,
             model2_loss=transformer_best_score)
 

@@ -4,7 +4,7 @@ import sys
 import yaml
 
 from argparse import ArgumentParser
-from hugging_face_model import RetNetModelHF, TransformerModelHF
+from models import RetNetModelHF, TransformerModelHF
 from pathlib import Path
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from transformers import AutoModel, AutoConfig, AutoModelForCausalLM

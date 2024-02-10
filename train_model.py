@@ -175,7 +175,7 @@ def train_model(config: Struct):
     print("\nDone training! Now testing model...")
 
     # Automatically load best checkpoint and test with test dataloader
-    trainer.test(datamodule=dm)
+    trainer.test(model, datamodule=dm)
 
     print("Finished training!")
 
@@ -183,7 +183,7 @@ def train_model(config: Struct):
     best_model_path = model_checkpoint.best_model_path
     best_model_score = model_checkpoint.best_model_score
     print(f"Best Checkpoint File Path: {best_model_path}")
-    print(f"Best Model Score: {best_model_score")
+    print(f"Best Model Score: {best_model_score}")
 
     return best_model_path, best_model_score
 

@@ -59,14 +59,21 @@ class DataModule(LightningDataModule):
     def train_dataloader(self):
         """ Return training PyTorch DataLoader. """
         return DataLoader(
-            self.train_dataset,
+            dataset=self.train_dataset,
             batch_size=self.batch_size,
-            shuffle=True)
+            shuffle=True,
+            num_workers=self.num_workers)
 
     def val_dataloader(self):
         """ Return validation PyTorch DataLoader. """
-        return DataLoader(self.val_dataset, batch_size=self.batch_size)
+        return DataLoader(
+            dataset=self.val_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers)
 
     def test_dataloader(self):
         """ Return testing PyTorch DataLoader. """
-        return DataLoader(self.test_dataset, batch_size=self.batch_size)
+        return DataLoader(
+            dataset=self.test_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers)
