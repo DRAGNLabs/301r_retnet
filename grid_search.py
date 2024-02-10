@@ -28,7 +28,10 @@ def evaluate_models(
 
 
 def grid_search(config: Struct):
-    """ Perform grid search on the hyperparameters of the model."""
+    """ Perform grid search on the hyperparameters of the model.
+    Args:
+        config (Struct): A Struct object with all configuration fields.
+    """
     # Hyperparameters ranges to test
     learning_rates = [0.01, 0.001, 0.0001]
     embed_dims = [768, 1024, 1280]
