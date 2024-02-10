@@ -189,7 +189,13 @@ def train_model(config: Struct):
 
     print("Finished training!")
 
-    return model, trainer.callback_metrics["test_loss"].item()
+    # Retrieve info of the best checkpoint file
+    best_model_path = model_checkpoint.best_model_path
+    best_model_score = model_checkpoint.best_model_score
+    print(f"Best Checkpoint File Path: {best_model_path}")
+    print(f"Best Model Score: {best_model_score")
+
+    return best_model_path, best_model_score
 
 
 if __name__ == "__main__":

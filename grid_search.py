@@ -76,12 +76,12 @@ def grid_search(config: Struct):
 
         # Train RetNet model
         retnet_start_time = time.time()
-        retnet_model, avg_loss_retnet = train_model(retnet_config)
+        retnet_model_path, retnet_best_score = train_model(retnet_config)
         retnet_training_time=time.time() - retnet_start_time
 
         # Train Transformer model with same hyperparameters as RetNet model
         transformer_start_time = time.time()
-        transformer_model, avg_loss_transformer = train_model(transformer_config)
+        transformer_model_path, transformer_best_score = train_model(transformer_config)
         transformer_training_time = time.time() - transformer_start_time
 
         # Track how much time both models combined took to train
@@ -91,8 +91,8 @@ def grid_search(config: Struct):
         similarity_score = evaluate_models(
             model1=retnet_model,
             model2=transformer_model,
-            model1_loss=avg_loss_retnet,
-            model2_loss=avg_loss_transformer)
+            model1_loss=retnet_best_score,
+            model2_loss=transformer_best_score)
 
         # Record results in CSV
         with open(Path(config.root_data_path) / "grid_search_results.csv",
@@ -102,8 +102,8 @@ def grid_search(config: Struct):
                 lr,
                 embed_dim,
                 batch_size,
-                avg_loss_retnet,
-                avg_loss_transformer,
+                retnet_best_score,
+                transformer_best_score,
                 similarity_score,
                 retnet_training_time,
                 transformer_training_time,
