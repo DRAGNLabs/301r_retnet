@@ -16,9 +16,15 @@
 #
 # Do not Add a YAML config to a git commit unless you have a good reason.
 
+# -------------------------- GENERATION CONFIGURATION --------------------------
+
+# Generation Length (int): Maximum number of tokens during generation
+gen_len: 100
+
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
-# Checkpoint Path: path to checkpoint to load for generation/inference
+# Checkpoint Path (str): Path to checkpoint to load for generation/inference.
+# Typically is the "best_model_path" from training
 checkpoint_path: ~
 
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
