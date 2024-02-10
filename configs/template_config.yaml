@@ -51,29 +51,29 @@ dataset_name: "wikitext"
 # HuggingFace Dataset Subset (str)
 dataset_subset: "wikitext-2-v1"
 
-# Train Model: Path to model folder
+# Train Model (str): Path to model folder
 models_path: "/YOUR/PATH/HERE/data/models"
 
-# Root Data Path: Useful for any new features that don't want to specify a new
+# Root Data Path (str): Useful for any new features that don't want to specify a new
 # path parameter in the config
 root_data_path: "/YOUR/PATH/HERE/data"
 
-# Download Data: Path to raw dataset folder
+# Download Data (str): Path to raw dataset folder
 raw_dataset_path: "/YOUR/PATH/HERE/data/datasets/wikitext"
 
-# Splits: Train split, Validation Split, and Test Split
+# Splits (List[int]): Train split, Validation Split, and Test Split
 splits:
   - 0.7
   - 0.2
   - 0.1
 
-# Train Tokenizer: Path to tokenizer folder
+# Train Tokenizer (str): Path to tokenizer folder
 tokenizer_path: "/YOUR/PATH/HERE/data/tokenizers/wikitext_tokenizer"
 
-# Tokenize Data: Path to tokenized dataset folder
+# Tokenize Data (str): Path to tokenized dataset folder
 tokenized_dataset_path: "/YOUR/PATH/HERE/data/tokenized_dataset/wikitext"
 
-# TensorBoard Path, optional
+# TensorBoard Path (str): Path for where TensorBoard files go, optional
 tboard_path: "/YOUR/PATH/HERE/data/runs"
 
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
