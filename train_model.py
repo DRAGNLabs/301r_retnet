@@ -197,4 +197,4 @@ if __name__ == "__main__":
 
     config = Struct(**config)
 
-    model, test_loss = train_model(config)
+    train_model(config)
