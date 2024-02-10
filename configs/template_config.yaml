@@ -16,7 +16,7 @@
 #
 # Do not Add a YAML config to a git commit unless you have a good reason.
 
-# -------------------------- TESTING AND GENERATION CONFIGURATION --------------------------
+# -------------------- TESTING AND GENERATION CONFIGURATION --------------------
 
 # Generation Length (int): Maximum number of tokens during generation
 gen_len: 100
@@ -30,14 +30,19 @@ input_starting_strings :
 # Model Path Directory (str): Path to model to use
 model_path_dir: "/YOUR/PATH/HERE/ TODO"
 
-# Results Out Path (str): Optional, path to where results for run_eval.py will be stored
+# Results Out Path (str): Path to where run_eval.py results will be stored
 results_out_path: "/YOUR/PATH/HERE/ TODO"
 
-# Tasks (List[str]): A list of tests to apply in the test harness
+# Tasks (List[str]): A list of tests to apply in the evaluation test harness
 tasks: 
   - "hellaswag"
   - "winogrande"
 
+# Input Starting Strings (List[str]): Starting strings for generation.py
+input_starting_strings:
+  - "Once upon a time, there was"
+  - "A long time ago, in a galaxy far, far"
+  - "It truly happened so suddenly! In one moment"
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
@@ -55,8 +60,8 @@ dataset_subset: "wikitext-2-v1"
 # Train Model (str): Path to model folder
 models_path: "/YOUR/PATH/HERE/data/models"
 
-# Root Data Path (str): Useful for any new features that don't want to specify a new
-# path parameter in the config
+# Root Data Path (str): Useful for any new features that don't want to specify a
+# new path parameter in the config
 root_data_path: "/YOUR/PATH/HERE/data"
 
 # Download Data (str): Path to raw dataset folder
