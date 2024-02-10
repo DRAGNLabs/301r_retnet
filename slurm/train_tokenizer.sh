@@ -7,9 +7,12 @@
 #SBATCH -J "train_tokenizer"   # job name
 #SBATCH --output=%x_%j.out
 
-# Set the max number of threads to use for programs using OpenMP. Should be <= ppn. Does nothing if the program doesn't use OpenMP.
+# Set the max number of threads to use for programs using OpenMP. Should be <=
+# ppn. Does nothing if the program doesn't use OpenMP.
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate retnet
-python3 ../../train_tokenizer.py ../../configs/user_configs/YOUR_CONFIG_HERE.yaml
+python3 \
+    ../../train_tokenizer.py \
+    ../../configs/user_configs/YOUR_CONFIG_HERE.yaml
