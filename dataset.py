@@ -1,8 +1,7 @@
+from datasets import load_dataset
 from pathlib import Path
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader
-
-from datasets import load_dataset
 from utils import Struct
 
 class DataModule(LightningDataModule):

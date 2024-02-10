@@ -1,31 +1,21 @@
 # General
-from datetime import datetime
 import json
 import os
 import signal
 import sys
+import torch
 import yaml
 
-# Torch
-import torch
-from torchinfo import summary as model_summary
-
-# PyTorch Lightning
-from pytorch_lightning import Trainer
-from pytorch_lightning.plugins.environments import SLURMEnvironment
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
-from pytorch_lightning import loggers as pl_loggers
-
-# Hugging Face
-from transformers import set_seed
-
-# Other
-from pathlib import Path
-from tabulate import tabulate
-
-# Local
-from models import RetNetModel, TransformerModel
 from dataset import DataModule
+from datetime import datetime
+from models import RetNetModel, TransformerModel
+from pathlib import Path
+from pytorch_lightning import Trainer, loggers as pl_loggers
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
+from pytorch_lightning.plugins.environments import SLURMEnvironment
+from tabulate import tabulate
+from transformers import set_seed
+from torchinfo import summary as model_summary
 from utils import Struct
 
 # Allow torch to run float32 matrix multiplications in lower precision for

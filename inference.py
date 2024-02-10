@@ -1,18 +1,17 @@
-from datetime import datetime
 import sys
 import signal
 import torch
-from torchinfo import summary as model_summary
 import yaml
 
-from pytorch_lightning import Trainer
-from pytorch_lightning.plugins.environments import SLURMEnvironment
-from pytorch_lightning import loggers as pl_loggers
-
-from pathlib import Path
-from dataset import DataModule
 from models import RetNetModel, TransformerModel
+from dataset import DataModule
+from datetime import datetime
+from pathlib import Path
+from pytorch_lightning import Trainer, loggers as pl_loggers
+from pytorch_lightning.plugins.environments import SLURMEnvironment
+from torchinfo import summary as model_summary
 from utils import Struct
+
 
 def inference(config: Struct):
     """

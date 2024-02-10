@@ -1,7 +1,8 @@
-from pytorch_lightning import LightningModule
 import torch
-from torch import Tensor
 import torch.nn as nn
+
+from pytorch_lightning import LightningModule
+from torch import Tensor
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
