@@ -3,9 +3,9 @@ import signal
 import torch
 import yaml
 
-from models import RetNetModel, TransformerModel
 from dataset import DataModule
 from datetime import datetime
+from models import RetNetModel, TransformerModel
 from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
 from pytorch_lightning.plugins.environments import SLURMEnvironment
