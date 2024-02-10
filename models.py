@@ -10,13 +10,16 @@ from typing import Optional, Union
 from utils import Struct
 
 class RetNetModel(LightningModule):
-    """ 
-    Create model with RetNet architecture.
+    """ Create model with RetNet architecture.
 
-    This is a LightningModule that wraps around a 
-    HuggingFace class, containing the RetNet architecture.
+    This is a LightningModule that wraps around a HuggingFace class containing
+    the RetNet architecture.
     """
     def __init__(self, config: Struct):
+        """
+        Args:
+            config (Struct): A Struct object with all configuration fields.
+        """
         super().__init__()
         self.learning_rate = config.learning_rate
         self.gamma = config.gamma
@@ -54,9 +57,7 @@ class RetNetModel(LightningModule):
         return preds
 
     def training_step(self, batch: Tensor, batch_idx: int):
-        """
-        Training step, called automatically by PyTorch Lightning.
-        """
+        """ Training step, called automatically by PyTorch Lightning. """
         # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
@@ -83,9 +84,7 @@ class RetNetModel(LightningModule):
         return loss
 
     def validation_step(self, batch: Tensor, batch_idx: int):
-        """
-        Validation step, called automatically by PyTorch Lightning.
-        """
+        """ Validation step, called automatically by PyTorch Lightning. """
         # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
@@ -112,9 +111,7 @@ class RetNetModel(LightningModule):
         return loss
 
     def test_step(self, batch: Tensor, batch_idx: int):
-        """
-        Test step, called automatically by PyTorch Lightning.
-        """
+        """ Test step, called automatically by PyTorch Lightning. """
         # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
@@ -145,24 +142,30 @@ class RetNetModel(LightningModule):
         return self.model_hf.get_params()
 
     def configure_optimizers(self):
-        """Configure optimizer and learning rate scheduler for Lightning to use."""
+        """ Configure optimizer and learning rate scheduler. """
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.gamma)
         return [optimizer], [lr_scheduler]
 
     def save_pretrained(self, save_folder: str):
-        """ Save model weights and parameters to folder. """
+        """ Save model weights and parameters to folder.
+        Args:
+            save_folder (str): Path to folder to save trained model.
+        """
         self.model_hf.save_pretrained(save_folder)
 
 
 class TransformerModel(LightningModule):
-    """
-    Create model with Transformer architecture.
+    """ Create model with Transformer architecture.
 
-    This is a LightningModule that wraps around a
-    HuggingFace class, containing the Transformer architecture.
+    This is a LightningModule that wraps around a HuggingFace class containing
+    the Transformer architecture.
     """
     def __init__(self, config: Struct):
+        """
+        Args:
+            config (Struct): A Struct object with all configuration fields.
+        """
         super().__init__()
         self.learning_rate = config.learning_rate
         self.gamma = config.gamma
@@ -198,9 +201,7 @@ class TransformerModel(LightningModule):
         return preds
 
     def training_step(self, batch: Tensor, batch_idx: int):
-        """
-        Training step, called automatically by PyTorch Lightning.
-        """
+        """ Training step, called automatically by PyTorch Lightning. """
         # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
@@ -226,9 +227,7 @@ class TransformerModel(LightningModule):
         return loss
 
     def validation_step(self, batch: Tensor, batch_idx: int):
-        """
-        Validation step, called automatically by PyTorch Lightning.
-        """
+        """ Validation step, called automatically by PyTorch Lightning. """
         # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
@@ -254,9 +253,7 @@ class TransformerModel(LightningModule):
         return loss
 
     def test_step(self, batch: Tensor, batch_idx: int):
-        """
-        Test step, called automatically by PyTorch Lightning.
-        """
+        """ Test step, called automatically by PyTorch Lightning. """
         # Unpack batch
         inputs = batch[:, :-1]
         targets = batch[:, 1:]
@@ -286,7 +283,7 @@ class TransformerModel(LightningModule):
         return self.model_hf.get_params()
 
     def configure_optimizers(self):
-        """ Configure optimizer and learning rate scheduler for Lightning to use. """
+        """ Configure optimizer and learning rate scheduler. """
         optimizer = torch.optim.Adam(
             self.model_hf.decoder_stack.parameters(),
             lr=self.learning_rate)
@@ -294,7 +291,10 @@ class TransformerModel(LightningModule):
         return [optimizer], [lr_scheduler]
 
     def save_pretrained(self, save_folder: str):
-        """ Save model weights and parameters to folder. """
+        """ Save model weights and parameters to folder.
+        Args:
+            save_folder (str): Path to folder to save trained model.
+        """
         self.model_hf.save_pretrained(save_folder)
 
 
