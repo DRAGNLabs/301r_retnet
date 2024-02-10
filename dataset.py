@@ -7,17 +7,25 @@ from utils import Struct
 
 class DataModule(LightningDataModule):
     """
-    DataModule class for Lightning. This class is used to load and prepare the
-    dataset for training, validation, and testing. It also provides the
-    dataloaders for each of the three stages.
+    Custom DataModule class for Lightning. This class is used to load and
+    prepare the tokenized dataset for training, validation, and testing. It also
+    provides the PyTorch DataLoaders for each of the three stages.
     """
-    def __init__(self, config: Struct):
+    def __init__(self, config: Struct=None):
+        """
+        Args:
+            config (Struct): A Struct object with all configuration fields.
+        """
         super().__init__()
         self.batch_size = config.batch_size
         self.num_workers = config.num_workers
         self.tokenized_dataset_path = config.tokenized_dataset_path
 
     def setup(self, stage: str):
+        """ Setup for each stage -- called on every process on DDP.
+        Args:
+            stage (str): Either "fit", "validate", "test", or "predict".
+        """
         if stage == "fit":
             # Load datasets
             train_tokenized_dataset = load_dataset(
@@ -50,13 +58,16 @@ class DataModule(LightningDataModule):
                 test_tokenized_dataset.with_format("torch")["input_ids"]
 
     def train_dataloader(self):
+        """ Return training PyTorch DataLoader. """
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True)
 
     def val_dataloader(self):
+        """ Return validation PyTorch DataLoader. """
         return DataLoader(self.val_dataset, batch_size=self.batch_size)
 
     def test_dataloader(self):
+        """ Return testing PyTorch DataLoader. """
         return DataLoader(self.test_dataset, batch_size=self.batch_size)
