@@ -27,11 +27,13 @@ input_starting_strings :
   - "A long time ago, in a galaxy far, far"
   - "It truly happened so suddenly! In one moment"
   
-# Model Path Directory (str): Path to model to use
-model_path_dir: "/YOUR/PATH/HERE/ TODO"
+# Model Path Directory (str): Path to model to run test harness on
+# Example: "/YOUR/PATH/HERE/data/models/MODEL_NAME"
+model_path_dir: ~
 
-# Results Out Path (str): Path to where run_eval.py results will be stored
-results_out_path: "/YOUR/PATH/HERE/ TODO"
+# Results Out Path (str): Path to JSON file where test harness results are stored
+# Example: "/YOUR/PATH/HERE/data/models/MODEL_NAME/eval_results.json"
+results_out_path: ~
 
 # Tasks (List[str]): A list of tests to apply in the evaluation test harness
 tasks: 
