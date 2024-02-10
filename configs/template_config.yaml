@@ -16,10 +16,21 @@
 #
 # Do not Add a YAML config to a git commit unless you have a good reason.
 
-# -------------------------- GENERATION CONFIGURATION --------------------------
+# -------------------------- TESTING AND GENERATION CONFIGURATION --------------------------
 
 # Generation Length (int): Maximum number of tokens during generation
 gen_len: 100
+
+# Model Path Directory (str): Path to model to use
+model_path_dir: "/YOUR/PATH/HERE/ TODO"
+
+# Results Out Path (str): Optional, path to where results for run_eval.py will be stored.
+results_out_path: "/YOUR/PATH/HERE/ TODO"
+
+# Tasks (List[str]): A list of tests to apply in the test harness
+tasks: 
+  - "hellaswag"
+
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
