@@ -37,7 +37,6 @@ input_starting_strings :
   - "A long time ago, in a galaxy far, far"
   - "It truly happened so suddenly! In one moment"
 
-
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
 # Checkpoint Path (str): Path to checkpoint to load for generation/inference.
