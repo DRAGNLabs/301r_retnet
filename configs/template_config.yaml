@@ -21,6 +21,12 @@
 # Generation Length (int): Maximum number of tokens during generation
 gen_len: 100
 
+# Input Starting Strings (List[str]): A list of starting strings for generation.py
+input_starting_strings :
+  - "Once upon a time, there was"
+  - "A long time ago, in a galaxy far, far"
+  - "It truly happened so suddenly! In one moment"
+  
 # Model Path Directory (str): Path to model to use
 model_path_dir: "/YOUR/PATH/HERE/ TODO"
 
@@ -32,11 +38,6 @@ tasks:
   - "hellaswag"
   - "winogrande"
 
-# Input Starting Strings (List[str]): A list of starting strings for generation.py
-input_starting_strings :
-  - "Once upon a time, there was"
-  - "A long time ago, in a galaxy far, far"
-  - "It truly happened so suddenly! In one moment"
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
