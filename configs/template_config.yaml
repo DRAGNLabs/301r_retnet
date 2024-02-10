@@ -21,30 +21,24 @@
 # Generation Length (int): Maximum number of tokens during generation
 gen_len: 100
 
-# Input Starting Strings (List[str]): A list of starting strings for generation.py
-input_starting_strings :
-  - "Once upon a time, there was"
-  - "A long time ago, in a galaxy far, far"
-  - "It truly happened so suddenly! In one moment"
-  
-# Model Path Directory (str): Path to model to run test harness on
-# Example: "/YOUR/PATH/HERE/data/models/MODEL_NAME"
-model_path_dir: ~
-
-# Results Out Path (str): Path to JSON file where test harness results are stored
-# Example: "/YOUR/PATH/HERE/data/models/MODEL_NAME/eval_results.json"
-results_out_path: ~
-
-# Tasks (List[str]): A list of tests to apply in the evaluation test harness
-tasks: 
-  - "hellaswag"
-  - "winogrande"
-
 # Input Starting Strings (List[str]): Starting strings for generation.py
 input_starting_strings:
   - "Once upon a time, there was"
   - "A long time ago, in a galaxy far, far"
   - "It truly happened so suddenly! In one moment"
+
+# Model Path Directory (str): Path to model to run test harness on.
+# Example: "/YOUR/PATH/HERE/data/models/MODEL_NAME"
+model_path_dir: ~
+
+# Results Out Path (str): JSON file path where test harness results are stored.
+# Example: "/YOUR/PATH/HERE/data/models/MODEL_NAME/eval_results.json"
+results_out_path: ~
+
+# Tasks (List[str]): A list of tests to apply in the evaluation test harness
+tasks:
+  - "hellaswag"
+  - "winogrande"
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
