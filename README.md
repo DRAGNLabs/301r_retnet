@@ -34,11 +34,11 @@ If you do not have Python 3.11, you can download it from the official Python web
 If you don't have Mamba installed, you can follow the instructions at Mamba documentation to set it up. Once Mamba is installed, create a new environment with Python 3.11:
 
 ```bash
-# Create a new Mamba environment and specify a name; use with Python 3.11
-mamba create -n <your_env_name> python=3.11
+# Create a new Mamba environment and specify a name; use Python 3.11 in env.
+mamba create -n <YOUR_ENV_NAME> python=3.11
 
 # Activate the Mamba environment
-mamba activate <your_env_name>
+mamba activate <YOUR_ENV_NAME>
 ```
 
 ### Running Shell Scripts
