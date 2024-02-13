@@ -1,6 +1,6 @@
 # Are You Using Retentive Networks? (RetNets) 📝
 
-This project focuses on the comparison and analysis of the RetNet vs the Transformer architecture, utilizing Microsoft's TorchScale library for implementation. More information can be found in our paper [Are You Using Retentive Networks?](https://github.com/DRAGNLabs/301r_retnet/blob/update_readme/301R_Retnet_Paper.pdf).
+This project focuses on the comparison and analysis of the RetNet vs the Transformer architecture, utilizing Microsoft's TorchScale library for implementation. More information can be found in our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
 
 ## Reference to Original Paper
 
@@ -67,11 +67,11 @@ pip install -r requirements.txt
 
 This project uses YAML configuration files to store all pipeline parameters and paths. The design choice of the YAML file is intended to eliminate repetition of commonly used parameters across code, as well as simplify future changes and refactors. We use a YAML file to allow developers to add new parameters as they see fit and make all settings visible to the user in one consolidated place.
 
-To prepare a YAML config file, copy [template_config.yaml](configs/template_config.yaml) into the [user_configs](configs/user_configs/) folder. Fill out all parameters accordingly. Absolute paths are preferred for any path variables. The repository is setup to work flexibly with any desired directory structure.
+To prepare a YAML config file, copy [template_config.yaml](./configs/template_config.yaml) into the [user_configs](./configs/user_configs/) folder. Fill out all parameters accordingly. Absolute paths are preferred for any path variables. The repository is setup to work flexibly with any desired directory structure.
 
 ### Execution Workflow
 
-Once a YAML config file is prepared, you can pass this file into any script in the pipeline. Before you run any scripts, it is recommended to copy all needed scripts into the [user_scripts](scripts/user_scripts/) folder and modify the scripts to point to the right config file.
+Once a YAML config file is prepared, you can pass this file into any script in the pipeline. Before you run any scripts, it is recommended to copy all needed scripts into the [user_scripts](./scripts/user_scripts/) folder and modify the scripts to point to the right config file.
 
 The expected order of script execution is as follows:
 1. Run `download_data.sh` to fetch the necessary data.
@@ -210,7 +210,7 @@ TorchScale's integration into our workflow has been very helpful, being utilized
 
 We use EleutherAI's open-source language model evaluation harness to empirically evaluate our models across a suite of different standardized tasks. These are largely 2-5 option multiple choice tasks, thus a randomly initialized language model will score 50-20% randomly guessing.
 
-You can find more information in the Results section of our paper [Are You Using Retentive Networks?](301R_Retnet_paper.pdf).
+You can find more information in the Results section of our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
 
 ## Acknowledgments
 
@@ -226,7 +226,7 @@ We extend our heartfelt gratitude to the following individuals and institutions 
 
 ## Citations
 
-This can also be found on the citation section or our paper [Are You Using Retentive Networks?](301R_Retnet_Paper.pdf).
+This can also be found on the citation section or our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
 
 ```
 @misc{eval-harness,
