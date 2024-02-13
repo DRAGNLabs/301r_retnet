@@ -28,11 +28,11 @@ input_starting_strings:
   - "It truly happened so suddenly! In one moment"
 
 # Model Path Directory (str): Path to model to run test harness on.
-# Example: "/tmp/data/models/MODEL_NAME/checkpoints/hf_ckpt_{checkpoint_num}"
+# Example: "/tmp/data/models/<MODEL_NAME>/checkpoints/hf_ckpt_<CHECKPOINT_NUM>"
 model_path_dir: ~
 
 # Results Out Path (str): JSON file path where test harness results are stored.
-# Example: "/YOUR/PATH/HERE/data/models/MODEL_NAME/eval_results.json"
+# Example: "<YOUR_PATH_HERE>/data/models/<MODEL_NAME>/eval_results.json"
 results_out_path: ~
 
 # Tasks (List[str]): A list of tests to apply in the evaluation test harness
@@ -54,14 +54,14 @@ dataset_name: "wikitext"
 dataset_subset: "wikitext-2-v1"
 
 # Train Model (str): Path to model folder
-models_path: "/YOUR/PATH/HERE/data/models"
+models_path: "<YOUR_PATH_HERE>/data/models"
 
 # Root Data Path (str): Useful for any new features that don't want to specify a
 # new path parameter in the config
-root_data_path: "/YOUR/PATH/HERE/data"
+root_data_path: "<YOUR_PATH_HERE>/data"
 
 # Download Data (str): Path to raw dataset folder
-raw_dataset_path: "/YOUR/PATH/HERE/data/datasets/wikitext"
+raw_dataset_path: "<YOUR_PATH_HERE>/data/datasets/wikitext"
 
 # Splits (List[int]): Train split, Validation Split, and Test Split
 splits:
@@ -70,13 +70,13 @@ splits:
   - 0.1
 
 # Train Tokenizer (str): Path to tokenizer folder
-tokenizer_path: "/YOUR/PATH/HERE/data/tokenizers/wikitext_tokenizer"
+tokenizer_path: "<YOUR_PATH_HERE>/data/tokenizers/wikitext_tokenizer"
 
 # Tokenize Data (str): Path to tokenized dataset folder
-tokenized_dataset_path: "/YOUR/PATH/HERE/data/tokenized_dataset/wikitext"
+tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/wikitext"
 
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
-tboard_path: "/YOUR/PATH/HERE/data/runs"
+tboard_path: "<YOUR_PATH_HERE>/data/runs"
 
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
