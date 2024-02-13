@@ -1,18 +1,18 @@
 # Are You Using Retentive Networks? (RetNets) 📝
 
-This project focuses on the comparison and analysis of RetNet vs Transformers, utilizing Microsoft's TorchScale as the base architecture. More information can be found on our paper [Are You Using Retentive Networks?](https://github.com/DRAGNLabs/301r_retnet/blob/update_readme/301R_Retnet_Paper.pdf).
+This project focuses on the comparison and analysis of the RetNet vs the Transformer architecture, utilizing Microsoft's TorchScale library for implementation. More information can be found in our paper [Are You Using Retentive Networks?](https://github.com/DRAGNLabs/301r_retnet/blob/update_readme/301R_Retnet_Paper.pdf).
 
 ## Reference to Original Paper
 
-This project is based on research detailed in the paper titled [Retentive Network: A Successor to Transformer for Large Language Models](https://arxiv.org/abs/2307.08621). For more in-depth information and methodology, refer to the original paper.
+Our study is based on research detailed in the paper [Retentive Network: A Successor to Transformer for Large Language Models](https://arxiv.org/abs/2307.08621). For more in-depth information and methodology of the RetNet architecture, refer to this paper.
 
 ## Base Architecture - Microsoft TorchScale
 
-This project is built upon [Microsoft TorchScale](https://github.com/microsoft/torchscale), which serves as the base architecture for our research. TorchScale provides a set of tools and utilities for training and evaluating deep learning models efficiently. We have leveraged its capabilities to develop our comparison between RetNet and Transformers.
+This project is built upon [Microsoft TorchScale](https://github.com/microsoft/torchscale), which provides basic implementations of the two architectures for our research. TorchScale provides a library of foundational architecture implementations for training Transformer-based deep learning models. We have leveraged its capabilities to develop our comparison between RetNets and Transformers.
 
 ## Installation and Setup
 
-To get started with this project, first clone the RetNet repository using the following command:
+To get started with this project, first clone this repository using the following command:
 
 ```bash
 git clone https://github.com/DRAGNLabs/301r_retnet.git
@@ -27,14 +27,14 @@ Ensure you have Python 3.11 installed. To check your current Python version, run
 python --version
 ```
 
-If you do not have Python 3.11, you can download it from the official Python website or use a package manager like apt for Linux or brew for macOS.
+If you do not have Python 3.11, you can download it from the official Python website or use a package manager.
 
 ### Setting Up Python Environment with Mamba
 
-If you don't have Mamba installed, you can follow the instructions at Mamba documentation to set it up. Once Mamba is installed, create a new environment with Python 3.11:
+If you don't have Mamba installed, you can follow the [Mamba documentation](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) to get set up. Once Mamba is installed, create a new environment with Python 3.11:
 
 ```bash
-# Create a new Mamba environment and specify a name; use Python 3.11 in env.
+# Create a new Mamba environment with Python 3.11 and specify a name
 mamba create -n <YOUR_ENV_NAME> python=3.11
 
 # Activate the Mamba environment
@@ -65,19 +65,21 @@ pip install -r requirements.txt
 
 ### Preparing YAML Configuration Files
 
-This project uses YAML configuration files to store all pipeline parameters and paths. The design choice of the YAML file is intended to eliminate repetition of commonly used parameters across code, as well as simplify future changes and refactors. The power of the YAML file is that it is very flexible: a developer can add to it as they see fit for whatever parameters they need, with the knowledge that the user will be aware of what parameters are needed when they run the code.
+This project uses YAML configuration files to store all pipeline parameters and paths. The design choice of the YAML file is intended to eliminate repetition of commonly used parameters across code, as well as simplify future changes and refactors. We use a YAML file to allow developers to add new parameters as they see fit and make all settings visible to the user in one consolidated place.
 
-To prepare a YAML config file, copy [template_config.yaml](./configs/template_config.yaml) into the [user_configs](./configs/user_configs/) folder. Fill out all parameters accordingly. Absolute paths are preferred for any path variables. The repository is setup to work flexibly with any desired directory structure.
+To prepare a YAML config file, copy [template_config.yaml](configs/template_config.yaml) into the [user_configs](configs/user_configs/) folder. Fill out all parameters accordingly. Absolute paths are preferred for any path variables. The repository is setup to work flexibly with any desired directory structure.
 
 ### Execution Workflow
-Once a YAML config file is prepared, you can pass this file into any script in the pipeline. Before you run any scripts, it is recommended to copy all needed scripts into the [user_scripts](./scripts/user_scripts/) folder, and modify the scripts to point to the right config file.
 
-To have the project work correctly, follow these steps:
-Run `download_data.sh` to fetch the necessary data.
-Execute `train_tokenizer.sh` to prepare the tokenizer.
-Use `tokenize_data.sh` for data tokenization.
-Finally, `run retnet.sh` or `transformer.sh` depending on your project needs.
-For example, if you want to run retnet:
+Once a YAML config file is prepared, you can pass this file into any script in the pipeline. Before you run any scripts, it is recommended to copy all needed scripts into the [user_scripts](scripts/user_scripts/) folder and modify the scripts to point to the right config file.
+
+The expected order of script execution is as follows:
+1. Run `download_data.sh` to fetch the necessary data.
+2. Execute `train_tokenizer.sh` to prepare the tokenizer.
+3. Use `tokenize_data.sh` for data tokenization.
+4. Finally, run `retnet.sh` or `transformer.sh`, depending on your project needs.
+
+For example, if you want to train a RetNet model:
 
 ```bash
 ./download_data.sh
@@ -90,22 +92,19 @@ For example, if you want to run retnet:
 
 ### Note on CUDA
 
-Check if your computer has an Nvidia GPU, as CUDA is required for some functionalities.
-CUDA comes as part of the requirements in the torch package. Check with the command
-```nvidia-smi```.
-If you don't have an Nvidia GPU, you can still run the project on a CPU, but some functionalities might be limited.
+Nvidia GPUs are recommended to speed up computation, though a CPU can alternatively be used. Nvidia drivers and the CUDA toolkit will also need to be installed. To test if there is an Nvidia GPU available on your system, see instructions for [Linux](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#verify-you-have-a-cuda-capable-gpu) and [Windows](https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html#verify-you-have-a-cuda-capable-gpu).
 
 ## Features
 
 ### Grid Search
 
-The Grid Search feature is designed to systematically explore a range of hyperparameters to find the optimal settings for our models. It evaluates the performance of the RetNet and Transformer models under various combinations of learning rates, embedding dimensions, feed-forward dimensions, sequence length, and number of heads. The goal is to identify the configuration that results in the best model performance, measured in terms of loss and training efficiency for a given architecture.
+The Grid Search feature is designed to systematically explore a range of hyperparameters and compare RetNet and Transformer models with corresponding parameters at each point. This evaluates both architectures with various combinations of learning rates, embedding dimensions, feed-forward dimensions, sequence lengths, and number of heads. The goal is to identify the configuration that results in the best model performance, measured in terms of loss and training efficiency.
 
 **Code Overview:**
 
 We implement the grid search process as follows:
 
-- **Hyperparameters Tested:** Learning rates (`0.001`, `0.0005`, `0.0001`), embedding dimensions (`768`, `1024`, `1280`), feed-forward dimension (`1024`, `2048`), heads, (`4`, `8`), and sequence length (`256`, `512`) for a total of 72 unique combinations.
+- **Hyperparameters Tested:** Learning rates (`0.001`, `0.0005`, `0.0001`), embedding dimensions (`768`, `1024`, `1280`), feed-forward dimensions (`1024`, `2048`), heads (`4`, `8`), and sequence lengths (`256`, `512`) for a total of 72 unique combinations.
 - **Evaluation Metric:** The models are compared based on their test loss, with a custom function `evaluate_models` indicating which model performed better.
 - **Output:** Results are recorded in a CSV file, including each combination's average loss for both models, similarity scores, and training times.
 
@@ -119,12 +118,12 @@ We implement the grid search process as follows:
 To run the grid search, ensure your configuration file is correctly set up, then execute the script with the path to your config file as an argument:
 
 ```bash
-python your_script_name.py path/to/your/config_file.yaml
+python3 scripts/user_scirpts/<YOUR_SCRIPT_NAME>.py configs/user_configs/<YOUR_CONFIG_HERE>.yaml
 ```
 
 ### Hugging Face Integration
 
-This feature introduces custom models built upon the Hugging Face Transformers framework, enabling the incorporation of RetNet and Transformer architectures into a wide range of NLP tasks. Leveraging Hugging Face's `PreTrainedModel` class, we've developed `RetNetModelHF` and `TransformerModelHF` classes to seamlessly integrate with Hugging Face's ecosystem, facilitating easy model training, evaluation, and deployment.
+This feature introduces custom models built upon the Hugging Face Transformers library, enabling the incorporation of RetNet and Transformer architectures into a wide range of NLP tasks. Leveraging Hugging Face's `PreTrainedModel` class, we've developed `RetNetModelHF` and `TransformerModelHF` classes to seamlessly integrate with Hugging Face's ecosystem, facilitating easy model training, evaluation, and deployment.
 
 **Code Overview:**
 
@@ -145,7 +144,7 @@ To use these models within your Hugging Face-based projects, follow these steps:
 1. **Initialization**: Instantiate the model with the desired configuration, which can be a predefined object, a path to a configuration file, or left as default for automatic configuration.
 
    ```python
-   from your_module import RetNetModelHF, TransformerModelHF
+   from <YOUR_MODULE> import RetNetModelHF, TransformerModelHF
 
    retnet_model = RetNetModelHF(config="path/to/retnet/config")
    transformer_model = TransformerModelHF(config="path/to/transformer/config")
@@ -168,13 +167,13 @@ To use these models within your Hugging Face-based projects, follow these steps:
 
 ### PyTorch Lightning Integration
 
-PyTorch Lightning is leveraged in our project to streamline the training process of the RetNet and Transformer models, enabling efficient multi-core processing, easier scalability, and cleaner code by abstracting the boilerplate training loops. PyTorch Lightning's integration facilitates advanced functionalities like distributed training, automated logging, and checkpointing without complicating the model's architecture or training logic.
+PyTorch Lightning is leveraged in our project to streamline the training process of the RetNet and Transformer models, enabling efficient multi-core processing, easier scalability, and cleaner code by abstracting the boilerplate training loops. PyTorch Lightning's integration facilitates advanced functionalities like distributed training, automated logging, and checkpointing.
 
 **Key Advantages:**
 
 - **Simplified Training Loop**: By abstracting the complexity of the training loop, PyTorch Lightning allows us to focus on the model architecture and the experiment itself, rather than boilerplate code.
 - **Multi-Core and Distributed Training**: Lightning's built-in support for distributed training and multi-core processing significantly speeds up training times, allowing our models to leverage multiple GPUs seamlessly.
-- **Automated Checkpointing**: The custom checkpointing system, `CustomCheckpoint`, automatically saves model checkpoints and Hugging Face compatible weights during training, facilitating model preservation and reproducibility.
+- **Automated Checkpointing**: The custom checkpointing system, `CustomModelCheckpoint`, automatically saves model checkpoints and Hugging Face compatible weights during training, facilitating model preservation and reproducibility.
 - **Advanced Logging**: Integration with TensorBoard for detailed logging of training and validation metrics, helping in monitoring model performance and debugging.
 
 **Usage:**
@@ -192,7 +191,7 @@ Our project leverages **Microsoft TorchScale** as the foundational framework to 
 
 - **Efficiency and Scalability**: TorchScale provides critical functionalities for handling large-scale datasets and models, significantly improving training speed and efficiency without compromising accuracy or model complexity.
 - **Advanced Utilities**: The library includes a range of utilities for model evaluation, performance benchmarking, and hyperparameter tuning, facilitating a comprehensive analysis of model behaviors under various configurations.
-- **Integration with RetNet and Transformers**: By incorporating TorchScale, we have been able to systematically compare the performance of RetNet and Transformer models across different metrics, ensuring fair and rigorous evaluation standards.
+- **Integration with RetNet and Transformers**: Through TorchScale, we compare the performance of RetNet and Transformer models across different metrics, ensuring fair and rigorous evaluation standards.
 - **Enhanced Model Training**: TorchScale's support for distributed training and model optimization techniques allows us to train more complex models with larger datasets, pushing the boundaries of what's possible in our research.
 
 **Implementation Highlights:**
@@ -205,13 +204,13 @@ Our project specifically benefits from TorchScale's:
 
 **Usage in Our Project:**
 
-TorchScale's integration into our workflow has been very helpful, with its utilities being utilized across various stages of model development—from initial training to final evaluation. This has enabled us to conduct a thorough and nuanced comparison of RetNet and Transformer models.
+TorchScale's integration into our workflow has been very helpful, being utilized across various stages of model development from initial training to final evaluation. This enables us to conduct a thorough and nuanced comparison of RetNet and Transformer models.
 
 ## Benchmarking and Results
 
 We use EleutherAI's open-source language model evaluation harness to empirically evaluate our models across a suite of different standardized tasks. These are largely 2-5 option multiple choice tasks, thus a randomly initialized language model will score 50-20% randomly guessing.
 
-You can find more information in the Results section of our paper [Are You Using Retentive Networks?]().
+You can find more information in the Results section of our paper [Are You Using Retentive Networks?](301R_Retnet_paper.pdf).
 
 ## Acknowledgments
 
@@ -227,7 +226,7 @@ We extend our heartfelt gratitude to the following individuals and institutions 
 
 ## Citations
 
-This can also be found on the citation section or our paper [Are You Using Retentive Networks?]().
+This can also be found on the citation section or our paper [Are You Using Retentive Networks?](301R_Retnet_Paper.pdf).
 
 ```
 @misc{eval-harness,
