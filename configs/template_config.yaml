@@ -78,6 +78,9 @@ tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/wikitext"
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
 tboard_path: "<YOUR_PATH_HERE>/data/runs"
 
+# Number of Processes (int): Number of processes to use for data preprocessing
+num_processes: 4
+
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
 # Device Type (str): Device to train on
@@ -86,6 +89,8 @@ device: "cuda" # Options: "cpu", "cuda"
 num_devices: 1
 # Number of Nodes (int)
 num_nodes: 1
+# Number of Processes (int): Number of cpu cores. Used for data preprocessing
+num_proc: 4
 # Num Workers (int): Number of workers for dataloaders. Recommended to set to
 # one less than number of CPU cores available
 num_workers: 0
