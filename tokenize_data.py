@@ -30,7 +30,7 @@ def tokenize_data(config):
             return_token_type_ids=False,
             return_attention_mask=False)
 
-    entire_dataset = entire_dataset.map(tokenization, batched=True)
+    entire_dataset = entire_dataset.map(tokenization, batched=True, num_proc=config.num_proc)
 
     # Drop now unnecessary text_feature column
     entire_dataset = entire_dataset.remove_columns(
