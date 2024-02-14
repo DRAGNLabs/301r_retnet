@@ -29,7 +29,8 @@ def download_data(config):
             path=config.dataset_name,
             name=config.dataset_subset,
             split="all",
-            trust_remote_code=True)
+            trust_remote_code=True,
+            num_proc=config.num_proc)
 
     # Check if dataset is of type datasets.arrow_dataset.Dataset
     if isinstance(dataset, datasets.arrow_dataset.Dataset):
