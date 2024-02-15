@@ -78,9 +78,6 @@ tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/wikitext"
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
 tboard_path: "<YOUR_PATH_HERE>/data/runs"
 
-# Number of Processes (int): Number of processes to use for data preprocessing
-num_processes: 4
-
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
 # Device Type (str): Device to train on
