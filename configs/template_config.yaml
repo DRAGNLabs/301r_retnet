@@ -86,6 +86,8 @@ device: "cuda" # Options: "cpu", "cuda"
 num_devices: 1
 # Number of Nodes (int)
 num_nodes: 1
+# Number of Processes (int): Number of cpu cores. Used for data preprocessing
+num_proc: 4
 # Num Workers (int): Number of workers for dataloaders. Recommended to set to
 # one less than number of CPU cores available
 num_workers: 0
