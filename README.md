@@ -90,10 +90,6 @@ For example, if you want to train a RetNet model:
 ./retnet.sh
 ```
 
-### Note on CUDA
-
-Nvidia GPUs are recommended to speed up computation, though a CPU can alternatively be used. Nvidia drivers and the CUDA toolkit will also need to be installed. To test if there is an Nvidia GPU available on your system, see instructions for [Linux](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#verify-you-have-a-cuda-capable-gpu) and [Windows](https://docs.nvidia.com/cuda/cuda-installation-guide-microsoft-windows/index.html#verify-you-have-a-cuda-capable-gpu).
-
 ## Features
 
 ### Grid Search
