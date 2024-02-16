@@ -21,13 +21,7 @@ cd 301r_retnet
 
 ### Python Version Requirement
 
-Ensure you have Python 3.11 installed. To check your current Python version, run:
-
-```bash
-python --version
-```
-
-If you do not have Python 3.11, you can download it from the official Python website or use a package manager.
+Ensure you have Python 3.11 installed. If you do not have Python 3.11, you can download it from the official Python website or use a package manager.
 
 ### Setting Up Python Environment with Mamba
 
