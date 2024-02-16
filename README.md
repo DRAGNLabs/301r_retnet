@@ -71,7 +71,7 @@ To prepare a YAML config file, copy [template_config.yaml](./configs/template_co
 
 ### Execution Workflow
 
-Once a YAML config file is prepared, you can pass this file into any script in the pipeline. Before you run any scripts, it is recommended to copy all needed scripts into the [user_scripts](./scripts/user_scripts/) folder and modify the scripts to point to the right config file.
+Once a YAML config file is prepared, you can pass this file into any script in the pipeline. Before you run any scripts, it is recommended to copy all of them into the [user_scripts](./scripts/user_scripts/) folder and modify the scripts to point to the right config file.
 
 The expected order of script execution is as follows:
 1. Run `download_data.sh` to fetch the necessary data.
