@@ -225,6 +225,6 @@ We extend our heartfelt gratitude to the following individuals and institutions 
 
 ## Citations
 
-Our paper is waiting to be published and our full citation will be given soon. Out current citations can be found on the citation section on our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
+Our paper is waiting to be published and our full citation will be given soon. Our current citations can be found on the citation section on our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
 
 
