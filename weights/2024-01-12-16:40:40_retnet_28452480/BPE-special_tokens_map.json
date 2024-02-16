@@ -1,0 +1,5 @@
+{
+  "bos_token": "<bos>",
+  "pad_token": "<pad>",
+  "unk_token": "<unk>"
+}

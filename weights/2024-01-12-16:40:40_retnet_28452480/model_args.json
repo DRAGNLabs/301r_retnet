@@ -1,0 +1,28 @@
+{
+    "activation_dropout": 0.1,
+    "batch_size": 128,
+    "checkpoints": true,
+    "dataset_feature": "text",
+    "dataset_name": "wikitext",
+    "dataset_subset": "wikitext-2-v1",
+    "device": "cuda",
+    "dropout": 0.1,
+    "embed_dim": 128,
+    "epochs": 10,
+    "ffn_dim": 1024,
+    "fsdp": true,
+    "layers": 6,
+    "lr": 0.001,
+    "model": "retnet",
+    "heads": 8,
+    "rand_seed": 42,
+    "seq_len": 128,
+    "splits": [
+        0.7,
+        0.2,
+        0.1
+    ],
+    "val_freq": 3,
+    "value_embed_dim": 128,
+    "vocab_size": 100000
+}
