@@ -262,6 +262,3 @@ This can also be found on the citation section or our paper [Are You Using Reten
   year      = {2022}
 }
 ```
-
-
-## Others
