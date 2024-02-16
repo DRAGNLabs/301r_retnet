@@ -111,7 +111,7 @@ We implement the grid search process as follows:
 To run the grid search, ensure your configuration file is correctly set up, then execute the script with the path to your config file as an argument:
 
 ```bash
-python3 scripts/user_scirpts/<YOUR_SCRIPT_NAME>.py configs/user_configs/<YOUR_CONFIG_HERE>.yaml
+python3 ../../grid_search.py configs/user_configs/<YOUR_CONFIG_HERE>.yaml
 ```
 
 ### Hugging Face Integration
