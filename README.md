@@ -46,13 +46,13 @@ mamba activate <YOUR_ENV_NAME>
 For running any .sh scripts, grant execution permissions using:
 
 ```bash
-chmod +x <some_script>.sh
+chmod +x <SOME_SCRIPT>..sh
 ```
 
 Then, execute the script with:
 
 ```bash
-./<some_script>.sh
+./<SOME_SCRIPT>..sh
 ```
 
 ### Preparing the Environment
