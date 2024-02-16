@@ -74,14 +74,17 @@ To prepare a YAML config file, copy [template_config.yaml](./configs/template_co
 Once a YAML config file is prepared, you can pass this file into any script in the pipeline. Before you run any scripts, it is recommended to copy all of them into the [user_scripts](./scripts/user_scripts/) folder and modify the scripts to point to the right config file.
 
 The expected order of script execution is as follows:
-1. Run `download_data.sh` to fetch the necessary data.
-2. Execute `train_tokenizer.sh` to prepare the tokenizer.
-3. Use `tokenize_data.sh` for data tokenization.
-4. Finally, run `retnet.sh` or `transformer.sh`, depending on your project needs.
+1. Change current directory to `./scripts/user_scripts`.
+2. Run `download_data.sh` to fetch the necessary data.
+3. Execute `train_tokenizer.sh` to prepare the tokenizer.
+4. Use `tokenize_data.sh` for data tokenization.
+5. Finally, run `retnet.sh` or `transformer.sh`, depending on your project needs.
 
 For example, if you want to train a RetNet model:
 
 ```bash
+cd ./scripts/user_scripts
+
 ./download_data.sh
 ./train_tokenizer.sh
 ./tokenize_data.sh
