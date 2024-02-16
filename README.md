@@ -127,8 +127,8 @@ This feature introduces custom models built upon the Hugging Face Transformers l
 
 **Code Overview:**
 
-- **`RetNetModelHF`**: Implements the RetNet architecture as a subclass of `PreTrainedModel`, utilizing Hugging Face's utilities and standards for model configuration, serialization, and compatibility with the Transformers library.
-- **`TransformerModelHF`**: Adapts the traditional Transformer architecture within the Hugging Face framework, following similar principles as the RetNet model for easy integration and use.
+- **`RetNetModelHF`**: Implements the RetNet architecture as a subclass of PreTrainedModel, using Hugging Face's utilities and standards for model configuration, serialization, and compatibility with the Transformers library.
+- **`TransformerModelHF`**: Implements the Transformer architecture as a subclass of PreTrainedModel, using Hugging Face's utilities and standards for model configuration, serialization, and compatibility with the Transformers library.
 
 **Key Components:**
 
