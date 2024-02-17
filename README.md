@@ -201,9 +201,22 @@ TorchScale's integration into our workflow has been very helpful, being utilized
 
 ## Benchmarking and Results
 
-We use EleutherAI's open-source language model evaluation harness to empirically evaluate our models across a suite of different standardized tasks. These are largely 2-5 option multiple choice tasks, thus a randomly initialized language model will score 50-20% randomly guessing.
+We use EleutherAI's open-source language model evaluation harness to empirically evaluate our models across a suite of different NLP tasks. Run the evaluation suite as follows:
+First, edit the 'tasks' parameter in the YAML file. Specify all tasks you would like to run, e.g.,
+```
+tasks:
+  - "hellaswag"
+  - "winogrande"
+```
+Alternatively, you can use `tasks: '*'` to run all benchmarks in the suite. Then navigate to the `slurm/run_eval.sh`, copy the script, and subsitute your yaml file for the placeholder. Finally, execute: 
 
-You can find more information in the Results section of our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
+```
+mamba activate <YOUR_ENV_HERE> # Activate environment, if using one.
+cd /301r_retnet/slurm/
+cp run_eval.sh user_slurm/<NAME_OF_NEW_FILE>.sh  # Give your file a descriptive name, (e.g., 'retnet_40540_run_eval.sh')
+bash <NAME_OF_NEW_FILE>/.sh
+```
+Results will be sent to a csv.
 
 ## Acknowledgments
 
@@ -219,6 +232,6 @@ We extend our heartfelt gratitude to the following individuals and institutions 
 
 ## Citations
 
-Our paper is waiting to be published and our full citation will be given soon. Our current citations can be found on the citation section on our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
+Our paper is awaiting publication and our full citation will be given soon. Our current citations can be found on the citation section on our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
 
 
