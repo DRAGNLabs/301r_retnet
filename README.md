@@ -138,7 +138,7 @@ tasks:
   - "hellaswag"
   - "winogrande"
 ```
-Alternatively, you can use `tasks: '*'` to run all benchmarks in the suite. Then navigate to the `slurm/run_eval.sh`, copy the script, and subsitute your yaml file for the placeholder. Finally, execute: 
+Alternatively, you can use `tasks: '*'` to run all benchmarks in the suite. Then navigate to the `slurm/run_eval.sh`, copy the script, and subsitute your yaml file for the placeholder. Finally, execute:
 
 ```
 mamba activate <YOUR_ENV_HERE> # Activate environment, if using one.
@@ -146,7 +146,7 @@ cd /301r_retnet/slurm/
 cp run_eval.sh user_slurm/<NAME_OF_NEW_FILE>.sh  # Give your file a descriptive name, (e.g., 'retnet_40540_run_eval.sh')
 bash <NAME_OF_NEW_FILE>/.sh
 ```
-Results will be sent to a csv.
+Results will be sent to a CSV.
 
 ## Acknowledgments
 
@@ -163,5 +163,3 @@ We extend our heartfelt gratitude to the following individuals and institutions 
 ## Citations
 
 Our paper is awaiting publication and our full citation will be given soon. Our current citations can be found on the citation section on our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
-
-
