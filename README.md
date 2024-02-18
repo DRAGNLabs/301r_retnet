@@ -21,17 +21,19 @@ cd 301r_retnet
 
 ### 1: Development Environment
 
-Ensure you have Python 3.11 installed. If you do not have Python 3.11, you can download it from the official Python website or use a package manager.
+Ensure you have Python 3.11 installed. If you do not have Python 3.11, you can download it from the [official Python website](https://www.python.org) or use a package manager.
 
-### Preparing the Environment
-Optionally, create an environement. Then install all the necessary dependencies:
+Optionally, you can create a virtual environement. Then install all the necessary dependencies. An example with [Mamba](https://mamba.readthedocs.io/en/latest/index.html) is:
 ```bash
 # Optionally create a new Mamba environment with Python 3.11 and specify a name
 mamba create -n <YOUR_ENV_NAME> python=3.11
 
 # Activate the Mamba environment
 mamba activate <YOUR_ENV_NAME>
+```
 
+Once your environment has been prepared, install all required packages:
+```bash
 pip install -r requirements.txt
 ```
 
