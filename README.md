@@ -37,15 +37,15 @@ pip install -r requirements.txt
 
 ### Preparing YAML Configuration Files
 
-This project uses YAML configuration files to store all pipeline parameters and paths. The design choice of the YAML file is intended to eliminate repetition of commonly used parameters across code, as well as simplify future changes and refactors. We use a YAML file to allow developers to add new parameters as they see fit and make all settings visible to the user in one consolidated place.
+This project uses YAML configuration files to store all pipeline parameters and paths. The design choice of the YAML file is intended to eliminate repetition of commonly used parameters across code, as well as simplify future changes and refactors, allow developers to add new parameters, and make all settings visible to the user in one consolidated place.
 
-To prepare a YAML config file, copy [template_config.yaml](./configs/template_config.yaml) into the [user_configs](./configs/user_configs/) folder. Fill out all parameters accordingly. Absolute paths are preferred for any path variables. The repository is setup to work flexibly with any desired directory structure.
+To prepare a YAML config file, copy [template_config.yaml](./configs/template_config.yaml) into the [user_configs](./configs/user_configs/) folder. Fill out all parameters accordingly. Absolute paths are preferred for any path variables, but the repository is setup to work flexibly with any desired directory structure.
 
-*Note:* In most cases, YAML does not expect strings, and adding quotation marks around argurments in the config file can lead to unexpected errors.
+*Note:* In most cases, YAML does not expect strings. Adding quotation marks around argurments in the config file can lead to unexpected errors.
 
 ### Execution Workflow
 
-Once a YAML config file is prepared, you can pass this file into any script in the pipeline. Before you run any scripts, it is recommended to copy all of them into the [user_scripts](./scripts/user_scripts/) folder and modify the scripts to point to the right config file.
+Once a YAML config file is prepared, it can be passed into any script in the pipeline. Before you run any scripts, it is recommended to copy all of them into the [user_slurm](./scripts/user_slurm/) directory and modify the scripts to point to the right config file.
 
 The expected order of script execution is as follows:
 1. Change current directory to `./scripts/user_scripts`.
@@ -63,7 +63,7 @@ cd ./scripts/user_scripts
 ./train_tokenizer.sh
 ./tokenize_data.sh
 
-# Replace this with the model that you want to run
+# Replace this with the file pertaining to the model that you want to run
 ./retnet.sh
 ```
 
