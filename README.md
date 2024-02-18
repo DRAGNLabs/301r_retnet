@@ -97,13 +97,7 @@ This feature introduces custom models built upon the Hugging Face Transformers l
 
 - **`RetNetModelHF`**: Implements the RetNet architecture as a subclass of PreTrainedModel, using Hugging Face's utilities and standards for model configuration, serialization, and compatibility with the Transformers library.
 - **`TransformerModelHF`**: Implements the Transformer architecture as a subclass of PreTrainedModel, using Hugging Face's utilities and standards for model configuration, serialization, and compatibility with the Transformers library.
-
-**Key Components:**
-
 - **Configuration Classes**: Both models utilize specific configuration classes (`RetNetConfig` for RetNetModelHF and `DecoderConfig` for TransformerModelHF) to define model parameters, ensuring flexibility and ease of customization.
-- **Embedding Layer**: Initializes text embeddings with a dedicated padding index, supporting efficient token representation and processing.
-- **Decoder Stacks**: Incorporates specialized decoder architectures (`RetNetDecoder` and `Decoder`) tailored to each model's needs, facilitating the core computational logic for sequence processing.
-- **Forward Method**: Defines the computation performed at every call, taking input tensors and producing predictions, showcasing the model's application to sequence-to-sequence tasks.
 
 **Usage:**
 
