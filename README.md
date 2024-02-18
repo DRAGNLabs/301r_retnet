@@ -19,7 +19,7 @@ git clone https://github.com/DRAGNLabs/301r_retnet.git
 cd 301r_retnet
 ```
 
-### Python Version Requirement
+### 1: Development Environment
 
 Ensure you have Python 3.11 installed. If you do not have Python 3.11, you can download it from the official Python website or use a package manager.
 
@@ -35,7 +35,7 @@ mamba activate <YOUR_ENV_NAME>
 pip install -r requirements.txt
 ```
 
-### Preparing YAML Configuration Files
+### 2: YAML Configuration Files
 
 This project uses YAML configuration files to store all pipeline parameters and paths. The design choice of the YAML file is intended to eliminate repetition of commonly used parameters across code, as well as simplify future changes and refactors, allow developers to add new parameters, and make all settings visible to the user in one consolidated place.
 
@@ -43,7 +43,7 @@ To prepare a YAML config file, copy [template_config.yaml](./configs/template_co
 
 *Note:* In most cases, YAML does not expect strings. Adding quotation marks around argurments in the config file can lead to unexpected errors.
 
-### Execution Workflow
+### 3: Script Execution
 
 Once a YAML config file is prepared, it can be passed into any script in the pipeline. Before you run any scripts, it is recommended to copy all of them into the [user_slurm](./scripts/user_slurm/) directory and modify the scripts to point to the right config file.
 
