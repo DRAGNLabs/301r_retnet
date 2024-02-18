@@ -23,37 +23,15 @@ cd 301r_retnet
 
 Ensure you have Python 3.11 installed. If you do not have Python 3.11, you can download it from the official Python website or use a package manager.
 
-### Setting Up Python Environment with Mamba
-
-If you don't have Mamba installed, you can follow the [Mamba documentation](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) to get set up. Once Mamba is installed, create a new environment with Python 3.11:
-
+### Preparing the Environment
+Optionally, create an environement. Then install all the necessary dependencies:
 ```bash
 # Optionally create a new Mamba environment with Python 3.11 and specify a name
 mamba create -n <YOUR_ENV_NAME> python=3.11
 
 # Activate the Mamba environment
 mamba activate <YOUR_ENV_NAME>
-```
 
-### Running Shell Scripts
-
-For running any .sh scripts, grant execution permissions using:
-
-```bash
-chmod +x <SOME_SCRIPT>..sh
-```
-
-Then, execute the script with:
-
-```bash
-./<SOME_SCRIPT>..sh
-```
-
-### Preparing the Environment
-
-Before running the main scripts, make sure to install all the necessary dependencies:
-
-```bash
 pip install -r requirements.txt
 ```
 
