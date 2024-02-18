@@ -63,6 +63,8 @@ This project uses YAML configuration files to store all pipeline parameters and 
 
 To prepare a YAML config file, copy [template_config.yaml](./configs/template_config.yaml) into the [user_configs](./configs/user_configs/) folder. Fill out all parameters accordingly. Absolute paths are preferred for any path variables. The repository is setup to work flexibly with any desired directory structure.
 
+*Note:* In most cases, YAML does not expect strings, and adding quotation marks around argurments in the config file can lead to unexpected errors.
+
 ### Execution Workflow
 
 Once a YAML config file is prepared, you can pass this file into any script in the pipeline. Before you run any scripts, it is recommended to copy all of them into the [user_scripts](./scripts/user_scripts/) folder and modify the scripts to point to the right config file.
