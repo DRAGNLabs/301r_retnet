@@ -141,7 +141,7 @@ tasks:
 Alternatively, you can use `tasks: '*'` to run all benchmarks in the suite. Then navigate to the `slurm/run_eval.sh`, copy the script, and subsitute your yaml file for the placeholder. Finally, execute:
 
 ```
-# Activate environment, if using one.
+# Activate environment, if using one
 mamba activate <YOUR_ENV_HERE>
 
 cd /301r_retnet/slurm/
