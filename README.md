@@ -23,7 +23,7 @@ cd 301r_retnet
 
 Ensure you have Python 3.11 installed. If you do not have Python 3.11, you can download it from the [official Python website](https://www.python.org) or use a package manager.
 
-Optionally, you can create a virtual environement. Then install all the necessary dependencies. An example with [Mamba](https://mamba.readthedocs.io/en/latest/index.html) is:
+Optionally, you can create a virtual environment. Then install all the necessary dependencies. An example with [Mamba](https://mamba.readthedocs.io/en/latest/index.html) is:
 ```bash
 # Optionally create a new Mamba environment with Python 3.11 and specify a name
 mamba create -n <YOUR_ENV_NAME> python=3.11
@@ -41,9 +41,9 @@ pip install -r requirements.txt
 
 This project uses YAML configuration files to store all pipeline parameters and paths. The design choice of the YAML file is intended to eliminate repetition of commonly used parameters across code, as well as simplify future changes and refactors, allow developers to add new parameters, and make all settings visible to the user in one consolidated place.
 
-To prepare a YAML config file, copy [template_config.yaml](./configs/template_config.yaml) into the [user_configs](./configs/user_configs/) folder. Fill out all parameters accordingly. Absolute paths are preferred for any path variables, but the repository is setup to work flexibly with any desired directory structure.
+To prepare a YAML config file, copy [template_config.yaml](./configs/template_config.yaml) into the [user_configs](./configs/user_configs/) folder. Fill out all parameters accordingly. Absolute paths are preferred for any path variables, but the repository is set up to work flexibly with any desired directory structure.
 
-*Note:* In most cases, YAML does not expect strings. Adding quotation marks around argurments in the config file can lead to unexpected errors.
+*Note:* In most cases, YAML does not expect strings. Adding quotation marks around arguments in the config file can lead to unexpected errors.
 
 ### 3: Script Execution
 
@@ -138,7 +138,7 @@ tasks:
   - "hellaswag"
   - "winogrande"
 ```
-Alternatively, you can use `tasks: '*'` to run all benchmarks in the suite. Then navigate to the `slurm/run_eval.sh`, copy the script, and subsitute your yaml file for the placeholder. Finally, execute:
+Alternatively, you can use `tasks: '*'` to run all benchmarks in the suite. Then navigate to the `slurm/run_eval.sh`, copy the script, and substitute your yaml file for the placeholder. Finally, execute:
 
 ```
 # Activate environment, if using one
