@@ -1,6 +1,6 @@
 # Are You Using Retentive Networks? (RetNets) 📝
 
-This project compares and analyzes the RetNet and the Transformer architectures, utilizing Microsoft's TorchScale library for implementation. More information can be found in our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
+This project compares and analyzes the RetNet and the Transformer architectures, utilizing Microsoft's TorchScale library for implementation. More information can be found in our paper Are You Using Retentive Networks?.
 
 ## Reference to Original Paper
 
@@ -165,4 +165,4 @@ We extend our heartfelt gratitude to the following individuals and institutions 
 
 ## Citations
 
-Our paper is awaiting publication and our full citation will be given soon. Our current citations can be found on the citation section on our paper [Are You Using Retentive Networks?](./301R_Retnet_Paper.pdf).
+Our paper is awaiting publication and our full citation will be given soon. Our current citations can be found on the citation section on our paper Are You Using Retentive Networks?.
