@@ -8,7 +8,7 @@ Our study is based on research detailed in the paper [Retentive Network: A Succe
 
 ## Base Architecture - Microsoft TorchScale
 
-This project is built upon [Microsoft TorchScale](https://github.com/microsoft/torchscale), which provides basic implementations of the two architectures for our research. TorchScale provides a library of foundational architecture implementations for training Transformer-based deep learning models. We have leveraged its capabilities to develop our comparison between RetNets and Transformers.
+This project is built upon [Microsoft TorchScale](https://github.com/microsoft/torchscale), which provides basic implementations of each architecture for our research. TorchScale provides a library of foundational architecture implementations for training Transformer-based deep learning models. We have leveraged its capabilities to compare RetNet and Transformer architectures.
 
 ## Installation and Setup
 
