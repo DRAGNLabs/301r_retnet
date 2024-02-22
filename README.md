@@ -136,7 +136,7 @@ tasks:
   - "hellaswag"
   - "winogrande"
 ```
-Alternatively, you can use `tasks: '*'` to run all benchmarks in the suite. Then navigate to the `slurm/run_eval.sh`, copy the script, and substitute your yaml file for the placeholder. Finally, execute:
+Alternatively, you can use `tasks: '*'` to run all benchmarks in the suite. These tasks will need to download if not yet stored locally at `~/.cache/huggingface/datasets/`. Navigate to the `slurm/run_eval.sh`, copy the script, and substitute your yaml file for the placeholder. Finally, execute:
 
 ```
 # Activate environment, if using one
