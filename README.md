@@ -47,7 +47,7 @@ To prepare a YAML config file, copy [template_config.yaml](./configs/template_co
 
 ### 3: Script Execution
 
-> [!NOTE]  
+> [!TIP]
 > Once a YAML config file is prepared, it can be passed into any script in the pipeline. Before you run any scripts, it is recommended to copy all of them into the [user_scripts](./scripts/user_scripts/) directory and modify the scripts to point to the right config file.
 
 The expected order of script execution is as follows:
