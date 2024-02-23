@@ -159,10 +159,10 @@ We extend our heartfelt gratitude to the following individuals and institutions 
 
 **BYU Office of Research Computing**: For providing the computational resources and support that were instrumental in conducting our experiments and analyses.
 
-**Authors of the Original RetNet Paper**: For their pioneering work in the field of deep learning, which inspired our research and provided a solid base for our explorations into RetNet and Transformers.
+**Authors of the Original RetNet Paper**: We acknowledge their contributions to novel encoder architectures, which guided our investigations into RetNet and Transformers and offered a foundational framework for our research.
 
 **Microsoft TorchScale Team**: For developing and maintaining the TorchScale framework, which served as the foundational architecture for our project, enabling us to push the boundaries of what's possible in deep learning research.
 
 ## Citations
 
-Our paper is awaiting publication and our full citation will be given soon. Our current citations can be found on the citation section on our paper A# <PAPER_TITLE_PLACEHOLDER> 📝.
+Our paper is awaiting publication and our full citation will be given soon. Our current citations can be found in the citation section on our paper A# <PAPER_TITLE_PLACEHOLDER> 📝.
