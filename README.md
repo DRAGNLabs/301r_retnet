@@ -166,4 +166,5 @@ We extend our heartfelt gratitude to the following individuals and institutions 
 
 ## Citations
 
-Our paper is awaiting publication and our full citation will be given soon. Our current citations can be found in the citation section on our paper A# <PAPER_TITLE_PLACEHOLDER> 📝.
+> [!NOTE]
+> Our paper is awaiting publication and our full citation will be given soon.
