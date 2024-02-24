@@ -1,6 +1,5 @@
 # Copyright (c) 2022 Microsoft
 # Licensed under The MIT License [see LICENSE for details]
-from transformers import PretrainedConfig
 
 
 class EncoderConfig(object):
@@ -54,6 +53,24 @@ class EncoderConfig(object):
         self.ddp_rank = kwargs.pop("ddp_rank", 0)
         self.xpos_rel_pos = kwargs.pop("xpos_rel_pos", False)
         self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
+        # Dilated Attention
+        self.flash_attention = kwargs.pop("flash_attention", False)
+        self.segment_length = kwargs.pop("segment_length", None)
+        self.dilated_ratio = kwargs.pop("dilated_ratio", None)
+        self.seq_parallel = kwargs.pop("seq_parallel", False)
+        self.postprocessing()
+
+    def override(self, args):
+        for hp in self.__dict__.keys():
+            if getattr(args, hp, None) is not None:
+                self.__dict__[hp] = getattr(args, hp, None)
+        self.postprocessing()
+
+    def postprocessing(self):
+        if self.segment_length is not None and self.segment_length != '':
+            self.segment_length = eval(self.segment_length)
+        if self.dilated_ratio is not None and self.dilated_ratio != '':
+            self.dilated_ratio = eval(self.dilated_ratio)
 
         if self.deepnorm:
             self.encoder_normalize_before = False
@@ -66,15 +83,8 @@ class EncoderConfig(object):
             self.moe_second_expert_policy = "random"
             assert self.moe_freq > 0 and self.moe_expert_count > 0
 
-    def override(self, args):
-        for hp in self.__dict__.keys():
-            if getattr(args, hp, None) is not None:
-                self.__dict__[hp] = getattr(args, hp, None)
 
-
-class DecoderConfig(PretrainedConfig):
-    model_type = "custom_transformer"
-
+class DecoderConfig(object):
     def __init__(self, **kwargs):
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
         self.decoder_attention_heads = kwargs.pop("decoder_attention_heads", 12)
@@ -120,22 +130,35 @@ class DecoderConfig(PretrainedConfig):
         self.ddp_rank = kwargs.pop("ddp_rank", 0)
         self.xpos_rel_pos = kwargs.pop("xpos_rel_pos", False)
         self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
-
-        if self.deepnorm:
-            self.decoder_normalize_before = False
-            self.subln = False
-        if self.subln:
-            self.decoder_normalize_before = True
-            self.deepnorm = False
-        if self.use_xmoe:
-            self.moe_normalize_gate_prob_before_dropping = True
-            self.moe_second_expert_policy = "random"
-            assert self.moe_freq > 0 and self.moe_expert_count > 0
+        # Dilated Attention
+        self.flash_attention = kwargs.pop("flash_attention", False)
+        self.segment_length = kwargs.pop("segment_length", None)
+        self.dilated_ratio = kwargs.pop("dilated_ratio", None)
+        self.seq_parallel = kwargs.pop("seq_parallel", False)
+        self.postprocessing()
 
     def override(self, args):
         for hp in self.__dict__.keys():
             if getattr(args, hp, None) is not None:
                 self.__dict__[hp] = getattr(args, hp, None)
+        self.postprocessing()
+
+    def postprocessing(self):
+        if self.segment_length is not None and self.segment_length != '':
+            self.segment_length = eval(self.segment_length)
+        if self.dilated_ratio is not None and self.dilated_ratio != '':
+            self.dilated_ratio = eval(self.dilated_ratio)
+
+        if self.deepnorm:
+            self.encoder_normalize_before = False
+            self.subln = False
+        if self.subln:
+            self.encoder_normalize_before = True
+            self.deepnorm = False
+        if self.use_xmoe:
+            self.moe_normalize_gate_prob_before_dropping = True
+            self.moe_second_expert_policy = "random"
+            assert self.moe_freq > 0 and self.moe_expert_count > 0
 
 
 class EncoderDecoderConfig(object):
@@ -192,34 +215,42 @@ class EncoderDecoderConfig(object):
         self.ddp_rank = kwargs.pop("ddp_rank", 0)
         self.xpos_rel_pos = kwargs.pop("xpos_rel_pos", False)
         self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
+        # Dilated Attention
+        self.flash_attention = kwargs.pop("flash_attention", False)
+        self.segment_length = kwargs.pop("segment_length", None)
+        self.dilated_ratio = kwargs.pop("dilated_ratio", None)
+        self.seq_parallel = kwargs.pop("seq_parallel", False)
+        self.postprocessing()
+
+    def override(self, args):
+        for hp in self.__dict__.keys():
+            if getattr(args, hp, None) is not None:
+                self.__dict__[hp] = getattr(args, hp, None)
+        self.postprocessing()
+
+    def postprocessing(self):
+        if self.segment_length is not None and self.segment_length != '':
+            self.segment_length = eval(self.segment_length)
+        if self.dilated_ratio is not None and self.dilated_ratio != '':
+            self.dilated_ratio = eval(self.dilated_ratio)
 
         if self.deepnorm:
             self.encoder_normalize_before = False
-            self.decoder_normalize_before = False
             self.subln = False
         if self.subln:
             self.encoder_normalize_before = True
-            self.decoder_normalize_before = True
             self.deepnorm = False
         if self.use_xmoe:
             self.moe_normalize_gate_prob_before_dropping = True
             self.moe_second_expert_policy = "random"
             assert self.moe_freq > 0 and self.moe_expert_count > 0
 
-    def override(self, args):
-        for hp in self.__dict__.keys():
-            if getattr(args, hp, None) is not None:
-                self.__dict__[hp] = getattr(args, hp, None)
-                
 
-class RetNetConfig(PretrainedConfig):
-    model_type = 'retnet'
-
+class RetNetConfig(object):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
         self.decoder_value_embed_dim = kwargs.pop("decoder_value_embed_dim", 1280)
-        self.decoder_retention_heads = kwargs.pop("decoder_retention_heads", 4)
+        self.decoder_retention_heads = kwargs.pop("decoder_retention_heads", 3)
         self.decoder_ffn_embed_dim = kwargs.pop("decoder_ffn_embed_dim", 1280)
         self.decoder_layers = kwargs.pop("decoder_layers", 12)
         self.decoder_normalize_before = kwargs.pop("decoder_normalize_before", True)
@@ -229,7 +260,6 @@ class RetNetConfig(PretrainedConfig):
         self.activation_dropout = kwargs.pop("activation_dropout", 0.0)
         self.no_scale_embedding = kwargs.pop("no_scale_embedding", True)
         self.layernorm_embedding = kwargs.pop("layernorm_embedding", False)
-        self.max_seq_len = kwargs.pop("max_seq_len", 512)
         self.moe_freq = kwargs.pop("moe_freq", 0)
         self.moe_top1_expert = kwargs.pop("moe_top1_expert", False)
         self.moe_expert_count = kwargs.pop("moe_expert_count", 0)
@@ -264,20 +294,22 @@ class RetNetConfig(PretrainedConfig):
         self.ddp_rank = kwargs.pop("ddp_rank", 0)
         self.xpos_rel_pos = kwargs.pop("xpos_rel_pos", False)
         self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
-        self.lr = kwargs.pop("lr", 0.0001)
-
-        if self.deepnorm:
-            self.decoder_normalize_before = False
-            self.subln = False
-        if self.subln:
-            self.decoder_normalize_before = True
-            self.deepnorm = False
-        if self.use_xmoe:
-            self.moe_normalize_gate_prob_before_dropping = True
-            self.moe_second_expert_policy = "random"
-            assert self.moe_freq > 0 and self.moe_expert_count > 0
+        self.postprocessing()
 
     def override(self, args):
         for hp in self.__dict__.keys():
             if getattr(args, hp, None) is not None:
                 self.__dict__[hp] = getattr(args, hp, None)
+        self.postprocessing()
+
+    def postprocessing(self):
+        if self.deepnorm:
+            self.encoder_normalize_before = False
+            self.subln = False
+        if self.subln:
+            self.encoder_normalize_before = True
+            self.deepnorm = False
+        if self.use_xmoe:
+            self.moe_normalize_gate_prob_before_dropping = True
+            self.moe_second_expert_policy = "random"
+            assert self.moe_freq > 0 and self.moe_expert_count > 0
