@@ -6,6 +6,7 @@ from torch import Tensor
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
+from torchscale.model.longnet import LongNetDecoder
 from transformers import PreTrainedModel
 from typing import Optional, Union
 from utils import Struct
