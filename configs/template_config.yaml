@@ -133,10 +133,17 @@ heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
 # Model Type (str): Name of model architecture to train
-model_type: "retnet" # Choices: "retnet", "transformer"
+model_type: "retnet" # Choices: "retnet", "transformer", longnet
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
 value_embed_dim: 12
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
 vocab_size: 4000
+
+# ---------------------------- LONGNET CONFIGURATION ----------------------------
+
+# Segment Length (list[int]): Length of segments for the model
+segment_length: [2048, 4096]
+# Dilated Ratio (list[int]): Ratio of dilation for the model
+dilated_ratio: [1, 2]
