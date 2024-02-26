@@ -1,7 +1,8 @@
 import sys
 import yaml
 
-from datasets import DatasetDict, load_dataset as load_ds
+import datasets
+from datasets import DatasetDict, load_from_disk, load_dataset
 from pathlib import Path
 from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
@@ -12,40 +13,32 @@ from utils import Struct
 
 def train_tokenizer(config) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
+    datasets.logging.set_verbosity_debug()
+    #datasets.config.IN_MEMORY_MAX_SIZE = 966367641600
     # Retrieve iterators for each split of the dataset
     print(f"Data dir: {config.raw_dataset_path}")
-    data_path = Path(config.raw_dataset_path) / \
-        (config.dataset_subset + ".parquet")
 
-    entire_dataset = load_ds("parquet",
-                             data_files=str(data_path),
-                             split="all")
+    print('Loading dataset from disk')
+    # data_files = {'train': '/home/jo288/compute/retnet/data/datasets/c4test/test.csv'}
+    # entire_dataset = load_dataset('csv',
+    #                          data_files=data_files,
+    #                          keep_in_memory=True,
+    #                          split='all',
+    #                          num_proc=config.num_proc,
+    #                          cache_dir=config.cache_dir)    
+    
+    entire_dataset = load_from_disk(Path(config.raw_dataset_path),
+                                    keep_in_memory=True)
 
-    # Function to filter out undesired inputs. In this case, filter out
-    # instances with only whitespace
-    filter_fun = lambda inst_dict : bool(
-        inst_dict[config.dataset_feature].strip())
+    # entire_dataset = datasets.load_dataset(
+    #         path=config.raw_dataset_path,
+    #         split='train',
+    #         trust_remote_code=True,
+    #         num_proc=config.num_proc,
+    #         #keep_in_memory=True,
+    #         cache_dir=config.cache_dir)
 
-    # Filter out undesired data instances
-    entire_dataset = entire_dataset.filter(filter_fun)
-
-    # Split into training, validation, and testing datasets
-    train_validtest = entire_dataset.train_test_split(
-        train_size=config.splits[0],
-        shuffle=True,
-        seed=config.rand_seed)
-    valid_test = train_validtest["test"].train_test_split(
-        train_size=config.splits[1] / (config.splits[1] + config.splits[2]),
-        seed=config.rand_seed)
-    entire_dataset = DatasetDict({
-        "train": train_validtest["train"],
-        "validation": valid_test["train"],
-        "test": valid_test["test"]})
-
-    # Save splits to file
-    entire_dataset.save_to_disk(
-        dataset_dict_path=Path(config.raw_dataset_path))
-
+    print('Creating tokenizer')
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
     trainer = BpeTrainer(
@@ -58,11 +51,23 @@ def train_tokenizer(config) -> \
     # of a sentence (which is the default otherwise)
     tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
 
+    # def batch_iterator(batch_size=1000):
+    #     batch = []
+    #     for example in entire_dataset:
+    #         batch.append(example[config.dataset_feature])
+    #         if len(batch) == batch_size:
+    #             yield batch
+    #             batch = []
+    #     if batch:  # yield last batch
+    #         yield batch
+
+    print('Training tokenizer')
     # Train tokenizer on only training data
+    # subset_size=1
     tokenizer.train_from_iterator(
-        iter(entire_dataset["train"][config.dataset_feature]),
-        trainer=trainer,
-        length=len(entire_dataset["train"]))
+        iter(entire_dataset['train'][config.dataset_feature]), #[:subset_size]
+        #batch_iterator(),
+        trainer=trainer) # length=subset_size
 
     # trim_offsets=False tells post-processor to keep spaces as part of tokens
     tokenizer.post_processor = processors.TemplateProcessing(
@@ -95,11 +100,12 @@ def train_tokenizer(config) -> \
         pad_token="<pad>",
         tokenizer_object=tokenizer)
 
+    print('Saving tokenizer to file...')
     # Save tokenizer to file
     tokenizer_save_path = Path(config.tokenizer_path)
     tokenizer_save_path.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(tokenizer_save_path)
-
+    print('Done!')
 
 if __name__ == "__main__":
     args = sys.argv
@@ -110,4 +116,6 @@ if __name__ == "__main__":
 
     config = Struct(**config)
 
+    print('Training tokenizer...')
     train_tokenizer(config)
+    

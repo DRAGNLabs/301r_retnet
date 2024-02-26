@@ -1,8 +1,8 @@
-import datasets
 import math
 import sys
 import yaml
 
+from datasets import load_from_disk
 from pathlib import Path
 from transformers import PreTrainedTokenizerFast
 from utils import Struct
@@ -16,8 +16,10 @@ def tokenize_data(config):
 
     # Retrieve iterators for each split of the dataset
     print(f"Datasets dir: {config.raw_dataset_path}")
-    entire_dataset = datasets.load_from_disk(Path(config.raw_dataset_path))
-
+    print('Loading dataset from disk')
+    entire_dataset = load_from_disk(Path(config.raw_dataset_path), 
+                                    keep_in_memory=True)
+    
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
 
     # Tokenize the datasets
@@ -28,9 +30,11 @@ def tokenize_data(config):
             truncation=True,
             max_length=config.seq_len + 1,
             return_token_type_ids=False,
-            return_attention_mask=False)
+            return_attention_mask=False,
+            return_tensors="np") # TODO: test this
 
-    entire_dataset = entire_dataset.map(tokenization, batched=True)
+    print('Tokenizing dataset')
+    entire_dataset = entire_dataset.map(tokenization, batched=True, num_proc=config.num_proc)
 
     # Drop now unnecessary text_feature column
     entire_dataset = entire_dataset.remove_columns(
@@ -41,9 +45,15 @@ def tokenize_data(config):
     tokenized_dataset_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Saving tokenized data to {config.tokenized_dataset_path}")
-    for key, value in entire_dataset.items():
-        filename = key + '.parquet'
-        value.to_parquet(tokenized_dataset_dir / filename)
+    # for key, value in entire_dataset.items():
+    #     filename = key + '.parquet'
+    #     value.to_parquet(tokenized_dataset_dir / filename)
+    
+    entire_dataset.save_to_disk(
+        dataset_dict_path=tokenized_dataset_dir,
+        num_proc=config.num_proc)
+
+    print('Done!')
 
 
 if __name__ == "__main__":
