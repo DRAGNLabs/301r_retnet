@@ -8,6 +8,8 @@ import torch
 import torch.nn as nn
 from fairscale.nn import checkpoint_wrapper, wrap
 
+from torchscale.component.performer import attention
+
 from torchscale.architecture.utils import init_bert_params
 from torchscale.component.droppath import DropPath
 from torchscale.component.feedforward_network import FeedForwardNetwork, make_experts
@@ -19,173 +21,6 @@ try:
     from apex.normalization import FusedLayerNorm as LayerNorm
 except ModuleNotFoundError:
     from torch.nn import LayerNorm
-
-def softmax_kernel(data, *, projection_matrix, is_query, normalize_data=True, eps=1e-4, device = None):
-    b, h, *_ = data.shape
-
-    data_normalizer = (data.shape[-1] ** -0.25) if normalize_data else 1.
-
-    ratio = (projection_matrix.shape[0] ** -0.5)
-
-    projection = repeat(projection_matrix, 'j d -> b h j d', b = b, h = h)
-    projection = projection.type_as(data)
-
-    data_dash = torch.einsum('...id,...jd->...ij', (data_normalizer * data), projection)
-
-    diag_data = data ** 2
-    diag_data = torch.sum(diag_data, dim=-1)
-    diag_data = (diag_data / 2.0) * (data_normalizer ** 2)
-    diag_data = diag_data.unsqueeze(dim=-1)
-
-    if is_query:
-        data_dash = ratio * (
-            torch.exp(data_dash - diag_data -
-                    torch.amax(data_dash, dim=-1, keepdim=True).detach()) + eps)
-    else:
-        data_dash = ratio * (
-            torch.exp(data_dash - diag_data - torch.amax(data_dash, dim=(-1, -2), keepdim=True).detach()) + eps)
-
-    return data_dash.type_as(data)
-
-def generalized_kernel(data, *, projection_matrix, kernel_fn = nn.ReLU(), kernel_epsilon = 0.001, normalize_data = True, device = None):
-    b, h, *_ = data.shape
-
-    data_normalizer = (data.shape[-1] ** -0.25) if normalize_data else 1.
-
-    if projection_matrix is None:
-        return kernel_fn(data_normalizer * data) + kernel_epsilon
-
-    projection = repeat(projection_matrix, 'j d -> b h j d', b = b, h = h)
-    projection = projection.type_as(data)
-
-    data_dash = torch.einsum('...id,...jd->...ij', (data_normalizer * data), projection)
-
-    data_prime = kernel_fn(data_dash) + kernel_epsilon
-    return data_prime.type_as(data)
-
-def orthogonal_matrix_chunk(cols, device = None):
-    unstructured_block = torch.randn((cols, cols), device = device)
-    if TORCH_GE_1_8_0:
-        q, r = torch.linalg.qr(unstructured_block.cpu(), mode = 'reduced')
-    else:
-        q, r = torch.qr(unstructured_block.cpu(), some = True)
-    q, r = map(lambda t: t.to(device), (q, r))
-    return q.t()
-
-def gaussian_orthogonal_random_matrix(nb_rows, nb_columns, scaling = 0, device = None):
-    nb_full_blocks = int(nb_rows / nb_columns)
-
-    block_list = []
-
-    for _ in range(nb_full_blocks):
-        q = orthogonal_matrix_chunk(nb_columns, device = device)
-        block_list.append(q)
-
-    remaining_rows = nb_rows - nb_full_blocks * nb_columns
-    if remaining_rows > 0:
-        q = orthogonal_matrix_chunk(nb_columns, device = device)
-        block_list.append(q[:remaining_rows])
-
-    final_matrix = torch.cat(block_list)
-
-    if scaling == 0:
-        multiplier = torch.randn((nb_rows, nb_columns), device = device).norm(dim = 1)
-    elif scaling == 1:
-        multiplier = math.sqrt((float(nb_columns))) * torch.ones((nb_rows,), device = device)
-    else:
-        raise ValueError(f'Invalid scaling {scaling}')
-
-    return torch.diag(multiplier) @ final_matrix
-
-# linear attention classes with softmax kernel
-
-# non-causal linear attention
-def linear_attention(q, k, v):
-    k_cumsum = k.sum(dim = -2)
-    D_inv = 1. / torch.einsum('...nd,...d->...n', q, k_cumsum.type_as(q))
-    context = torch.einsum('...nd,...ne->...de', k, v)
-    out = torch.einsum('...de,...nd,...n->...ne', context, q, D_inv)
-    return out
-
-
-# efficient causal linear attention, created by EPFL
-def causal_linear_attention(q, k, v, eps = 1e-6):
-    from fast_transformers.causal_product import CausalDotProduct
-    autocast_enabled = torch.is_autocast_enabled()
-    is_half = isinstance(q, torch.cuda.HalfTensor)
-    assert not is_half or APEX_AVAILABLE, 'half tensors can only be used if nvidia apex is available'
-    cuda_context = null_context if not autocast_enabled else partial(autocast, enabled = False)
-
-    causal_dot_product_fn = amp.float_function(CausalDotProduct.apply) if is_half else CausalDotProduct.apply
-
-    k_cumsum = k.cumsum(dim=-2) + eps
-    D_inv = 1. / torch.einsum('...nd,...nd->...n', q, k_cumsum.type_as(q))
-
-    with cuda_context():
-        if autocast_enabled:
-            q, k, v = map(lambda t: t.float(), (q, k, v))
-
-        out = causal_dot_product_fn(q, k, v)
-
-    out = torch.einsum('...nd,...n->...nd', out, D_inv)
-    return out
-
-
-class FastAttention(nn.Module):
-    def __init__(self, dim_heads, nb_features = None, ortho_scaling = 0, causal = False, generalized_attention = False, kernel_fn = nn.ReLU(), no_projection = False):
-        super().__init__()
-        nb_features = default(nb_features, int(dim_heads * math.log(dim_heads)))
-
-        self.dim_heads = dim_heads
-        self.nb_features = nb_features
-        self.ortho_scaling = ortho_scaling
-
-        self.create_projection = partial(gaussian_orthogonal_random_matrix, nb_rows = self.nb_features, nb_columns = dim_heads, scaling = ortho_scaling)
-        projection_matrix = self.create_projection()
-        self.register_buffer('projection_matrix', projection_matrix)
-
-        self.generalized_attention = generalized_attention
-        self.kernel_fn = kernel_fn
-
-        # if this is turned on, no projection will be used
-        # queries and keys will be softmax-ed as in the original efficient attention paper
-        self.no_projection = no_projection
-
-        self.causal = causal
-        if causal:
-            try:
-                import fast_transformers.causal_product.causal_product_cuda
-                self.causal_linear_fn = partial(causal_linear_attention)
-            except ImportError:
-                print('unable to import cuda code for auto-regressive Performer. will default to the memory inefficient non-cuda version')
-                self.causal_linear_fn = causal_linear_attention_noncuda
-
-    @torch.no_grad()
-    def redraw_projection_matrix(self, device):
-        projections = self.create_projection(device = device)
-        self.projection_matrix.copy_(projections)
-        del projections
-
-    def forward(self, q, k, v):
-        device = q.device
-
-        if self.no_projection:
-            q = q.softmax(dim = -1)
-            k = torch.exp(k) if self.causal else k.softmax(dim = -2)
-
-        elif self.generalized_attention:
-            create_kernel = partial(generalized_kernel, kernel_fn = self.kernel_fn, projection_matrix = self.projection_matrix, device = device)
-            q, k = map(create_kernel, (q, k))
-
-        else:
-            create_kernel = partial(softmax_kernel, projection_matrix = self.projection_matrix, device = device)
-            q = create_kernel(q, is_query = True)
-            k = create_kernel(k, is_query = False)
-
-        attn_fn = linear_attention if not self.causal else self.causal_linear_fn
-        out = attn_fn(q, k, v)
-        return out
-
 
 class DecoderLayer(nn.Module):
     def __init__(
@@ -274,22 +109,39 @@ class DecoderLayer(nn.Module):
 
     def build_self_attention(self, embed_dim, args):
         # Replace with FastAttention initialization
-        return FastAttention(
-            dim=embed_dim,
+        return attention.SelfAttention(
+            dim=args.embed_dim,
             heads=args.decoder_attention_heads,
             causal=True,  # Enabling causal attention
             dim_head=64,  # Example dimension, adjust as necessary
+            local_heads = 0,
+            local_window_size = 256,
+            nb_features = None, # Defaults to int(dim_head * log(dim_head))
+            feature_redraw_interval = 1000,
+            generalized_attention = False,
+            kernel_fn = nn.ReLU(),
+            dropout=args.dropout,
+            no_projection = False,
+            qkv_bias = False,
+            attn_out_bias = True
         )
 
     def build_encoder_attention(self, embed_dim, args):
-        return MultiheadAttention(
-            args,
-            embed_dim,
-            args.decoder_attention_heads,
-            dropout=args.attention_dropout,
-            self_attention=False,
-            encoder_decoder_attention=True,
-            subln=args.subln,
+        return attention.CrossAttention(
+            dim=args.embed_dim,
+            heads=args.decoder_attention_heads,
+            causal=False,
+            dim_head=64,
+            local_heads = 0,
+            local_window_size = 256,
+            nb_features = None,
+            feature_redraw_interval = 1000,
+            generalized_attention = False,
+            kernel_fn = nn.ReLU(),
+            dropout=args.dropout,
+            no_projection = False,
+            qkv_bias = False,
+            attn_out_bias = True
         )
 
     def residual_connection(self, x, residual):
