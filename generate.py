@@ -5,6 +5,7 @@ import yaml
 from models import RetNetModel, TransformerModel
 from transformers import PreTrainedTokenizerFast
 from utils import Struct, generate_text
+import datetime
 
 def generate_specific_text(config: Struct):
     """
@@ -44,6 +45,15 @@ def generate_specific_text(config: Struct):
     print("Generated strings:")
     for idx, string in enumerate(generated_strings):
         print(f"{idx+1}: {string}\n")
+
+    if config.csv_path is not None:
+        with open(config.csv_path, "w") as f:
+            for string in generated_strings:
+                # Get the current time
+                current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                # Write the time and string to the file
+                f.write(f"{current_time}: {string}\n")
 
 
 if __name__ == "__main__":
