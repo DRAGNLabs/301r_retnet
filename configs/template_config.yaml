@@ -27,6 +27,9 @@ input_starting_strings:
   - "A long time ago, in a galaxy far, far"
   - "It truly happened so suddenly! In one moment"
 
+# CSV Path (str): Path to CSV file to generate from; default None if not using
+csv_path: None
+
 # Model Path Directory (str): Path to model to run test harness on.
 # Example: "/tmp/data/models/<MODEL_NAME>/checkpoints/hf_ckpt_<CHECKPOINT_NUM>"
 model_path_dir: ~
