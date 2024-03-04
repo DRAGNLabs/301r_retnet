@@ -1,3 +1,59 @@
+import math
+import torch
+import torch.nn.functional as F
+from torch import nn
+from torch.cuda.amp import autocast
+from einops import rearrange, repeat
+
+from functools import partial
+from contextlib import contextmanager
+ 
+# From https://github.com/lucidrains/local-attention/blob/master/local_attention/local_attention.py
+from local_attention import LocalAttention
+from axial_positional_embedding import AxialPositionalEmbedding
+from performer_pytorch.reversible import ReversibleSequence, SequentialSequence
+
+from distutils.version import LooseVersion
+
+TORCH_GE_1_8_0 = LooseVersion(torch.__version__) >= LooseVersion('1.8.0')
+
+try:
+    from apex import amp
+    APEX_AVAILABLE = True
+except:
+    APEX_AVAILABLE = False
+
+# helpers
+
+def exists(val):
+    return val is not None
+
+def empty(tensor):
+    return tensor.numel() == 0
+
+def default(val, d):
+    return val if exists(val) else d
+
+@contextmanager
+def null_context():
+    yield
+
+def cast_tuple(val):
+    return (val,) if not isinstance(val, tuple) else val
+
+def get_module_device(module):
+    return next(module.parameters()).device
+
+def find_modules(nn_module, type):
+    return [module for module in nn_module.modules() if isinstance(module, type)]
+
+class Always(nn.Module):
+    def __init__(self, val):
+        super().__init__()
+        self.val = val
+
+    def forward(self, *args, **kwargs):
+        return self.val
 
 def softmax_kernel(data, *, projection_matrix, is_query, normalize_data=True, eps=1e-4, device = None):
     b, h, *_ = data.shape
