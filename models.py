@@ -575,7 +575,7 @@ class LongNetModelHF(PreTrainedModel):
             embedding_dim=self.config.decoder_embed_dim,
             padding_idx=0)
 
-        self.decoder_stack = Decoder(self.config, embed_tokens=text_embeddings)
+        self.decoder_stack = LongNetDecoder(self.config, embed_tokens=text_embeddings)
 
     def forward(self, x: Tensor) -> Tensor:
         """
