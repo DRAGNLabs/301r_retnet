@@ -9,7 +9,7 @@ import yaml
 from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
 from datetime import datetime
-from models import RetNetModel, TransformerModel
+from models import RetNetModel, TransformerModel, LongNetModel
 from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
@@ -66,6 +66,8 @@ def train_model(config: Struct):
         model = RetNetModel(config)
     elif config.model_type.lower() == "transformer":
         model = TransformerModel(config)
+    elif config.model_type.lower() == "longnet":
+        model = LongNetModel(config)
     else:
         raise ValueError(f"Model type '{config.model_type}' not supported!")
 
