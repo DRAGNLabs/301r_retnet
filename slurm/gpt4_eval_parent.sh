@@ -1,4 +1,5 @@
 #!/bin/bash --login
+
 /home/dsg2060/.lmod.d
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate <YOUR_ENV_NAME>

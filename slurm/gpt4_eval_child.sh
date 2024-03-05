@@ -19,11 +19,11 @@ mamba activate <YOUR_ENV_NAME>
 ## NOT TO RUN INDEPENDENT; CALL BY PARENT SCRIPT ##
 
 # Model 1
-python3 ../../generate.py ../../configs/user_configs/config_benchmarks_retnet.yaml
+python3 ../../generate.py ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml
 echo "\nOne Mississippi..."
 
 # Model 2
-python3 ../../generate.py ../../configs/user_configs/config_benchmarks_transformer.yaml
+python3 ../../generate.py ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml
 echo "\nTwo Mississippi..."
 
 # # Model n
