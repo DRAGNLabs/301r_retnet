@@ -1,14 +1,13 @@
+import dask
+dask.config.set({"dataframe.query-planning": True})
+import dask.dataframe as dd
+from huggingface_hub import login
+from pathlib import Path
 import sys
+sys.path.append("..")
 import yaml
 
-from pathlib import Path
 from utils import Struct
-
-import dask
-dask.config.set({'dataframe.query-planning': True})
-import dask.dataframe as dd
-
-from huggingface_hub import login
 
 def download_data(config):
     """ 
@@ -25,6 +24,7 @@ def download_data(config):
     it is better to use curl/wget to download the data directly to disk. 
     Or, clone a git repository that contains the data.
     """
+    # Login to HF Hub. You will need a token to do this.
     login()
     # Create folder to save this dataset's files in
     dataset_dir = Path(config.raw_dataset_path)
@@ -41,7 +41,7 @@ def download_data(config):
     # Can also use 'read_json', etc.; depends on HF repo.
     dataset = dd.read_parquet(fs_path)
 
-    print('Saving to disk')
+    print("Saving to disk")
     dataset.to_parquet(dataset_dir)
     print("Download completed.")
 
