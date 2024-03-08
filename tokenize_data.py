@@ -2,43 +2,59 @@ import math
 import sys
 import yaml
 
-from datasets import load_from_disk
 from pathlib import Path
 from transformers import PreTrainedTokenizerFast
 from utils import Struct
 
-def tokenize_data(config):
-    # Test the dataset splits add up to 1, using isclose for rounding errors
-    assert math.isclose(sum(config.splits), 1), \
-        "The dataset splits for the training, validation, and testing " + \
-        "datasets must sum up to 1 " + \
-        f"({' + '.join(map(str, config.splits))} != 1)!"
+import dask
+dask.config.set({'dataframe.query-planning': True})
+import dask.dataframe as dd
 
-    # Retrieve iterators for each split of the dataset
-    print(f"Datasets dir: {config.raw_dataset_path}")
-    print('Loading dataset from disk')
-    entire_dataset = load_from_disk(Path(config.raw_dataset_path), 
-                                    keep_in_memory=True)
+import pyarrow as pa
+
+def tokenize_data(config):
+
+    # Load the dataset from disk into dask
+    train_dataset = dd.read_parquet(path=Path(config.raw_dataset_path) / 'train' / '*.parquet') # TODO: consider loading only the text column
+    val_dataset = dd.read_parquet(path=Path(config.raw_dataset_path) / 'validation' / '*.parquet')
+    test_dataset = dd.read_parquet(path=Path(config.raw_dataset_path) / 'test' / '*.parquet')
     
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
 
     # Tokenize the datasets
-    tokenization = lambda instances_dict : \
-        tokenizer(
-            instances_dict[config.dataset_feature],
-            padding="max_length",
-            truncation=True,
-            max_length=config.seq_len + 1,
-            return_token_type_ids=False,
-            return_attention_mask=False,
-            return_tensors="np") # TODO: test this
+    # tokenization = lambda instances_dict : \
+    #     tokenizer(
+    #         instances_dict[config.dataset_feature],
+    #         padding="max_length",
+    #         truncation=True,
+    #         max_length=config.seq_len + 1,
+    #         return_token_type_ids=False,
+    #         return_attention_mask=False,
+    #         return_tensors="np") # TODO: test this
 
-    print('Tokenizing dataset')
-    entire_dataset = entire_dataset.map(tokenization, batched=True, num_proc=config.num_proc)
+    def tokenization_partition(partition):
+        #print('HEY: ', partition[config.dataset_feature].tolist())
+        tokenization_dataframe = lambda series: \
+            tokenizer(
+                series,
+                padding="max_length",
+                truncation=True,
+                max_length=config.seq_len + 1,
+                return_token_type_ids=False,
+                return_attention_mask=False)["input_ids"]
 
+        tokenized_data = partition[config.dataset_feature].map(tokenization_dataframe, na_action='ignore').to_frame()
+
+        return tokenized_data
+
+    train_dataset = train_dataset.map_partitions(tokenization_partition)
+    val_dataset = val_dataset.map_partitions(tokenization_partition)
+    test_dataset = test_dataset.map_partitions(tokenization_partition)
+    # list df columns
+    #print('columns: ', train_dataset.columns)
     # Drop now unnecessary text_feature column
-    entire_dataset = entire_dataset.remove_columns(
-        column_names=config.dataset_feature)
+    # entire_dataset = entire_dataset.remove_columns(
+    #     column_names=config.dataset_feature)
 
     # Make sure directory for tokenized dataset exists
     tokenized_dataset_dir = Path(config.tokenized_dataset_path)
@@ -49,9 +65,9 @@ def tokenize_data(config):
     #     filename = key + '.parquet'
     #     value.to_parquet(tokenized_dataset_dir / filename)
     
-    entire_dataset.save_to_disk(
-        dataset_dict_path=tokenized_dataset_dir,
-        num_proc=config.num_proc)
+    train_dataset.to_parquet(tokenized_dataset_dir / 'train', schema={"text": pa.list_(pa.int64())})
+    val_dataset.to_parquet(tokenized_dataset_dir / 'validation', schema={"text": pa.list_(pa.int64())})
+    test_dataset.to_parquet(tokenized_dataset_dir / 'test', schema={"text": pa.list_(pa.int64())})
 
     print('Done!')
 
