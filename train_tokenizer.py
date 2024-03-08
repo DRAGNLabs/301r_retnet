@@ -1,3 +1,4 @@
+import csv
 import sys
 import yaml
 
@@ -11,10 +12,12 @@ from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 from utils import Struct
 
-def train_tokenizer(config) -> \
-            tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
-    datasets.logging.set_verbosity_debug()
-    #datasets.config.IN_MEMORY_MAX_SIZE = 966367641600
+import dask
+dask.config.set({'dataframe.query-planning': True})
+import dask.dataframe as dd
+
+def train_tokenizer(config):
+    
     # Retrieve iterators for each split of the dataset
     print(f"Data dir: {config.raw_dataset_path}")
 
@@ -27,8 +30,23 @@ def train_tokenizer(config) -> \
     #                          num_proc=config.num_proc,
     #                          cache_dir=config.cache_dir)    
     
-    entire_dataset = load_from_disk(Path(config.raw_dataset_path),
-                                    keep_in_memory=True)
+    # entire_dataset = load_from_disk(Path(config.raw_dataset_path),
+    #                                 keep_in_memory=True)
+
+    dataset = dd.read_parquet(path=Path(config.raw_dataset_path)/ 'train' / '*.parquet') # TODO: consider loading only the text column
+                        #   on_bad_lines='skip',
+                        #   quoting=csv.QUOTE_NONE,
+                        #   sep='\n',
+                        #   header=None)
+
+    print('loaded!')
+
+    # test_iterator = iter(dataset[config.dataset_feature])
+    # for x in test_iterator:
+    #     print(x)
+    #     print(type(x))
+    #print(next(test_iterator))
+                         
 
     # entire_dataset = datasets.load_dataset(
     #         path=config.raw_dataset_path,
@@ -65,7 +83,7 @@ def train_tokenizer(config) -> \
     # Train tokenizer on only training data
     # subset_size=1
     tokenizer.train_from_iterator(
-        iter(entire_dataset['train'][config.dataset_feature]), #[:subset_size]
+        iter(dataset[config.dataset_feature]), #[:subset_size]
         #batch_iterator(),
         trainer=trainer) # length=subset_size
 
