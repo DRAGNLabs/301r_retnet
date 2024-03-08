@@ -1,36 +1,31 @@
-import csv
 import sys
+sys.path.append("..")
 import yaml
 
-import datasets
-from datasets import DatasetDict, load_from_disk, load_dataset
+import dask
+dask.config.set({"dataframe.query-planning": True})
+import dask.dataframe as dd
 from pathlib import Path
 from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
-from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 from utils import Struct
-
-import dask
-dask.config.set({'dataframe.query-planning': True})
-import dask.dataframe as dd
 
 def train_tokenizer(config):
     
     print(f"Data dir: {config.raw_dataset_path}")
+    print("Loading dataset from disk")
 
-    print('Loading dataset from disk')
+    train_dataset_path = Path(config.raw_dataset_path) / "train" / "*.parquet"
 
-    dataset = dd.read_parquet(path=Path(config.raw_dataset_path)/ 'train' / '*.parquet') # TODO: consider loading only the text column
-                        #   on_bad_lines='skip',
-                        #   quoting=csv.QUOTE_NONE,
-                        #   sep='\n',
-                        #   header=None)
+    # Only load in train set, as that's all the tokenizer needs.
+    dataset = dd.read_parquet(path=train_dataset_path,
+                              columns=config.dataset_feature) 
 
-    print('Loaded!')
+    print("Loaded!")
 
-    print('Creating tokenizer')
+    print("Creating tokenizer")
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
     trainer = BpeTrainer(
@@ -43,7 +38,7 @@ def train_tokenizer(config):
     # of a sentence (which is the default otherwise)
     tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
 
-    print('Training tokenizer')
+    print("Training tokenizer")
     # Train tokenizer on only training data
 
     tokenizer.train_from_iterator(
@@ -81,12 +76,12 @@ def train_tokenizer(config):
         pad_token="<pad>",
         tokenizer_object=tokenizer)
 
-    print('Saving tokenizer to file...')
+    print("Saving tokenizer to file...")
     # Save tokenizer to file
     tokenizer_save_path = Path(config.tokenizer_path)
     tokenizer_save_path.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(tokenizer_save_path)
-    print('Done!')
+    print("Done!")
 
 if __name__ == "__main__":
     args = sys.argv
@@ -97,6 +92,6 @@ if __name__ == "__main__":
 
     config = Struct(**config)
 
-    print('Training tokenizer...')
+    print("Training tokenizer...")
     train_tokenizer(config)
     
