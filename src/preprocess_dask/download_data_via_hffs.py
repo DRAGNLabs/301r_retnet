@@ -15,7 +15,7 @@ from huggingface_hub import login
 
 def download_data(config):
     """ 
-    Download dataset from Hugging Face.
+    Download dataset from Hugging Face through the HuggingFace file system, and save as parquet.
 
     There are a variety of ways to download datasets from HuggingFace,
     and the best way depends on the dataset.
@@ -27,7 +27,6 @@ def download_data(config):
     it is better to use curl/wget to download the data directly to disk. 
     Or, clone a git repository that contains the data.
     """
-    # TODO: test this with varying dataset sizes
     login()
     # Create folder to save this dataset's files in
     dataset_dir = Path(config.raw_dataset_path)
@@ -38,7 +37,6 @@ def download_data(config):
     print(f"Data name: {config.dataset_name}")
     print(f"Data subset: {config.dataset_subset}")
 
-    # "hf://datasets/wikitext/wikitext-2-v1"
     # Can also use 'read_json', etc.; depends on HF repo.
     dataset = dd.read_parquet("hf://datasets/wikitext/wikitext-2-v1")
 
