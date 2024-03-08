@@ -1,5 +1,6 @@
 import sys
 import yaml
+from time import time
 
 from datasets import DatasetDict, load_dataset as load_ds
 from pathlib import Path
@@ -14,12 +15,11 @@ def train_tokenizer(config) -> \
             tuple[DataLoader, DataLoader, DataLoader, Tokenizer]:
     # Retrieve iterators for each split of the dataset
     print(f"Data dir: {config.raw_dataset_path}")
-    data_path = Path(config.raw_dataset_path) / \
-        (config.dataset_subset + ".parquet")
-
+    data_path = Path(config.raw_dataset_path) / (config.dataset_subset + ".parquet")
+    print(data_path)
     entire_dataset = load_ds("parquet",
                              data_files=str(data_path),
-                             split="all")
+                             split="all", num_proc = config.num_proc)
 
     # Function to filter out undesired inputs. In this case, filter out
     # instances with only whitespace
@@ -29,22 +29,54 @@ def train_tokenizer(config) -> \
     # Filter out undesired data instances
     entire_dataset = entire_dataset.filter(filter_fun)
 
+    print("splitting train from validation")
     # Split into training, validation, and testing datasets
     train_validtest = entire_dataset.train_test_split(
         train_size=config.splits[0],
         shuffle=True,
         seed=config.rand_seed)
+    print("spliting valid from test")
     valid_test = train_validtest["test"].train_test_split(
         train_size=config.splits[1] / (config.splits[1] + config.splits[2]),
         seed=config.rand_seed)
+    print("creating datasetdict obj")
     entire_dataset = DatasetDict({
         "train": train_validtest["train"],
         "validation": valid_test["train"],
         "test": valid_test["test"]})
+    
+    print("starting save") 
+    # start = time()
 
+    print("starting train")
+
+    # train_path = Path(config.raw_dataset_path) / "train"
+    # train_path.mkdir(parents=True, exist_ok=True)
+
+    # entire_dataset["train"].to_parquet(train_path/"split.parquet")
+
+    # print("starting test")
+    # test_path = Path(config.raw_dataset_path) / "test"
+    # test_path.mkdir(parents=True, exist_ok=True)
+    # entire_dataset["test"].to_parquet(test_path / "split.parquet")
+
+    # print("starting validation")
+
+    # valid_path = Path(config.raw_dataset_path) / "validation"
+    # valid_path.mkdir(parents=True, exist_ok=True)
+
+    # entire_dataset["validation"].to_parquet(valid_path / "split.parquet")
+
+    print("completed to parquet")
+    # end = time()
+    # print(f"Total to save: {(end-start)//60}")
     # Save splits to file
-    entire_dataset.save_to_disk(
-        dataset_dict_path=Path(config.raw_dataset_path))
+    # entire_dataset.to_parquet(
+    #     dataset_dict_path=Path(config.raw_dataset_path), num_proc = config.num_proc)
+
+    print("Starting BPE")
+
+    start_tokenization = time()
 
     # Create BytePair Encoding tokenizer and trainer
     tokenizer = Tokenizer(BPE(unk_token="<unk>"))
@@ -58,12 +90,14 @@ def train_tokenizer(config) -> \
     # of a sentence (which is the default otherwise)
     tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
 
+    print("Got all the way through to start training")
     # Train tokenizer on only training data
     tokenizer.train_from_iterator(
         iter(entire_dataset["train"][config.dataset_feature]),
         trainer=trainer,
         length=len(entire_dataset["train"]))
 
+    print("Finished Training")
     # trim_offsets=False tells post-processor to keep spaces as part of tokens
     tokenizer.post_processor = processors.TemplateProcessing(
         single="<bos> $A",
@@ -94,12 +128,13 @@ def train_tokenizer(config) -> \
         unk_token="<unk>",
         pad_token="<pad>",
         tokenizer_object=tokenizer)
-
+    end_tokenization = time()
+    print(f"Total to save tokenizer: {(end_tokenization-start_tokenization)//60}")
     # Save tokenizer to file
     tokenizer_save_path = Path(config.tokenizer_path)
     tokenizer_save_path.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(tokenizer_save_path)
-
+    print("saved tokenizer")
 
 if __name__ == "__main__":
     args = sys.argv

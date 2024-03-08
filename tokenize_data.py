@@ -1,4 +1,5 @@
 import datasets
+from datasets import load_dataset
 import math
 import sys
 import yaml
@@ -16,7 +17,21 @@ def tokenize_data(config):
 
     # Retrieve iterators for each split of the dataset
     print(f"Datasets dir: {config.raw_dataset_path}")
-    entire_dataset = datasets.load_from_disk(Path(config.raw_dataset_path))
+    # entire_dataset = datasets.load_from_disk(Path(config.raw_dataset_path))
+    train_dataset_path = Path(config.raw_dataset_path) / ("train") / ("split.parquet")
+    test_dataset_path = Path(config.raw_dataset_path) / ("test") / ("split.parquet")
+    validation_dataset_path = Path(config.raw_dataset_path) / ("validation") / ("split.parquet")
+
+    print("Dataset Path: f{data_path}")
+
+    entire_dataset = datasets.load_dataset("parquet", data_files={'train': str(train_dataset_path), 'test': str(test_dataset_path), 'validation': str(validation_dataset_path)}, keep_in_memory=True)
+
+    
+
+    # entire_dataset = DatasetDict({
+    #     "train": train_dataset,
+    #     "validation": validation_dataset,
+    #     "test": test_dataset})
 
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
 

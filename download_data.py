@@ -33,7 +33,8 @@ def download_data(config):
 
     # Check if dataset is of type datasets.arrow_dataset.Dataset
     if isinstance(dataset, datasets.arrow_dataset.Dataset):
-        filename = config.dataset_subset + ".parquet"
+        filename =  "ultratextbooks.parquet"
+        # filename = config.dataset_subset + ".parquet"
         dataset.to_parquet(dataset_dir / filename)
     else:
         raise Exception("Dataset is not of type " + \
