@@ -281,3 +281,47 @@ class RetNetConfig(PretrainedConfig):
         for hp in self.__dict__.keys():
             if getattr(args, hp, None) is not None:
                 self.__dict__[hp] = getattr(args, hp, None)
+
+
+class PerformerConfig(PretrainedConfig):
+    model_type = 'performer'
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.embed_dim = kwargs.pop("embed_dim", 768)
+        self.depth = kwargs.pop("depth", 12)
+        self.heads = kwargs.pop("heads", 12)
+        self.mlp_dim = kwargs.pop("mlp_dim", 3072)
+        self.dropout = kwargs.pop("dropout", 0.1)
+        self.attention_dropout = kwargs.pop("attention_dropout", 0.1)
+        self.max_seq_len = kwargs.pop("max_seq_len", 512)
+        self.use_relative_position = kwargs.pop("use_relative_position", False)
+        self.use_axial_position = kwargs.pop("use_axial_position", False)
+        self.axial_pos_shape = kwargs.pop("axial_pos_shape", (64, 64))
+        self.axial_pos_emb_dim = kwargs.pop("axial_pos_emb_dim", 64)
+        self.use_rotary_position = kwargs.pop("use_rotary_position", False)
+        self.vocab_size = kwargs.pop("vocab_size", 30522)
+        self.lr = kwargs.pop("lr", 3e-5)
+        self.activation_function = kwargs.pop("activation_function", "gelu")
+        
+        # Performer-specific configurations
+        self.feature_redraw_interval = kwargs.pop("feature_redraw_interval", 1000)
+        self.reversible = kwargs.pop("reversible", False)
+        self.attention_type = kwargs.pop("attention_type", "linear")  # Options: 'linear', 'softmax'
+
+        # Handling of any additional parameters
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def override(self, args):
+        """
+        Overrides the default config settings with custom values provided through command-line arguments or another dictionary.
+
+        Args:
+            args: A namespace or dictionary containing the parameters to be overridden.
+        """
+        for hp in self.__dict__.keys():
+            if hasattr(args, hp) and getattr(args, hp, None) is not None:
+                self.__dict__[hp] = getattr(args, hp)
+            elif isinstance(args, dict) and hp in args:
+                self.__dict__[hp] = args[hp]
