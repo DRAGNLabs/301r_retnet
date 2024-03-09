@@ -17,7 +17,7 @@ def tokenize_data(config, split):
 
     # Load the dataset from disk into dask
     dataset = dd.read_parquet(path=dataset_path, 
-                              columns=config.dataset_feature)
+                              columns=[config.dataset_feature])
     
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
 
@@ -37,8 +37,6 @@ def tokenize_data(config, split):
         return tokenized_data
 
     dataset = dataset.map_partitions(tokenization_partition)
-    val_dataset = val_dataset.map_partitions(tokenization_partition)
-    test_dataset = test_dataset.map_partitions(tokenization_partition)
 
     # Make sure directory for tokenized dataset exists
     tokenized_dataset_dir = Path(config.tokenized_dataset_path)
