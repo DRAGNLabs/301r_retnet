@@ -62,7 +62,7 @@ if __name__ == "__main__":
     parser.add_argument('dataset', 
                         type=str, 
                         choices=['train', 'test', 'validation'], 
-                        help='Dataset to use')
+                        help='Dataset split to use')
     args = parser.parse_args()
 
     config_path = args.config_path

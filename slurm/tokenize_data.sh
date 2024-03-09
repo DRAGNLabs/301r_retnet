@@ -1,6 +1,6 @@
 #!/bin/bash --login
 
-#SBATCH --time=10:00:00   # walltime
+#SBATCH --time=24:00:00   # walltime
 #SBATCH --ntasks-per-node=1# number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem=64G   # memory per CPU core
@@ -16,4 +16,4 @@ mamba activate <YOUR_ENV_NAME>
 python3 \
     ../../tokenize_data.py \
     ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml \
-    --split <YOUR_SPLIT_HERE>
+    --split <YOUR_SPLIT_HERE> # train, validation, or test. You can start a job for each split.
