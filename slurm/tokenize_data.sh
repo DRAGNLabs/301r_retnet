@@ -15,4 +15,5 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 mamba activate <YOUR_ENV_NAME>
 python3 \
     ../../tokenize_data.py \
-    ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml
+    ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml \
+    --split <YOUR_SPLIT_HERE>
