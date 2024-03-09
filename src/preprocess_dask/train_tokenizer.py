@@ -1,10 +1,10 @@
+import dask
+dask.config.set({"dataframe.query-planning": True})
+import dask.dataframe as dd
 import sys
 sys.path.append("..")
 import yaml
 
-import dask
-dask.config.set({"dataframe.query-planning": True})
-import dask.dataframe as dd
 from pathlib import Path
 from tokenizers import decoders, pre_tokenizers, processors, Tokenizer
 from tokenizers.models import BPE
@@ -82,6 +82,7 @@ def train_tokenizer(config):
     tokenizer_save_path.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(tokenizer_save_path)
     print("Done!")
+
 
 if __name__ == "__main__":
     args = sys.argv

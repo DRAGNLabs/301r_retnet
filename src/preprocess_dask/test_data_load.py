@@ -1,5 +1,6 @@
 import datasets
 import sys
+sys.path.append("..")
 import time
 import yaml
 
@@ -34,7 +35,6 @@ def download_data(config):
     # Stop timer
     end = time.time()
     print(f"Time to load data: {end - start}")
-
 
 
 if __name__ == "__main__":

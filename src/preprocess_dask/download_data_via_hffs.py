@@ -1,12 +1,12 @@
 import dask
 dask.config.set({"dataframe.query-planning": True})
 import dask.dataframe as dd
-from huggingface_hub import login
-from pathlib import Path
 import sys
 sys.path.append("..")
 import yaml
 
+from huggingface_hub import login
+from pathlib import Path
 from utils import Struct
 
 def download_data(config):
@@ -44,6 +44,7 @@ def download_data(config):
     print("Saving to disk")
     dataset.to_parquet(dataset_dir)
     print("Download completed.")
+
 
 if __name__ == "__main__":
     args = sys.argv
