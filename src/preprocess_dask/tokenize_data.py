@@ -1,15 +1,16 @@
 import argparse
 import dask
-dask.config.set({'dataframe.query-planning': True})
 import dask.dataframe as dd
 import pyarrow as pa
 import sys
-sys.path.append("..")
 import yaml
 
 from pathlib import Path
 from transformers import PreTrainedTokenizerFast
 from utils import Struct
+
+dask.config.set({'dataframe.query-planning': True})
+sys.path.append("..")
 
 def tokenize_data(config, dataset):
 

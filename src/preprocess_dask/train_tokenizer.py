@@ -1,8 +1,6 @@
 import dask
-dask.config.set({"dataframe.query-planning": True})
 import dask.dataframe as dd
 import sys
-sys.path.append("..")
 import yaml
 
 from pathlib import Path
@@ -11,6 +9,9 @@ from tokenizers.models import BPE
 from tokenizers.trainers import BpeTrainer
 from transformers import PreTrainedTokenizerFast
 from utils import Struct
+
+dask.config.set({"dataframe.query-planning": True})
+sys.path.append("..")
 
 def train_tokenizer(config):
     

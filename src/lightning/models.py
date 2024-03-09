@@ -1,3 +1,4 @@
+import sys
 import torch
 import torch.nn as nn
 
@@ -9,6 +10,8 @@ from torchscale.architecture.retnet import RetNetDecoder
 from transformers import PreTrainedModel
 from typing import Optional, Union
 from utils import Struct
+
+sys.path.append("..")
 
 class RetNetModel(LightningModule):
     """ Create model with RetNet architecture.
