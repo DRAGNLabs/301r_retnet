@@ -13,13 +13,12 @@ from utils import Struct
 
 def tokenize_data(config, dataset):
 
+    # Dataset path
+    dataset_path = Path(config.raw_dataset_path) / dataset / '*.parquet'
+
     # Load the dataset from disk into dask
-    dataset = dd.read_parquet(path=Path(config.raw_dataset_path) / dataset / '*.parquet',
-                                    columns=config.dataset_feature)
-    # val_dataset = dd.read_parquet(path=Path(config.raw_dataset_path) / 'validation' / '*.parquet',
-    #                               columns=config.dataset_feature)
-    # test_dataset = dd.read_parquet(path=Path(config.raw_dataset_path) / 'test' / '*.parquet',
-    #                                columns=config.dataset_feature)
+    dataset = dd.read_parquet(path=dataset_path, 
+                              columns=config.dataset_feature)
     
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
 
@@ -33,7 +32,8 @@ def tokenize_data(config, dataset):
                 return_token_type_ids=False,
                 return_attention_mask=False)["input_ids"]
 
-        tokenized_data = partition[config.dataset_feature].map(tokenization_dataframe, na_action='ignore').to_frame()
+        tokenized_data = partition[config.dataset_feature] \
+            .map(tokenization_dataframe, na_action='ignore').to_frame()
 
         return tokenized_data
 
@@ -55,8 +55,13 @@ def tokenize_data(config, dataset):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Tokenize data')
-    parser.add_argument('config_path', type=str, help='Path to the config file')
-    parser.add_argument('dataset', type=str, choices=['train', 'test', 'validation'], help='Dataset to use')
+    parser.add_argument('config_path', 
+                        type=str, 
+                        help='Path to the config file')
+    parser.add_argument('dataset', 
+                        type=str, 
+                        choices=['train', 'test', 'validation'], 
+                        help='Dataset to use')
     args = parser.parse_args()
 
     config_path = args.config_path
