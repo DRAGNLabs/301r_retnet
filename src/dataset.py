@@ -1,4 +1,5 @@
 import dask
+dask.config.set({'dataframe.query-planning': True})
 import dask.dataframe as dd
 import torch
 import psutil
@@ -9,7 +10,6 @@ from torch.utils.data import DataLoader, get_worker_info
 from torch.distributed import get_rank, get_world_size
 from utils import Struct
 
-dask.config.set({'dataframe.query-planning': True})
 
 class DataModule(LightningDataModule):
     """

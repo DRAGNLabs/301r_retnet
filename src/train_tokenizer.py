@@ -1,4 +1,5 @@
 import dask
+dask.config.set({"dataframe.query-planning": True})
 import dask.dataframe as dd
 import sys
 import yaml
@@ -10,7 +11,6 @@ from tokenizers.trainers import BpeTrainer
 from transformers import PreTrainedTokenizerFast
 from utils import Struct
 
-dask.config.set({"dataframe.query-planning": True})
 
 def train_tokenizer(config):
     

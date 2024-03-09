@@ -1,4 +1,5 @@
 import dask
+dask.config.set({"dataframe.query-planning": True})
 import dask.dataframe as dd
 import sys
 import yaml
@@ -7,7 +8,6 @@ from huggingface_hub import login
 from pathlib import Path
 from utils import Struct
 
-dask.config.set({"dataframe.query-planning": True})
 
 def download_data(config):
     """ 
