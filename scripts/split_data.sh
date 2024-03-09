@@ -1,3 +1,3 @@
 python3 \
-    ../../src/train_tokenizer.py \
+    ../../src/split_data.py \
     ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml
