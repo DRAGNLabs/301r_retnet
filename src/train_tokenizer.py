@@ -21,7 +21,7 @@ def train_tokenizer(config):
 
     # Only load in train set, as that's all the tokenizer needs.
     dataset = dd.read_parquet(path=train_dataset_path,
-                              columns=config.dataset_feature) 
+                              columns=[str(config.dataset_feature)]).compute()
 
     print("Loaded!")
 
@@ -42,7 +42,7 @@ def train_tokenizer(config):
     # Train tokenizer on only training data
 
     tokenizer.train_from_iterator(
-        iter(dataset[config.dataset_feature]), #[:subset_size]
+        iter(dataset[config.dataset_feature]),
         trainer=trainer)
 
     # trim_offsets=False tells post-processor to keep spaces as part of tokens
