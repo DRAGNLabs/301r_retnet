@@ -11,7 +11,6 @@ from transformers import PreTrainedTokenizerFast
 from utils import Struct
 
 dask.config.set({"dataframe.query-planning": True})
-sys.path.append("..")
 
 def train_tokenizer(config):
     

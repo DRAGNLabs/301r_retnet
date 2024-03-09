@@ -2,7 +2,6 @@ import argparse
 import dask
 import dask.dataframe as dd
 import pyarrow as pa
-import sys
 import yaml
 
 from pathlib import Path
@@ -10,7 +9,6 @@ from transformers import PreTrainedTokenizerFast
 from utils import Struct
 
 dask.config.set({'dataframe.query-planning': True})
-sys.path.append("..")
 
 def tokenize_data(config, dataset):
 

@@ -8,7 +8,6 @@ from pathlib import Path
 from utils import Struct
 
 dask.config.set({"dataframe.query-planning": True})
-sys.path.append("..")
 
 def download_data(config):
     """ 

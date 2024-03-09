@@ -2,7 +2,6 @@ import dask
 import dask.dataframe as dd
 import torch
 import psutil
-import sys
 
 from pathlib import Path
 from pytorch_lightning import LightningDataModule
@@ -11,7 +10,6 @@ from torch.distributed import get_rank, get_world_size
 from utils import Struct
 
 dask.config.set({'dataframe.query-planning': True})
-sys.path.append("..")
 
 class DataModule(LightningDataModule):
     """
