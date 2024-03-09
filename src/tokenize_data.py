@@ -10,10 +10,10 @@ from transformers import PreTrainedTokenizerFast
 from utils import Struct
 
 
-def tokenize_data(config, dataset):
+def tokenize_data(config, split):
 
     # Dataset path
-    dataset_path = Path(config.raw_dataset_path) / dataset / '*.parquet'
+    dataset_path = Path(config.raw_dataset_path) / split / '*.parquet'
 
     # Load the dataset from disk into dask
     dataset = dd.read_parquet(path=dataset_path, 
@@ -46,7 +46,7 @@ def tokenize_data(config, dataset):
 
     print(f"Saving tokenized data to {config.tokenized_dataset_path}")
     
-    dataset.to_parquet(tokenized_dataset_dir / 'train', 
+    dataset.to_parquet(tokenized_dataset_dir / split, 
                              schema={"text": pa.list_(pa.int64())})
 
     print('Done!')
@@ -57,18 +57,18 @@ if __name__ == "__main__":
     parser.add_argument('config_path', 
                         type=str, 
                         help='Path to the config file')
-    parser.add_argument('dataset', 
+    parser.add_argument('split', 
                         type=str, 
                         choices=['train', 'test', 'validation'], 
                         help='Dataset split to use')
     args = parser.parse_args()
 
     config_path = args.config_path
-    dataset = args.dataset
+    split = args.split
 
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     config = Struct(**config)
 
-    tokenize_data(config, dataset)
+    tokenize_data(config, split)
