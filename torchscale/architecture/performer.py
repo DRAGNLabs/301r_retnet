@@ -18,6 +18,8 @@ try:
 except ModuleNotFoundError:
     from torch.nn import LayerNorm
 
+
+# The DecoderLayer class represents a single layer of the Performer Decoder.
 class DecoderLayer(nn.Module):
     def __init__(
         self,
@@ -39,12 +41,15 @@ class DecoderLayer(nn.Module):
         else:
             self.drop_path = None
 
+        # Performer self-attention mechanism which calls fast attention
         self.self_attn = self.build_self_attention(self.embed_dim, args)
 
         self.normalize_before = args.decoder_normalize_before
 
+        # Layer normalization applied before the self-attention and feedforward network (Pre-LN transformer).
         self.self_attn_layer_norm = LayerNorm(self.embed_dim, eps=args.layernorm_eps)
 
+        # If this is part of an encoder-decoder architecture, set up the attention mechanism for encoder outputs.
         if not is_encoder_decoder:
             self.encoder_attn = None
             self.encoder_attn_layer_norm = None
@@ -55,6 +60,7 @@ class DecoderLayer(nn.Module):
         self.is_moe_layer = is_moe_layer
         self.ffn_dim = args.decoder_ffn_embed_dim
 
+        # Feedforward network as defined in the transformer model
         if not self.is_moe_layer:
             self.ffn = self.build_ffn(
                 self.embed_dim,
@@ -82,8 +88,10 @@ class DecoderLayer(nn.Module):
             experts = make_experts(args, self.embed_dim, self.ffn_dim)
             self.moe_layer = MOELayer(gate, experts, args)
 
+         # The final layer normalization applied after the self-attention and feedforward network.
         self.final_layer_norm = LayerNorm(self.embed_dim, eps=args.layernorm_eps)
 
+         # DeepNorm initialization strategy for stable training of deep transformer networks.
         if args.deepnorm:
             if is_encoder_decoder:
                 self.alpha = math.pow(3.0 * args.decoder_layers, 0.25)
@@ -143,6 +151,7 @@ class DecoderLayer(nn.Module):
     def residual_connection(self, x, residual):
         return residual * self.alpha + x
 
+    # The forward method defines the operations to process the input through this layer.
     def forward(
         self,
         x,
@@ -159,6 +168,7 @@ class DecoderLayer(nn.Module):
         if self.normalize_before:
             x = self.self_attn_layer_norm(x)
 
+        # Apply performer self-attention. The attention mask ensures causality in the decoder.
         x, attn = self.self_attn(
             query=x,
             key=x,
@@ -219,7 +229,9 @@ class DecoderLayer(nn.Module):
         return x, attn, None, l_aux
 
 
+# The PerformerDecoder class represents the entire decoder made up of multiple layers of DecoderLayer.
 class PerformerDecoder(nn.Module):
+    # Initialization sets up the embedding layers and stacks of DecoderLayer modules.
     def __init__(
         self,
         args,
@@ -238,7 +250,9 @@ class PerformerDecoder(nn.Module):
         self.embed_dim = embed_dim
         self.embed_scale = 1.0 if args.no_scale_embedding else math.sqrt(embed_dim)
 
+        # Token embeddings convert input tokens into vector representations.
         self.embed_tokens = embed_tokens
+        # Positional embeddings provide the model with information about the token positions.
         self.embed_positions = embed_positions
 
         if (
@@ -255,6 +269,7 @@ class PerformerDecoder(nn.Module):
         else:
             self.layernorm_embedding = None
 
+        # Initialize and stack the DecoderLayer instances.
         self.layers = nn.ModuleList([])
 
         moe_freq = args.moe_freq
@@ -360,6 +375,7 @@ class PerformerDecoder(nn.Module):
             layer = wrap(layer)
         return layer
 
+    # The forward_embedding method applies embeddings and position encodings to the input tokens.
     def forward_embedding(
         self,
         tokens,
@@ -397,6 +413,7 @@ class PerformerDecoder(nn.Module):
             return False
         return incremental_state.get("is_first_step", False)
 
+    # The forward method processes the input tokens through the entire decoder.
     def forward(
         self,
         prev_output_tokens,
@@ -441,6 +458,7 @@ class PerformerDecoder(nn.Module):
         else:
             l_aux = encoder_out["l_aux"] if "l_aux" in encoder_out else []
 
+        # Process each token through the stacked decoder layers.
         for idx, layer in enumerate(self.layers):
             if incremental_state is None or is_first_step:
                 self_attn_mask = torch.triu(
@@ -474,9 +492,11 @@ class PerformerDecoder(nn.Module):
             l_aux.append(l_aux_i)
             inner_states.append(x)
 
+        # Apply the final layer normalization if specified.
         if self.layer_norm is not None:
             x = self.layer_norm(x)
 
+        # Output projection layer converts the decoder's output to token probabilities.
         if not features_only:
             x = self.output_layer(x)
 
@@ -486,5 +506,6 @@ class PerformerDecoder(nn.Module):
             "attn": None,
         }
 
+    # The output_layer method applies the final linear transformation to the features.
     def output_layer(self, features):
         return self.output_projection(features)
