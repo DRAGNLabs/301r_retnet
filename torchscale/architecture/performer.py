@@ -1,6 +1,3 @@
-# Copyright (c) 2022 Microsoft
-# Licensed under The MIT License [see LICENSE for details]
-
 import math
 
 import numpy as np
@@ -8,10 +5,11 @@ import torch
 import torch.nn as nn
 from fairscale.nn import checkpoint_wrapper, wrap
 
+from torchscale.component.performer import attention
+
 from torchscale.architecture.utils import init_bert_params
 from torchscale.component.droppath import DropPath
 from torchscale.component.feedforward_network import FeedForwardNetwork, make_experts
-from torchscale.component.multihead_attention import MultiheadAttention
 from torchscale.component.relative_position_bias import RelativePositionBias
 from torchscale.component.xmoe.moe_layer import MOELayer
 from torchscale.component.xmoe.routing import Top1Gate, Top2Gate
@@ -106,25 +104,40 @@ class DecoderLayer(nn.Module):
         )
 
     def build_self_attention(self, embed_dim, args):
-        return MultiheadAttention(
-            args,
-            embed_dim,
-            args.decoder_attention_heads,
-            dropout=args.attention_dropout,
-            self_attention=True,
-            encoder_decoder_attention=False,
-            subln=args.subln,
+        # Replace with FastAttention initialization
+        return attention.SelfAttention(
+            dim=args.embed_dim,
+            heads=args.decoder_attention_heads,
+            causal=True,  # Enabling causal attention
+            dim_head=64,  # Example dimension, adjust as necessary
+            local_heads = 0,
+            local_window_size = 256,
+            nb_features = None, # Defaults to int(dim_head * log(dim_head))
+            feature_redraw_interval = 1000,
+            generalized_attention = False,
+            kernel_fn = nn.ReLU(),
+            dropout=args.dropout,
+            no_projection = False,
+            qkv_bias = False,
+            attn_out_bias = True
         )
 
     def build_encoder_attention(self, embed_dim, args):
-        return MultiheadAttention(
-            args,
-            embed_dim,
-            args.decoder_attention_heads,
-            dropout=args.attention_dropout,
-            self_attention=False,
-            encoder_decoder_attention=True,
-            subln=args.subln,
+        return attention.CrossAttention(
+            dim=args.embed_dim,
+            heads=args.decoder_attention_heads,
+            causal=False,
+            dim_head=64,
+            local_heads = 0,
+            local_window_size = 256,
+            nb_features = None,
+            feature_redraw_interval = 1000,
+            generalized_attention = False,
+            kernel_fn = nn.ReLU(),
+            dropout=args.dropout,
+            no_projection = False,
+            qkv_bias = False,
+            attn_out_bias = True
         )
 
     def residual_connection(self, x, residual):
@@ -206,7 +219,7 @@ class DecoderLayer(nn.Module):
         return x, attn, None, l_aux
 
 
-class Decoder(nn.Module):
+class PerformerDecoder(nn.Module):
     def __init__(
         self,
         args,
