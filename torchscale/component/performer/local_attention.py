@@ -1,3 +1,4 @@
+# From https://github.com/lucidrains/local-attention/blob/master/local_attention/local_attention.py
 import math
 
 import torch
