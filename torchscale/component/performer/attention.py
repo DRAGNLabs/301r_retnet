@@ -8,7 +8,6 @@ from einops import rearrange, repeat
 from functools import partial
 from contextlib import contextmanager
 
-# lucidrains's repos
 from performer.local_attention import LocalAttention
 from performer.axial_positional_embedding import AxialPositionalEmbedding
 from performer.reversible import ReversibleSequence, SequentialSequence
@@ -197,6 +196,27 @@ def causal_linear_attention(q, k, v, eps = 1e-6):
 
     out = torch.einsum('...nd,...n->...nd', out, D_inv)
     return out
+
+# inefficient causal linear attention, without cuda code, for reader's reference
+# not being used
+def causal_linear_attention_noncuda(q, k, v, chunk_size = 128, eps = 1e-6):
+    last_k_cumsum = 0
+    last_context_cumsum = 0
+    outs = []
+
+    for q, k, v in zip(*map(lambda t: t.chunk(chunk_size, dim = -2), (q, k, v))):
+        k_cumsum = last_k_cumsum + k.cumsum(dim=-2)
+
+        D_inv = 1. / torch.einsum('...nd,...nd->...n', q, k_cumsum.type_as(q) + eps)
+        context = torch.einsum('...nd,...ne->...nde', k, v)
+        context_cumsum = last_context_cumsum + context.cumsum(dim=-3)
+        out = torch.einsum('...nde,...nd,...n->...ne', context_cumsum, q, D_inv)
+
+        last_k_cumsum = k_cumsum[:, :, -1:]
+        last_context_cumsum = context_cumsum[:, :, -1:]
+        outs.append(out)
+
+    return torch.cat(outs, dim = -2)
 
 class FastAttention(nn.Module):
     def __init__(self, dim_heads, nb_features = None, ortho_scaling = 0, causal = False, generalized_attention = False, kernel_fn = nn.ReLU(), no_projection = False):
@@ -472,3 +492,180 @@ class FixedPositionalEmbedding(nn.Module):
 
     def forward(self, x):
         return self.emb[None, :x.shape[1], :].to(x)
+
+# performer
+
+class Performer(nn.Module):
+    def __init__(
+        self,
+        dim,
+        depth,
+        heads,
+        dim_head,
+        local_attn_heads = 0,
+        local_window_size = 256,
+        causal = False,
+        ff_mult = 4,
+        nb_features = None,
+        feature_redraw_interval = 1000,
+        reversible = False,
+        ff_chunks = 1,
+        generalized_attention = False,
+        kernel_fn = nn.ReLU(),
+        use_scalenorm = False,
+        use_rezero = False,
+        ff_glu = False,
+        ff_dropout = 0.,
+        attn_dropout = 0.,
+        cross_attend = False,
+        no_projection = False,
+        auto_check_redraw = True,
+        qkv_bias = True,
+        attn_out_bias = True,
+        shift_tokens = False
+    ):
+        super().__init__()
+        layers = nn.ModuleList([])
+        local_attn_heads = cast_tuple(local_attn_heads)
+        local_attn_heads = local_attn_heads * depth if len(local_attn_heads) == 1 else local_attn_heads
+        assert len(local_attn_heads) == depth, 'tuple specifying number of local attention heads per depth must be equal to the total depth'
+        assert all(map(lambda n: n >= 0 and n <= heads, local_attn_heads)), 'local attention head value must be less than the total number of heads'
+
+        if use_scalenorm:
+            wrapper_fn = partial(PreScaleNorm, dim)
+        elif use_rezero:
+            wrapper_fn = ReZero
+        else:
+            wrapper_fn = partial(PreLayerNorm, dim)
+
+        for _, local_heads in zip(range(depth), local_attn_heads):
+
+            attn = SelfAttention(dim, causal = causal, heads = heads, dim_head = dim_head, local_heads = local_heads, local_window_size = local_window_size, nb_features = nb_features, generalized_attention = generalized_attention, kernel_fn = kernel_fn, dropout = attn_dropout, no_projection = no_projection, qkv_bias = qkv_bias, attn_out_bias = attn_out_bias)
+            ff = Chunk(ff_chunks, FeedForward(dim, mult = ff_mult, dropout = ff_dropout, glu = ff_glu), along_dim = 1)
+
+            if shift_tokens:
+                shift = (0, 1) if causal else (-1, 0, 1)
+                attn, ff = map(lambda t: PreShiftTokens(shift, t), (attn, ff))
+
+            attn, ff = map(wrapper_fn, (attn, ff))
+            layers.append(nn.ModuleList([attn, ff]))
+
+            if not cross_attend:
+                continue
+
+            layers.append(nn.ModuleList([
+                wrapper_fn(CrossAttention(dim, heads = heads, dim_head = dim_head, nb_features = nb_features, generalized_attention = generalized_attention, kernel_fn = kernel_fn, dropout = attn_dropout, no_projection = no_projection, qkv_bias = qkv_bias, attn_out_bias = attn_out_bias)),
+                wrapper_fn(Chunk(ff_chunks, FeedForward(dim, mult = ff_mult, dropout = ff_dropout, glu = ff_glu), along_dim = 1))
+            ]))
+
+        execute_type = ReversibleSequence if reversible else SequentialSequence
+
+        route_attn = ((True, False),) * depth * (2 if cross_attend else 1)
+        route_context = ((False, False), (True, False)) * depth
+        attn_route_map = {'mask': route_attn, 'pos_emb': route_attn}
+        context_route_map = {'context': route_context, 'context_mask': route_context} if cross_attend else {}
+        self.net = execute_type(layers, args_route = {**attn_route_map, **context_route_map})
+
+        # keeping track of when to redraw projections for all attention layers
+        self.auto_check_redraw = auto_check_redraw
+        self.proj_updater = ProjectionUpdater(self.net, feature_redraw_interval)
+
+    def fix_projection_matrices_(self):
+        self.proj_updater.feature_redraw_interval = None
+
+    def forward(self, x, **kwargs):
+        if self.auto_check_redraw:
+            self.proj_updater.redraw_projections()
+        return self.net(x, **kwargs)
+
+class PerformerLM(nn.Module):
+    def __init__(
+        self,
+        *,
+        num_tokens,
+        max_seq_len,
+        dim,
+        depth,
+        heads,
+        dim_head = 64,
+        local_attn_heads = 0,
+        local_window_size = 256,
+        causal = False,
+        ff_mult = 4,
+        nb_features = None,
+        feature_redraw_interval = 1000,
+        reversible = False,
+        ff_chunks = 1,
+        ff_glu = False,
+        emb_dropout = 0.,
+        ff_dropout = 0.,
+        attn_dropout = 0.,
+        generalized_attention = False,
+        kernel_fn = nn.ReLU(),
+        use_scalenorm = False,
+        use_rezero = False,
+        cross_attend = False,
+        no_projection = False,
+        tie_embed = False,
+        rotary_position_emb = True,
+        axial_position_emb = False,
+        axial_position_shape = None,
+        auto_check_redraw = True,
+        qkv_bias = False,
+        attn_out_bias = False,
+        shift_tokens = False
+    ):
+        super().__init__()
+        local_attn_heads = cast_tuple(local_attn_heads)
+
+        self.max_seq_len = max_seq_len
+        self.token_emb = nn.Embedding(num_tokens, dim)
+
+        if rotary_position_emb:
+            self.pos_emb = FixedPositionalEmbedding(dim, max_seq_len)
+            self.layer_pos_emb = FixedPositionalEmbedding(dim_head, max_seq_len)
+        elif axial_position_emb:
+            axial_position_shape = default(axial_position_shape, (math.ceil(max_seq_len / 64), 64))
+            self.pos_emb = AxialPositionalEmbedding(dim, axial_position_shape)
+            self.layer_pos_emb = Always(None)
+        else:
+            self.pos_emb = AbsolutePositionalEmbedding(dim, max_seq_len)
+            self.layer_pos_emb = Always(None)
+
+        self.dropout = nn.Dropout(emb_dropout)
+
+        self.performer = Performer(dim, depth, heads, dim_head, local_attn_heads, local_window_size, causal, ff_mult, nb_features, feature_redraw_interval, reversible, ff_chunks, generalized_attention, kernel_fn, use_scalenorm, use_rezero, ff_glu, ff_dropout, attn_dropout, cross_attend, no_projection, auto_check_redraw, qkv_bias, attn_out_bias, shift_tokens)
+        self.norm = nn.LayerNorm(dim)
+        self.to_out = nn.Linear(dim, num_tokens) if not tie_embed else None
+
+    def check_redraw_projections(self):
+        self.performer.check_redraw_projections()
+
+    def fix_projection_matrices_(self):
+        self.performer.fix_projection_matrices_()
+
+    def forward(self, x, return_encodings = False, **kwargs):
+        b, n, device = *x.shape, x.device
+        assert n <= self.max_seq_len, f'sequence length {n} must be less than the max sequence length {self.max_seq_len}'
+
+        # token and positional embeddings
+        x = self.token_emb(x)
+        x += self.pos_emb(x)
+
+        x = self.dropout(x)
+
+        # performer layers
+
+        layer_pos_emb = self.layer_pos_emb(x)
+        x = self.performer(x, pos_emb = layer_pos_emb, **kwargs)
+
+        # norm and to logits
+        x = self.norm(x)
+
+        if return_encodings:
+            return x
+
+        if exists(self.to_out):
+            return self.to_out(x)
+
+        return x @ self.token_emb.weight.t()
