@@ -1,8 +1,7 @@
 import dask
-dask.config.set({'dataframe.query-planning': True})
+dask.config.set({"dataframe.query-planning": True})
 import dask.dataframe as dd
 import torch
-import psutil
 
 from pathlib import Path
 from pytorch_lightning import LightningDataModule
@@ -33,22 +32,18 @@ class DataModule(LightningDataModule):
         Args:
             stage (str): Either "fit", "validate", "test", or "predict".
         """
-        print('memory usage 1: ', psutil.virtual_memory().percent)
         if stage == "fit":
             # Load datasets
-            self.train_dataset = DataSet(self.tokenized_dataset_path / 'train',
+            self.train_dataset = DataSet(self.tokenized_dataset_path / "train",
                                          self.seq_len)
             
-            self.val_dataset = DataSet(self.tokenized_dataset_path / 'validation',
+            self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
                                         self.seq_len)
             
         if stage == "test":
             # Load dataset
-            self.test_dataset = DataSet(self.tokenized_dataset_path / 'test',
+            self.test_dataset = DataSet(self.tokenized_dataset_path / "test",
                                          self.seq_len)
-            
-        print('memory usage 2: ', psutil.virtual_memory().percent)
-            
 
     def train_dataloader(self):
         """ Return training PyTorch DataLoader. """
