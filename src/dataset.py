@@ -95,6 +95,6 @@ class DataSet(torch.utils.data.IterableDataset):
         for index, item in enumerate(self.data):
             if index % (num_workers * world_size) == (process_rank * num_workers + worker_id):
                 item = item[1].values[0].copy()
-                x = item[:self.seq_len-1]
-                y_true = item[1:self.seq_len]
+                x = item[:self.seq_len]
+                y_true = item[1:self.seq_len+1]
                 yield(x,y_true)
