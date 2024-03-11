@@ -124,6 +124,43 @@ def train_model(config: Struct):
     print(f"-log(1 / {config.vocab_size}) = " + \
         f"{-torch.log(torch.tensor(1 / config.vocab_size))}")
 
+
+
+
+    # Checks to see if you want to use a portion of the dataset for training
+    if config.split_dataset:
+        print(f"\nUsing {config.split_dataset_percentage}% of the dataset for training")
+
+        # Define the source and target directories
+        source_dir = Path("/grphome/grp_retnet/compute/data/datasets_tokenized/c4/train")
+        target_dir = Path("/grphome/grp_retnet/compute/data/datasets_tokenized/c4/portion_data")
+
+        # Ensure the target directory exists
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        # Delete everything in the target directory
+        for item in target_dir.iterdir():
+            if item.is_file():
+                item.unlink()
+            elif item.is_dir():
+                shutil.rmtree(item)
+
+        # Calculate the number of files to copy based on the percentage
+        total_files = 1031  # Total number of parquet files
+        files_to_copy = int((config.split_dataset_percentage / 100) * total_files)
+
+        # Copy the calculated number of .parquet files
+        for i in range(files_to_copy):
+            source_file = source_dir / f"part.{i}.parquet"
+            target_file = target_dir / f"part.{i}.parquet"
+            shutil.copy2(source_file, target_file)
+        
+        print(f"Copied {files_to_copy} files to {target_dir}")
+
+
+
+    
+
     # Loads Tokenized data
     print(f"\nNow loading '{config.dataset_name}'")
 
