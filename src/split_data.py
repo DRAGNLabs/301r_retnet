@@ -29,13 +29,13 @@ def split_data(config):
     dataset = dataset[dataset[config.dataset_feature].str.strip() != '']
 
     # Split into training, validation, and testing datasets
-    train, test = dask_ml.model_selection.train_test_split(
+    train, test_valid = dask_ml.model_selection.train_test_split(
         dataset,
         shuffle=False, # Very expensive for large datasets
         train_size=config.splits[0],
         random_state=config.rand_seed)
     test, validation = dask_ml.model_selection.train_test_split(
-        test,
+        test_valid,
         shuffle=False,
         train_size=config.splits[1] / (config.splits[1] + config.splits[2]),
         random_state=config.rand_seed)
