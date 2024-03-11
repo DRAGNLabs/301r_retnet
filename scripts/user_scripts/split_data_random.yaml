@@ -1,0 +1,135 @@
+# ------------------------------------ USAGE -----------------------------------
+
+# The YAML configuration contains all necessary paths and parameters to download
+# data, train a tokenizer, tokenize the data, train a model, and evaluate the
+# model.
+#
+# To use a YAML config, create a copy of template_config.yaml in the
+# user_configs folder and fill in the necessary parameters.
+#
+# Path names need to be specified properly and be absolute paths. A suggested
+# path structure is given in the template. The YAML config file is then passed
+# as an argument to any scripts.
+#
+# For example, to train a model, run the following in the repository root
+# directory:
+#        python3 train_model.py ./configs/user_configs/my_config.yaml
+#
+# Do not Add a YAML config to a git commit unless you have a good reason.
+
+# -------------------- TESTING AND GENERATION CONFIGURATION --------------------
+
+# Generation Length (int): Maximum number of tokens during generation
+gen_len: 100
+# Input Starting Strings (List[str]): Starting strings for generation.py
+input_starting_strings:
+  - "Once upon a time, there was"
+  - "A long time ago, in a galaxy far, far"
+  - "It truly happened so suddenly! In one moment"
+# Model Path Directory (str): Path to model to run test harness on.
+# Example: "/tmp/data/models/<MODEL_NAME>/checkpoints/hf_ckpt_<CHECKPOINT_NUM>"
+model_path_dir: ~
+# Results Out Path (str): JSON file path where test harness results are stored.
+# Example: "<YOUR_PATH_HERE>/data/models/<MODEL_NAME>/eval_results.json"
+results_out_path: ~
+# Tasks (List[str]): A list of tests to apply in the evaluation test harness
+tasks:
+  - "hellaswag"
+  - "winogrande"
+
+# ----------------------- DATASET AND PATH CONFIGURATION -----------------------
+
+# Checkpoint Path (str): Path to checkpoint to load for generation/inference.
+# Typically is the "best_model_path" from training
+checkpoint_path: ~
+# HuggingFace Dataset Feature (str): Column of the dataset to extract text from
+dataset_feature: text
+# HuggingFace Dataset Name (str)
+dataset_name: Locutusque/UltraTextbooks
+# HuggingFace Dataset Subset (str)
+dataset_subset: ultratextbooks
+# Train Model (str): Path to model folder
+models_path: /grphome/grp_retnet/compute/data/models
+# Root Data Path (str): Useful for any new features that don't want to specify a
+# new path parameter in the config
+root_data_path: /grphome/grp_retnet/compute/data/trial_run
+# Download Data (str): Path to raw dataset folder
+raw_dataset_path: /grphome/grp_retnet/compute/data/datasets/trial_UTB
+# Splits (List[int]): Train split, Validation Split, and Test Split
+splits:
+  - 0.98
+  - 0.01
+  - 0.01
+# Train Tokenizer (str): Path to tokenizer folder
+tokenizer_path: /grphome/grp_retnet/compute/tokenizer/c4_tokenizer
+# Tokenize Data (str): Path to tokenized dataset folder
+tokenized_dataset_path: /grphome/grp_retnet/compute/data/datasets_tokenized/c4/portion_data
+# TensorBoard Path (str): Path for where TensorBoard files go, optional
+tboard_path: /grphome/grp_retnet/compute/data/runs
+
+# This is where you can specify what percentage of C4 data you want to use for training
+split_dataset: true
+split_dataset_percentage: .10
+
+# ---------------------------- DEVICE CONFIGURATION ----------------------------
+
+# Device Type (str): Device to train on
+device: cuda # Options: "cpu", "cuda"
+# Number of GPUs (int)
+num_devices: 8
+# Number of Nodes (int)
+num_nodes: 1
+# Number of Processes (int): Number of cpu cores. Used for data preprocessing
+num_proc: 8
+# Num Workers (int): Number of workers for dataloaders. Recommended to set to
+# one less than number of CPU cores available
+num_workers: 0
+# Strategy (string): Distributed strategy for training. Likely no need to change
+strategy: ddp # Options: "ddp", "ddp_spawn"
+# Use Slurm (bool): Whether to use Slurm for training
+use_slurm: true
+
+# --------------------------- TRAINING CONFIGURATION ---------------------------
+
+# Accumulate Gradient Batches (int): Accumulate gradients over n batches
+accumulate_grad_batches: 1
+# Early Stopping (int): Number of epochs to wait before stopping training
+early_stopping: 3
+# Epochs (int): Number of epochs to train for
+epochs: 10
+# Gamma (float): Learning rate scheduler gamma
+gamma: 0.85
+# Learning Rate (float): Learning rate of model to train
+learning_rate: 0.001
+# Random Seed (int): Random seed for reproducibility
+rand_seed: 42
+# Save Top K (int): Number of best models to save
+save_top_k: 3
+# Validation Check Interval (float): Validation frequency (fraction of an epoch)
+val_check_interval: 0.5
+
+# ---------------------------- MODEL CONFIGURATION -----------------------------
+
+# Activation Dropout (float): Probability of an element to be zeroed during
+# dropout after activation between FFN layers
+activation_dropout: 0.0
+# Batch Size (int): Batch size for training
+batch_size: 64
+# Dropout (float): Probability of an element to be zeroed during dropout
+dropout: 0.1
+# Embedding Dimension (int): Embedding dimension size of each token
+embed_dim: 2048
+# FFN Dimension (int): Hidden layer size of Feed Forward Network (FFN)
+ffn_dim: 4096
+# Heads (int): Number of heads. Head architecture changes based on model
+heads: 8
+# Layers (int): Number of stacked network layers
+layers: 12
+# Model Type (str): Name of model architecture to train
+model_type: transformer # Choices: "retnet", "transformer"
+# Sequence Length (int): Context window size by number of tokens
+seq_len: 512
+# Value Embedding Dimension (int): Value embed dimension size
+value_embed_dim: 128
+# Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
+vocab_size: 50000
