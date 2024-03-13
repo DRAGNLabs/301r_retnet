@@ -15,4 +15,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate <YOUR_ENV_NAME>
-python3 ../../inference.py ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml
+python3 ../../src/inference.py ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml

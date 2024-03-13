@@ -60,8 +60,7 @@ class RetNetModel(LightningModule):
     def training_step(self, batch: Tensor, batch_idx: int):
         """ Training step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         # Get predictions
         preds = self.model_hf(inputs)
@@ -87,8 +86,7 @@ class RetNetModel(LightningModule):
     def validation_step(self, batch: Tensor, batch_idx: int):
         """ Validation step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         # Get predictions
         preds = self.model_hf(inputs)
@@ -114,8 +112,7 @@ class RetNetModel(LightningModule):
     def test_step(self, batch: Tensor, batch_idx: int):
         """ Test step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         # Get predictions
         preds = self.model_hf(inputs)
@@ -204,8 +201,7 @@ class TransformerModel(LightningModule):
     def training_step(self, batch: Tensor, batch_idx: int):
         """ Training step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         preds = self.model_hf(inputs)
 
@@ -230,8 +226,7 @@ class TransformerModel(LightningModule):
     def validation_step(self, batch: Tensor, batch_idx: int):
         """ Validation step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         preds = self.model_hf(inputs)
 
@@ -256,8 +251,9 @@ class TransformerModel(LightningModule):
     def test_step(self, batch: Tensor, batch_idx: int):
         """ Test step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        # inputs = batch[:, :-1]
+        # targets = batch[:, 1:]
+        inputs, targets = batch
 
         preds = self.model_hf(inputs)
 
