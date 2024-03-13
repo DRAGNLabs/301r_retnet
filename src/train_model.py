@@ -6,6 +6,7 @@ import sys
 import torch
 import yaml
 
+from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
 from datetime import datetime
 from models import RetNetModel, TransformerModel
@@ -170,12 +171,21 @@ def train_model(config: Struct):
             callbacks=[early_stopping, model_checkpoint],
             logger=tb_logger)
 
+    emissions_tracker = OfflineEmissionsTracker(
+                output_dir=model_dir,
+                output_file=f"emissions.csv",
+                country_iso_code="USA",
+                cloud_provider="GCP", 
+                cloud_region="us-west3")
+    
+    emissions_tracker.start()
     trainer.fit(model, datamodule=dm)
 
     print("\nDone training! Now testing model...")
 
     # Automatically load best checkpoint and test with test dataloader
     trainer.test(model, datamodule=dm)
+    emissions_tracker.stop()
 
     print("Finished training!")
 
