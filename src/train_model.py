@@ -23,7 +23,7 @@ from utils import Struct
 torch.backends.cuda.matmul.allow_tf32 = True
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, filename, monitor, save_top_k, mode,every_n_train_steps):
+    def __init__(self, dirpath, filename, monitor, save_top_k, mode, every_n_train_steps):
         super().__init__(
             dirpath=dirpath,
             filename=filename,
