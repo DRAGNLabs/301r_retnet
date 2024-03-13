@@ -271,8 +271,6 @@ class PerformerDecoder(nn.Module):
             self.pos_emb = AbsolutePositionalEmbedding(dim, max_seq_len)
             self.layer_pos_emb = Always(None)
 
-        self.dropout = nn.Dropout(emb_dropout)
-
         if (
             output_projection is None
             and not args.no_output_layer
@@ -429,7 +427,7 @@ class PerformerDecoder(nn.Module):
         x = self.token_emb(x)
         x += self.pos_emb(x)
 
-        x = self.dropout(x)
+        x = self.dropout_module(x)
 
         embed = x
 
