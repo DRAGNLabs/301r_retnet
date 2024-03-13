@@ -527,10 +527,11 @@ class Performer(nn.Module):
         super().__init__()
         layers = nn.ModuleList([])
         local_attn_heads = cast_tuple(local_attn_heads)
+        # Adjust the number of local attention heads across layers if specified as a single value.
         local_attn_heads = local_attn_heads * depth if len(local_attn_heads) == 1 else local_attn_heads
         assert len(local_attn_heads) == depth, 'tuple specifying number of local attention heads per depth must be equal to the total depth'
         assert all(map(lambda n: n >= 0 and n <= heads, local_attn_heads)), 'local attention head value must be less than the total number of heads'
-
+        # Wrapper functions for normalization layers before each block.
         if use_scalenorm:
             wrapper_fn = partial(PreScaleNorm, dim)
         elif use_rezero:
@@ -538,18 +539,21 @@ class Performer(nn.Module):
         else:
             wrapper_fn = partial(PreLayerNorm, dim)
 
+        # Construct layers of Performer, combining self-attention and feedforward networks.
         for _, local_heads in zip(range(depth), local_attn_heads):
 
             attn = SelfAttention(dim, causal = causal, heads = heads, dim_head = dim_head, local_heads = local_heads, local_window_size = local_window_size, nb_features = nb_features, generalized_attention = generalized_attention, kernel_fn = kernel_fn, dropout = attn_dropout, no_projection = no_projection, qkv_bias = qkv_bias, attn_out_bias = attn_out_bias)
+            # Feedforward network.
             ff = Chunk(ff_chunks, FeedForward(dim, mult = ff_mult, dropout = ff_dropout, glu = ff_glu), along_dim = 1)
 
+            # Optionally apply token shifting.
             if shift_tokens:
                 shift = (0, 1) if causal else (-1, 0, 1)
-                attn, ff = map(lambda t: PreShiftTokens(shift, t), (attn, ff))
-
+                attn, ff = map(lambda t: PreShiftTokens(shift, t), (attn, ff)) # Apply normalization wrapper.
+            # Applies pre-layer normalization or other normalization methods before attention and FFN.
             attn, ff = map(wrapper_fn, (attn, ff))
             layers.append(nn.ModuleList([attn, ff]))
-
+            # If cross attention is enabled, add cross attention and another FFN for each layer.
             if not cross_attend:
                 continue
 
@@ -558,6 +562,7 @@ class Performer(nn.Module):
                 wrapper_fn(Chunk(ff_chunks, FeedForward(dim, mult = ff_mult, dropout = ff_dropout, glu = ff_glu), along_dim = 1))
             ]))
 
+        # Choose between reversible and standard sequential execution for efficiency
         execute_type = ReversibleSequence if reversible else SequentialSequence
 
         route_attn = ((True, False),) * depth * (2 if cross_attend else 1)
@@ -619,7 +624,7 @@ class PerformerLM(nn.Module):
         local_attn_heads = cast_tuple(local_attn_heads)
 
         self.max_seq_len = max_seq_len
-        self.token_emb = nn.Embedding(num_tokens, dim)
+        self.token_emb = nn.Embedding(num_tokens, dim) # Embedding layer for input tokens.
 
         if rotary_position_emb:
             self.pos_emb = FixedPositionalEmbedding(dim, max_seq_len)
@@ -636,7 +641,7 @@ class PerformerLM(nn.Module):
 
         self.performer = Performer(dim, depth, heads, dim_head, local_attn_heads, local_window_size, causal, ff_mult, nb_features, feature_redraw_interval, reversible, ff_chunks, generalized_attention, kernel_fn, use_scalenorm, use_rezero, ff_glu, ff_dropout, attn_dropout, cross_attend, no_projection, auto_check_redraw, qkv_bias, attn_out_bias, shift_tokens)
         self.norm = nn.LayerNorm(dim)
-        self.to_out = nn.Linear(dim, num_tokens) if not tie_embed else None
+        self.to_out = nn.Linear(dim, num_tokens) if not tie_embed else None # Linear layer for output tokens.
 
     def check_redraw_projections(self):
         self.performer.check_redraw_projections()
@@ -649,10 +654,10 @@ class PerformerLM(nn.Module):
         assert n <= self.max_seq_len, f'sequence length {n} must be less than the max sequence length {self.max_seq_len}'
 
         # token and positional embeddings
-        x = self.token_emb(x)
-        x += self.pos_emb(x)
+        x = self.token_emb(x) # Embed input tokens.
+        x += self.pos_emb(x) # Add positional embeddings.
 
-        x = self.dropout(x)
+        x = self.dropout(x) # Apply dropout to embeddings.
 
         # performer layers
 
@@ -663,9 +668,9 @@ class PerformerLM(nn.Module):
         x = self.norm(x)
 
         if return_encodings:
-            return x
+            return x # Return the encoded features.
 
         if exists(self.to_out):
-            return self.to_out(x)
+            return self.to_out(x) # Project to vocabulary size.
 
-        return x @ self.token_emb.weight.t()
+        return x @ self.token_emb.weight.t() # Use tied embedding weights for output.
