@@ -5,7 +5,9 @@ import torch
 import torch.nn as nn
 from fairscale.nn import checkpoint_wrapper, wrap
 
-from torchscale.component.performer import attention
+from torchscale.component.performer.attention import SelfAttention, CrossAttention
+from torchscale.component.performer.attention import FixedPositionalEmbedding, AbsolutePositionalEmbedding
+from torchscale.component.performer.axial_positional_embedding import AxialPositionalEmbedding
 
 from torchscale.architecture.utils import init_bert_params
 from torchscale.component.droppath import DropPath
@@ -113,7 +115,7 @@ class DecoderLayer(nn.Module):
 
     def build_self_attention(self, embed_dim, args):
         # Replace with FastAttention initialization
-        return attention.SelfAttention(
+        return SelfAttention(
             dim=args.embed_dim,
             heads=args.decoder_attention_heads,
             causal=True,  # Enabling causal attention
@@ -131,7 +133,7 @@ class DecoderLayer(nn.Module):
         )
 
     def build_encoder_attention(self, embed_dim, args):
-        return attention.CrossAttention(
+        return CrossAttention(
             dim=args.embed_dim,
             heads=args.decoder_attention_heads,
             causal=False,
