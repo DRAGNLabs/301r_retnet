@@ -239,6 +239,7 @@ class PerformerDecoder(nn.Module):
         embed_positions=None,
         output_projection=None,
         is_encoder_decoder=False,
+        max_seq_len,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -254,6 +255,23 @@ class PerformerDecoder(nn.Module):
         self.embed_tokens = embed_tokens
         # Positional embeddings provide the model with information about the token positions.
         self.embed_positions = embed_positions
+
+        # Performer positional embedding initialization
+        self.max_seq_len = max_seq_len
+        self.token_emb = nn.Embedding(num_tokens, dim)
+
+        if rotary_position_emb:
+            self.pos_emb = FixedPositionalEmbedding(dim, max_seq_len)
+            self.layer_pos_emb = FixedPositionalEmbedding(dim_head, max_seq_len)
+        elif axial_position_emb:
+            axial_position_shape = default(axial_position_shape, (math.ceil(max_seq_len / 64), 64))
+            self.pos_emb = AxialPositionalEmbedding(dim, axial_position_shape)
+            self.layer_pos_emb = Always(None)
+        else:
+            self.pos_emb = AbsolutePositionalEmbedding(dim, max_seq_len)
+            self.layer_pos_emb = Always(None)
+
+        self.dropout = nn.Dropout(emb_dropout)
 
         if (
             output_projection is None
@@ -382,29 +400,38 @@ class PerformerDecoder(nn.Module):
         token_embedding=None,
         incremental_state=None,
     ):
-        positions = None
-        if self.embed_positions is not None:
-            positions = self.embed_positions(
-                tokens, incremental_state=incremental_state
-            )
+        # positions = None
+        # if self.embed_positions is not None:
+        #     positions = self.embed_positions(
+        #         tokens, incremental_state=incremental_state
+        #     )
 
-        if incremental_state is not None and not self.is_first_step(incremental_state):
-            tokens = tokens[:, -1:]
-            if positions is not None:
-                positions = positions[:, -1:]
+        # if incremental_state is not None and not self.is_first_step(incremental_state):
+        #     tokens = tokens[:, -1:]
+        #     if positions is not None:
+        #         positions = positions[:, -1:]
 
-        if token_embedding is None:
-            token_embedding = self.embed_tokens(tokens)
+        # if token_embedding is None:
+        #     token_embedding = self.embed_tokens(tokens)
 
-        x = embed = self.embed_scale * token_embedding
+        # x = embed = self.embed_scale * token_embedding
 
-        if positions is not None:
-            x += positions
+        # if positions is not None:
+        #     x += positions
 
-        if self.layernorm_embedding is not None:
-            x = self.layernorm_embedding(x)
+        # if self.layernorm_embedding is not None:
+        #     x = self.layernorm_embedding(x)
 
-        x = self.dropout_module(x)
+        # x = self.dropout_module(x)
+
+
+        # token and positional embeddings
+        x = self.token_emb(x)
+        x += self.pos_emb(x)
+
+        x = self.dropout(x)
+
+        embed = x
 
         return x, embed
 
@@ -434,6 +461,7 @@ class PerformerDecoder(nn.Module):
         # relative position
         self_attn_rel_pos_bias = None
         slen = prev_output_tokens.size(1)
+
         if self.self_attn_relative_position is not None:
             self_attn_rel_pos_bias = self.self_attn_relative_position(
                 batch_size=x.size(0), qlen=slen, klen=slen
@@ -441,6 +469,7 @@ class PerformerDecoder(nn.Module):
             if incremental_state is not None and not is_first_step:
                 self_attn_rel_pos_bias = self_attn_rel_pos_bias[-1:, :, :]
         cross_attn_rel_pos_bias = None
+
         if self.cross_attn_relative_position is not None:
             cross_attn_rel_pos_bias = self.cross_attn_relative_position(
                 batch_size=x.size(0),
