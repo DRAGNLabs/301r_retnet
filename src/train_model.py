@@ -23,13 +23,14 @@ from utils import Struct
 torch.backends.cuda.matmul.allow_tf32 = True
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, filename, monitor, save_top_k, mode):
+    def __init__(self, dirpath, filename, monitor, save_top_k, mode,every_n_train_steps):
         super().__init__(
             dirpath=dirpath,
             filename=filename,
             monitor=monitor,
             save_top_k=save_top_k,
-            mode=mode)
+            mode=mode,
+            every_n_train_steps=every_n_train_steps)
         self.num_ckpts = 0
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
@@ -135,7 +136,8 @@ def train_model(config: Struct):
         filename="epoch_{epoch}_validation_{val_loss:.2f}",
         monitor="val_loss",
         save_top_k=config.save_top_k,
-        mode="min")
+        mode="min",
+        every_n_train_steps=config.every_n_train_steps)
 
     early_stopping = EarlyStopping(
         "val_loss",
