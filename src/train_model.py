@@ -170,12 +170,16 @@ def train_model(config: Struct):
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
             logger=tb_logger)
+        
+    ## Set up carbon emissions tracker
+        
+    CO2_csv_path = config.CO2_outfile if config.CO2_outfile else None
 
     emissions_tracker = OfflineEmissionsTracker(
                 output_dir=model_dir,
-                output_file=f"emissions.csv",
+                output_file=CO2_csv_path,
                 country_iso_code="USA",
-                cloud_provider="gcp", 
+                cloud_provider="gcp",
                 cloud_region="us-west3")
     
     emissions_tracker.start()
