@@ -175,7 +175,7 @@ def train_model(config: Struct):
                 output_dir=model_dir,
                 output_file=f"emissions.csv",
                 country_iso_code="USA",
-                cloud_provider="GCP", 
+                cloud_provider="gcp", 
                 cloud_region="us-west3")
     
     emissions_tracker.start()
