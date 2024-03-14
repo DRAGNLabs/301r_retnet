@@ -173,15 +173,13 @@ def train_model(config: Struct):
         
     ## Set up carbon emissions tracker
         
-    CO2_csv_path = config.CO2_outfile if config.CO2_outfile else None
-
     emissions_tracker = OfflineEmissionsTracker(
                 output_dir=model_dir,
-                output_file=CO2_csv_path,
+                output_file=config.CO2_outfile,
                 country_iso_code="USA",
                 cloud_provider="gcp",
                 cloud_region="us-west3")
-    
+
     emissions_tracker.start()
     trainer.fit(model, datamodule=dm)
 
