@@ -154,7 +154,7 @@ Results will be sent to a CSV.
 
 ## Carbon Emissions Tracking
 
-This project uses [CodeCarbon](https://github.com/mlco2/codecarbon) to track emissions in offline mode, meaning no data is reported to the public API. This outputs a csv file with stats with duration in seconds and power consumption measured in kilowatts. Carbon emissions (denoted by 'emissions') is a calculation of the specified energy consumption profile and the energy consumed measured in kg.
+This project uses [CodeCarbon](https://github.com/mlco2/codecarbon) to track emissions in offline mode, meaning no data is reported to the public API. This outputs a csv file with stats with duration in seconds and power consumption measured in kilowatts. Carbon emissions (denoted by '_emissions_') is a calculation of the specified energy consumption profile and the energy consumed measured in kg.
 
 Sample output:
 
