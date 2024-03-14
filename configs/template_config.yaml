@@ -81,6 +81,9 @@ tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/wikitext"
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
 tboard_path: "<YOUR_PATH_HERE>/data/runs"
 
+# Defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
+CO2_outfile: <YOUR_OUTFILE>.csv  # Example: "CO2_grid_search.csv"
+
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
 # Device Type (str): Device to train on
