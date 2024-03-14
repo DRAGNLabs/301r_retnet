@@ -67,17 +67,28 @@ class DataModule(LightningDataModule):
             num_workers=self.num_workers)
     
 class DataSet(torch.utils.data.IterableDataset):
+    """
+    Dataset class for PyTorch IterableDataset. This class is used to load the
+    tokenized dataset and provide an iterator over the data.
+
+    Args:
+        path_to_data (Path): Path to the tokenized dataset.
+        seq_len (int): Sequence length during training.
+    """
     def __init__(self, path_to_data, seq_len):
+        assert path_to_data.exists(), f"Path '{path_to_data}' does not exist."
         # Read data with Dask
         self.data = dd.read_parquet(path_to_data / "*.parquet")
 
         # Get length of df
         self.length = len(self.data)
 
-        self.data = self.data.iterrows()
         self.seq_len = seq_len
 
     def __len__(self):
+        """
+        Calculate the length of the dataset for each worker.
+        """
         worker_info = get_worker_info()
         num_workers = worker_info.num_workers if worker_info is not None else 1
         world_size = get_world_size()
@@ -85,12 +96,20 @@ class DataSet(torch.utils.data.IterableDataset):
         return (self.length // total_processes)
 
     def __iter__(self):
+        """
+        Splits the dataset into chunks and assigns each worker to a chunk.
+        
+        Returns an iterator over the dataset.
+        """
         worker_info = get_worker_info()
         num_workers = worker_info.num_workers if worker_info is not None else 1
         worker_id = worker_info.id if worker_info is not None else 0
 
         world_size = get_world_size()
         process_rank = get_rank()
+
+        # Create iterator over rows
+        self.data = self.data.iterrows()
 
         for index, item in enumerate(self.data):
             if index % (num_workers * world_size) == (process_rank * num_workers + worker_id):
