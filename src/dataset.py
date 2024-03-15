@@ -8,6 +8,7 @@ from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, get_worker_info
 from torch.distributed import get_rank, get_world_size
 from utils import Struct
+import numpy as np
 
 
 class DataModule(LightningDataModule):
@@ -114,6 +115,31 @@ class DataSet(torch.utils.data.IterableDataset):
         for index, item in enumerate(self.data):
             if index % (num_workers * world_size) == (process_rank * num_workers + worker_id):
                 item = item[1].values[0].copy()
-                x = item[:self.seq_len]
-                y_true = item[1:self.seq_len+1]
+                if len(item) <= self.max_sequence_embeddings:
+                    length = len(item)
+                    item = np.append(item, self.eos_tok)
+                    x = item[:length]
+                    y_true = item[1:length+1]  
+                else:
+                    x = item[:self.max_sequence_embeddings]
+                    y_true = item[1:self.max_sequence_embeddings+1]
                 yield(x,y_true)
+
+    def pad_to_longest(self, batch):
+        """
+        Collator function for padding sequences to longest in batch, during training
+        """
+        x, y_true = zip(*batch)
+
+        x_lengths = [len(line) for line in x]
+        max_x_length = max(x_lengths)
+        padded_x = [line + [self.pad_tok] * (max_x_length - len(line)) for line in x]
+
+        y_true_lengths = [len(s) for s in y_true]
+        max_y_true_lengths = max(y_true_lengths)
+        padded_y_true = [line + [self.pad_tok] * (max_y_true_lengths - len(line)) for line in y_true]
+
+        padded_x = torch.tensor(padded_x)
+        padded_y_true = torch.tensor(padded_y_true)
+
+        return padded_x, padded_y_true
