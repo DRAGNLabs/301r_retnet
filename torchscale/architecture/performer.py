@@ -242,6 +242,9 @@ class PerformerDecoder(nn.Module):
         output_projection=None,
         is_encoder_decoder=False,
         max_seq_len,
+        rotary_position_emb = True,
+        axial_position_emb = False,
+        axial_position_shape = None,
         **kwargs
     ):
         super().__init__(**kwargs)
