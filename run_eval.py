@@ -24,10 +24,13 @@ def run_eval(config: Struct):
 
     AutoConfig.register("retnet", RetNetConfig)
     AutoConfig.register("custom_transformer", DecoderConfig)
+    AutoConfig.register("performer", PerformerConfig)
     AutoModel.register(RetNetConfig, RetNetModelHF)
     AutoModel.register(DecoderConfig, TransformerModelHF)
+    AutoModel.register(PerformerConfig, PerformerModelHF)
     AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
     AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
+    AutoModelForCausalLM.register(PerformerConfig, PerformerModelHF)
 
     lm_eval.tasks.initialize_tasks()
     if config.tokenizer_path:
