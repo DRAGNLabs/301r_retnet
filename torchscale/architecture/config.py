@@ -165,11 +165,6 @@ class PerformerConfig(PretrainedConfig):
         self.lr = kwargs.pop("lr", 0.0001)
         self.activation_function = kwargs.pop("activation_function", "gelu")
         
-        # Performer-specific configurations
-        self.feature_redraw_interval = kwargs.pop("feature_redraw_interval", 1000)
-        self.reversible = kwargs.pop("reversible", False)
-        self.attention_type = kwargs.pop("attention_type", "linear")  # Options: 'linear', 'softmax'
-        
         # Additional Performer configurations for self-attention and cross-attention
         self.dim_head = kwargs.pop("dim_head", 64)  # Dimension of each attention head
         self.local_heads = kwargs.pop("local_heads", 0)  # Number of local attention heads
