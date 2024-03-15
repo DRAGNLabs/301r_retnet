@@ -148,4 +148,4 @@ seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
 value_embed_dim: 12
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
-vocab_size: 4000
+vocab_size: 50000
