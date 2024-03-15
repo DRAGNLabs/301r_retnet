@@ -18,5 +18,5 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate 301r
 srun python3 \
-    ../train_model.py \
-    ../configs/user_configs/split_data_random.yaml
+    ../src/train_model.py \
+    ../configs/user_configs/new_split_data.yaml

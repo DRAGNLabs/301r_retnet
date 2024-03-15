@@ -2,6 +2,7 @@ codecarbon==2.3.4
 datasets==2.16.0
 dask==2024.2.1
 dask_ml==2023.3.24
+dask_expr-1.0.3
 fairscale==0.4.13
 numpy==1.26.2
 portalocker==2.8.2

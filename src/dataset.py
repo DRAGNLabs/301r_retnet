@@ -34,7 +34,7 @@ class DataModule(LightningDataModule):
         """
         if stage == "fit":
             # Load datasets
-            self.train_dataset = DataSet(self.tokenized_dataset_path / "train",
+            self.train_dataset = DataSet(self.tokenized_dataset_path / "portion_data",
                                          self.seq_len)
             
             self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
@@ -116,4 +116,6 @@ class DataSet(torch.utils.data.IterableDataset):
                 item = item[1].values[0].copy()
                 x = item[:self.seq_len]
                 y_true = item[1:self.seq_len+1]
+                print('x.shape: ', x.shape)
+                print('y_true: ', y_true.shape)
                 yield(x,y_true)
