@@ -320,15 +320,14 @@ class PerformerModel(LightningModule):
 
         # Convert the simple Struct config to the specific Performer configuration required by the Hugging Face model.
         performer_config = PerformerConfig(
-            embed_dim=config.embed_dim,
-            heads=config.heads,
-            depth=config.depth,
-            ffn_dim=config.ffn_dim,
+            decoder_embed_dim=config.embed_dim,
+            decoder_value_embed_dim=config.value_embed_dim,
+            decoder_attention_heads=config.heads,
+            decoder_ffn_embed_dim=config.ffn_dim,
+            decoder_layers=config.layers,
             dropout=config.dropout,
             activation_dropout=config.activation_dropout,
-            vocab_size=config.vocab_size,
-            max_seq_len=config.seq_len,
-            lr=config.learning_rate
+            vocab_size=config.vocab_size
         )
 
         # Initialize the Performer model using the defined configuration.
