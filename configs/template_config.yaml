@@ -52,9 +52,9 @@ checkpoint_path: ~
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: "text"
 # HuggingFace Dataset Name (str)
-dataset_name: "wikitext"
+dataset_name: "c4"
 # HuggingFace Dataset Subset (str)
-dataset_subset: "wikitext-2-v1"
+dataset_subset: "c4-en"
 
 # Train Model (str): Path to model folder
 models_path: "<YOUR_PATH_HERE>/data/models"
@@ -64,7 +64,7 @@ models_path: "<YOUR_PATH_HERE>/data/models"
 root_data_path: "<YOUR_PATH_HERE>/data"
 
 # Download Data (str): Path to raw dataset folder
-raw_dataset_path: "<YOUR_PATH_HERE>/data/datasets/wikitext"
+raw_dataset_path: "<YOUR_PATH_HERE>/data/datasets/c4"
 
 # Splits (List[int]): Train split, Validation Split, and Test Split
 splits:
@@ -73,10 +73,10 @@ splits:
   - 0.1
 
 # Train Tokenizer (str): Path to tokenizer folder
-tokenizer_path: "<YOUR_PATH_HERE>/data/tokenizers/wikitext_tokenizer"
+tokenizer_path: "<YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer"
 
 # Tokenize Data (str): Path to tokenized dataset folder
-tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/wikitext"
+tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/c4"
 
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
 tboard_path: "<YOUR_PATH_HERE>/data/runs"
