@@ -30,6 +30,9 @@ input_starting_strings:
 # CSV Path (str): Path to CSV file to generate from; default None if not using
 csv_path: None
 
+# CSV Path (str): Path to CSV file to generate from; default None if not using
+csv_path: None
+
 # Model Path Directory (str): Path to model to run test harness on.
 # Example: "/tmp/data/models/<MODEL_NAME>/checkpoints/hf_ckpt_<CHECKPOINT_NUM>"
 model_path_dir: ~
@@ -81,15 +84,9 @@ tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/wikitext"
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
 tboard_path: "<YOUR_PATH_HERE>/data/runs"
 
-<<<<<<< HEAD
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to.
 # If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
 CO2_outfile: # Example: "CO2_grid_search.csv"
-=======
-# Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
-# If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
-CO2_outfile:  # Example: "CO2_grid_search.csv"
->>>>>>> origin
 
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
