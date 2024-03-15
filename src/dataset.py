@@ -145,13 +145,13 @@ class DataSet(torch.utils.data.IterableDataset):
 
         x_lengths = [len(line) for line in x]
         max_x_length = max(x_lengths)
-        padded_x = [line + [self.pad_token_id] * (max_x_length - len(line)) for line in x]
+        x_padded = [line + [self.pad_token_id] * (max_x_length - len(line)) for line in x]
 
-        y_true_lengths = [len(s) for s in y_true]
+        y_true_lengths = [len(line) for line in y_true]
         max_y_true_lengths = max(y_true_lengths)
-        padded_y_true = [line + [self.pad_token_id] * (max_y_true_lengths - len(line)) for line in y_true]
+        y_true_padded = [line + [self.pad_token_id] * (max_y_true_lengths - len(line)) for line in y_true]
 
-        padded_x = torch.tensor(padded_x)
-        padded_y_true = torch.tensor(padded_y_true)
+        x_padded = torch.tensor(x_padded)
+        y_true_padded = torch.tensor(y_true_padded)
 
-        return padded_x, padded_y_true
+        return x_padded, y_true_padded
