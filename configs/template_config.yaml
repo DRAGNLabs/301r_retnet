@@ -149,5 +149,44 @@ seq_len: 128
 value_embed_dim: 12
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
 vocab_size: 4000
+
 # ---------------------------- PERFORMER CONFIGURATION -----------------------------
 
+# Embedding dimension size in the decoder. Affects the size of the input token embeddings.
+decoder_embed_dim: 512
+# Dropout rate for paths in the model for regularization. Helps prevent overfitting.
+drop_path_rate: 0.1
+# Number of decoder layers. Each layer consists of self-attention and feed-forward networks.
+decoder_layers: 6
+# Dimension of the feed-forward network model within each layer. Affects the capacity of the network.
+decoder_ffn_embed_dim: 2048
+# Number of attention heads in the decoder. Multiple heads allow the model to attend to different parts of the input.
+decoder_attention_heads: 8
+# Dropout rate. Probability of an element to be zeroed.
+dropout: 0.1
+# Dropout rate for attention weights. Helps in preventing overfitting in the attention mechanism.
+attention_dropout: 0.1
+# Activation function used within the model's feed-forward network. Defines the non-linearity between layers.
+activation_fn: "relu"
+# Epsilon used in layer normalization components. A small constant added to the denominator for numerical stability.
+layernorm_eps: 1e-5
+# Whether to use Sublayer Layer Normalization. Affects the layer normalization scheme in the model.
+subln: true
+# Whether to use DeepNorm initialization. Affects the initialization and potentially the training stability of deep models.
+deepnorm: false
+# Frequency of mixture of experts layers. Determines how often an MOE layer is placed among regular layers.
+moe_freq: 2
+# Number of experts in the MOE layer. More experts allow for more specialized representations.
+moe_expert_count: 4
+# Whether to use float32 precision for MOE gating. Affects the precision and potentially the performance of the gating mechanism.
+moe_gating_use_fp32: true
+# Token fraction capacity for MOE during evaluation. Determines the capacity of experts during inference.
+moe_eval_capacity_token_fraction: 0.25
+# Whether to use Cross-layer Mixture of Experts. Enables sharing experts across different layers.
+use_xmoe: false
+# Whether to use top-1 gating for MOE. Determines the gating mechanism for selecting experts.
+moe_top1_expert: true
+# Policy for selecting the second expert in MOE. Affects how the second best expert is chosen.
+moe_second_expert_policy: "random"
+# Whether to normalize gate probabilities before dropping in MOE. Affects the gating mechanism's stability.
+moe_normalize_gate_prob_before_dropping: true
