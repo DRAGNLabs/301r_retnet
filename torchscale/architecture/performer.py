@@ -36,7 +36,7 @@ class DecoderLayer(nn.Module):
         self.dropout_module = torch.nn.Dropout(args.dropout)
 
         if args.drop_path_rate > 0:
-            drop_path_prob = np.linspace(0, args.drop_path_rate, args.layers)[
+            drop_path_prob = np.linspace(0, args.drop_path_rate, args.decoder_layers)[
                 depth
             ]
             self.drop_path = DropPath(drop_path_prob)
@@ -96,9 +96,9 @@ class DecoderLayer(nn.Module):
          # DeepNorm initialization strategy for stable training of deep transformer networks.
         if args.deepnorm:
             if is_encoder_decoder:
-                self.alpha = math.pow(3.0 * args.layers, 0.25)
+                self.alpha = math.pow(3.0 * args.decoder_layers, 0.25)
             else:
-                self.alpha = math.pow(2.0 * args.layers, 0.25)
+                self.alpha = math.pow(2.0 * args.decoder_layers, 0.25)
         else:
             self.alpha = 1.0
 
@@ -294,7 +294,7 @@ class PerformerDecoder(nn.Module):
         self.layers = nn.ModuleList([])
 
         moe_freq = args.moe_freq
-        for i in range(args.layers):
+        for i in range(args.decoder_layers):
             is_moe_layer = moe_freq != 0 and (i + 1) % moe_freq == 0
             self.layers.append(
                 self.build_decoder_layer(
@@ -333,9 +333,9 @@ class PerformerDecoder(nn.Module):
 
         if args.deepnorm:
             if is_encoder_decoder:
-                init_scale = math.pow(12.0 * args.layers, 0.25)
+                init_scale = math.pow(12.0 * args.decoder_layers, 0.25)
             else:
-                init_scale = math.pow(8.0 * args.layers, 0.25)
+                init_scale = math.pow(8.0 * args.decoder_layers, 0.25)
             for name, p in self.named_parameters():
                 if (
                     "fc1" in name
@@ -347,9 +347,9 @@ class PerformerDecoder(nn.Module):
 
         if args.subln:
             if is_encoder_decoder:
-                init_scale = math.sqrt(math.log(args.layers * 3))
+                init_scale = math.sqrt(math.log(args.decoder_layers * 3))
             else:
-                init_scale = math.sqrt(math.log(args.layers * 2))
+                init_scale = math.sqrt(math.log(args.decoder_layers * 2))
             for name, p in self.named_parameters():
                 if "encoder_attn" in name:
                     continue
