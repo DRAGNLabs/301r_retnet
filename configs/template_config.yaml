@@ -52,9 +52,9 @@ checkpoint_path: ~
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: "text"
 # HuggingFace Dataset Name (str)
-dataset_name: "wikitext"
+dataset_name: "c4"
 # HuggingFace Dataset Subset (str)
-dataset_subset: "wikitext-2-v1"
+dataset_subset: "c4-en"
 
 # Train Model (str): Path to model folder
 models_path: "<YOUR_PATH_HERE>/data/models"
@@ -64,7 +64,7 @@ models_path: "<YOUR_PATH_HERE>/data/models"
 root_data_path: "<YOUR_PATH_HERE>/data"
 
 # Download Data (str): Path to raw dataset folder
-raw_dataset_path: "<YOUR_PATH_HERE>/data/datasets/wikitext"
+raw_dataset_path: "<YOUR_PATH_HERE>/data/datasets/c4"
 
 # Splits (List[int]): Train split, Validation Split, and Test Split
 splits:
@@ -73,17 +73,17 @@ splits:
   - 0.1
 
 # Train Tokenizer (str): Path to tokenizer folder
-tokenizer_path: "<YOUR_PATH_HERE>/data/tokenizers/wikitext_tokenizer"
+tokenizer_path: "<YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer"
 
 # Tokenize Data (str): Path to tokenized dataset folder
-tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/wikitext"
+tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/c4"
 
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
 tboard_path: "<YOUR_PATH_HERE>/data/runs"
 
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
 # If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
-CO2_outfile:  # Example: "CO2_grid_search.csv"
+CO2_outfile: ~ # Example: "CO2_grid_search.csv"
 
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
@@ -105,7 +105,7 @@ use_slurm: true
 
 # --------------------------- TRAINING CONFIGURATION ---------------------------
 
-# Accumulate Gradient Batches (int): Accumulate gradients over n batches
+# Accumulate Gradient Batches (int): Accumulate gradients over n batches; note how this interacts with every_n_train_steps
 accumulate_grad_batches: 1
 # Early Stopping (int): Number of epochs to wait before stopping training
 early_stopping: 3
@@ -117,9 +117,10 @@ gamma: 0.85
 learning_rate: 0.001
 # Random Seed (int): Random seed for reproducibility
 rand_seed: 42
-# Save Top K (int): Number of best models to save. Set to -1 to save all
+# Save Top K (int): Number of best models to save; default saves the best single checkpoint. Set to -1 to save all
 save_top_k: 3
-# Every N Train Steps (int): Checkpoint every n train steps
+# Every N Train Steps (int): Checkpoint every n train steps; Note: PyTorch Lightning defines 'steps' as 
+# optimizer steps, not batch forward passes, distinct when accumulate_grad_batches > 1.
 every_n_train_steps: 10000
 # Validation Check Interval (float): Validation frequency (fraction of an epoch)
 val_check_interval: 0.5
@@ -148,4 +149,4 @@ seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
 value_embed_dim: 12
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
-vocab_size: 4000
+vocab_size: 50000
