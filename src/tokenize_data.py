@@ -25,9 +25,8 @@ def tokenize_data(config, split):
         tokenization_dataframe = lambda series: \
             tokenizer(
                 series,
-                padding="max_length",
-                truncation=True,
-                max_length=config.seq_len + 1,
+                padding=False,
+                truncation=False,
                 return_token_type_ids=False,
                 return_attention_mask=False)["input_ids"]
 
