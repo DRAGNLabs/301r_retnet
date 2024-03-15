@@ -1,14 +1,15 @@
 import dask
 dask.config.set({"dataframe.query-planning": True})
 import dask.dataframe as dd
+import numpy as np
 import torch
 
 from pathlib import Path
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, get_worker_info
 from torch.distributed import get_rank, get_world_size
+from transformers import PreTrainedTokenizerFast
 from utils import Struct
-import numpy as np
 
 
 class DataModule(LightningDataModule):
@@ -28,6 +29,10 @@ class DataModule(LightningDataModule):
         self.tokenized_dataset_path = Path(config.tokenized_dataset_path)
         self.seq_len = config.seq_len
 
+        # Instantiate tokenizer to get the pad/eos ids
+        tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
+        self.pad_token_id = tokenizer.pad_token_id
+
     def setup(self, stage: str):
         """ Setup for each stage -- called on every process on DDP.
         Args:
@@ -36,21 +41,25 @@ class DataModule(LightningDataModule):
         if stage == "fit":
             # Load datasets
             self.train_dataset = DataSet(self.tokenized_dataset_path / "train",
-                                         self.seq_len)
+                                         self.seq_len,
+                                         self.pad_token_id)
             
             self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
-                                        self.seq_len)
+                                        self.seq_len,
+                                        self.pad_token_id)
             
         if stage == "test":
             # Load dataset
             self.test_dataset = DataSet(self.tokenized_dataset_path / "test",
-                                         self.seq_len)
+                                         self.seq_len,
+                                         self.pad_token_id)
 
     def train_dataloader(self):
         """ Return training PyTorch DataLoader. """
         return DataLoader(
             dataset=self.train_dataset,
             batch_size=self.batch_size,
+            collate_fn=self.train_dataset.pad_to_longest, 
             num_workers=self.num_workers)
 
     def val_dataloader(self):
@@ -58,6 +67,7 @@ class DataModule(LightningDataModule):
         return DataLoader(
             dataset=self.val_dataset,
             batch_size=self.batch_size,
+            collate_fn=self.val_dataset.pad_to_longest, 
             num_workers=self.num_workers)
 
     def test_dataloader(self):
@@ -65,6 +75,7 @@ class DataModule(LightningDataModule):
         return DataLoader(
             dataset=self.test_dataset,
             batch_size=self.batch_size,
+            collate_fn=self.test_dataset.pad_to_longest,
             num_workers=self.num_workers)
     
 class DataSet(torch.utils.data.IterableDataset):
@@ -76,7 +87,7 @@ class DataSet(torch.utils.data.IterableDataset):
         path_to_data (Path): Path to the tokenized dataset.
         seq_len (int): Sequence length during training.
     """
-    def __init__(self, path_to_data, seq_len):
+    def __init__(self, path_to_data, seq_len, pad_token_id):
         assert path_to_data.exists(), f"Path '{path_to_data}' does not exist."
         # Read data with Dask
         self.data = dd.read_parquet(path_to_data / "*.parquet")
@@ -85,6 +96,7 @@ class DataSet(torch.utils.data.IterableDataset):
         self.length = len(self.data)
 
         self.seq_len = seq_len
+        self.pad_token_id = pad_token_id
 
     def __len__(self):
         """
@@ -114,15 +126,15 @@ class DataSet(torch.utils.data.IterableDataset):
 
         for index, item in enumerate(self.data):
             if index % (num_workers * world_size) == (process_rank * num_workers + worker_id):
-                item = item[1].values[0].copy()
-                if len(item) <= self.max_sequence_embeddings:
+                item = item[1].values[0].tolist()
+                if len(item) <= self.seq_len:
                     length = len(item)
-                    item = np.append(item, self.eos_tok)
+                    item = item + [self.pad_token_id]
                     x = item[:length]
                     y_true = item[1:length+1]  
                 else:
-                    x = item[:self.max_sequence_embeddings]
-                    y_true = item[1:self.max_sequence_embeddings+1]
+                    x = item[:self.seq_len]
+                    y_true = item[1:self.seq_len+1]
                 yield(x,y_true)
 
     def pad_to_longest(self, batch):
@@ -133,11 +145,11 @@ class DataSet(torch.utils.data.IterableDataset):
 
         x_lengths = [len(line) for line in x]
         max_x_length = max(x_lengths)
-        padded_x = [line + [self.pad_tok] * (max_x_length - len(line)) for line in x]
+        padded_x = [line + [self.pad_token_id] * (max_x_length - len(line)) for line in x]
 
         y_true_lengths = [len(s) for s in y_true]
         max_y_true_lengths = max(y_true_lengths)
-        padded_y_true = [line + [self.pad_tok] * (max_y_true_lengths - len(line)) for line in y_true]
+        padded_y_true = [line + [self.pad_token_id] * (max_y_true_lengths - len(line)) for line in y_true]
 
         padded_x = torch.tensor(padded_x)
         padded_y_true = torch.tensor(padded_y_true)
