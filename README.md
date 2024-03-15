@@ -128,7 +128,7 @@ To use these models within your Hugging Face-based projects, follow these steps:
    transformer_params = transformer_model.get_params()
    ```
 
-## Benchmarking and Results
+## Benchmarking for Generation Quality
 
 We use EleutherAI's open-source language model evaluation harness to empirically evaluate our models across a suite of different NLP tasks. Run the evaluation suite as follows:
 First, edit the 'tasks' parameter in the YAML file. Specify all tasks you would like to run, e.g.,
@@ -151,6 +151,16 @@ cp run_eval.sh user_slurm/<NAME_OF_NEW_FILE>.sh
 bash <NAME_OF_NEW_FILE>/.sh
 ```
 Results will be sent to a CSV.
+
+## Carbon Emissions Tracking
+
+This project uses [CodeCarbon](https://github.com/mlco2/codecarbon) to track emissions in offline mode, meaning no data is reported to the public API. This outputs a csv file with stats with duration in seconds and power consumption measured in kilowatts. Carbon emissions (denoted by '_emissions_') is a calculation of the specified energy consumption profile and the energy consumed measured in kg.
+
+Sample output:
+
+| timestamp           | project_name | run_id                              | duration (sec) | emissions (kg) | emissions_rate | cpu_power (kW) | gpu_power (kW) | ram_power (kW) | cpu_energy (kW) | gpu_energy (kW) | ram_energy (kW) | energy_consumed (kW) | country_name | country_iso_code | region | cloud_provider | cloud_region | os                                           | python_version | codecarbon_version | cpu_count | cpu_model                        | gpu_count | gpu_model          | longitude | latitude | ram_total_size | tracking_mode | on_cloud | pue |
+|---------------------|--------------|-------------------------------------|----------|-----------|----------------|-----------|-----------|-----------|------------|------------|------------|-----------------|--------------|------------------|--------|----------------|--------------|---------------------------------------------|----------------|-------------------|-----------|----------------------------------|-----------|-------------------|-----------|----------|----------------|---------------|----------|-----|
+| 2024-03-13T16:52:45 | codecarbon   | dea8afbd-973d-4396-b103-f09eb94c1457 | 180.817  | 0.02549   | 0.000141       | 140.0     | 1066.512  | 24.0      | 0.007032   | 0.048665   | 0.0012     | 0.056896        | USA          | USA              | Utah   | gcp            | us-west3    | Linux-3.10.0-1160.108.1.el7.x86_64-x86_64-with-glibc2.17 | 3.11.6         | 2.3.4             | 8         | AMD EPYC 7763 64-Core Processor | 8         | 8 x NVIDIA A100-SXM4-80GB |           |          | 64             | machine       | Y        | 1.0 |
 
 ## Acknowledgments
 
