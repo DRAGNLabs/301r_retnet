@@ -152,22 +152,14 @@ vocab_size: 4000
 
 # ---------------------------- PERFORMER CONFIGURATION -----------------------------
 
-# Embedding dimension size in the decoder. Affects the size of the input token embeddings.
-decoder_embed_dim: 512
-# Dropout rate for paths in the model for regularization. Helps prevent overfitting.
-drop_path_rate: 0.1
+# For torchscales Retnet, Transformer, and Performer, the default is 0.0
+drop_path_rate: 0.0
 # Number of decoder layers. Each layer consists of self-attention and feed-forward networks.
 decoder_layers: 6
 # Dimension of the feed-forward network model within each layer. Affects the capacity of the network.
 decoder_ffn_embed_dim: 2048
 # Number of attention heads in the decoder. Multiple heads allow the model to attend to different parts of the input.
 decoder_attention_heads: 8
-# Dropout rate. Probability of an element to be zeroed.
-dropout: 0.1
-# Dropout rate for attention weights. Helps in preventing overfitting in the attention mechanism.
-attention_dropout: 0.1
-# Activation function used within the model's feed-forward network. Defines the non-linearity between layers.
-activation_fn: "relu"
 # Epsilon used in layer normalization components. A small constant added to the denominator for numerical stability.
 layernorm_eps: 1e-5
 # Whether to use Sublayer Layer Normalization. Affects the layer normalization scheme in the model.
@@ -190,3 +182,22 @@ moe_top1_expert: true
 moe_second_expert_policy: "random"
 # Whether to normalize gate probabilities before dropping in MOE. Affects the gating mechanism's stability.
 moe_normalize_gate_prob_before_dropping: true
+
+# Dimension of each attention head. Affects the size of each head in the model's multi-head attention mechanism.
+dim_head: 64
+# Number of local attention heads. Determines how many heads are used for local attention as opposed to global attention.
+local_heads: 0
+# Size of the local attention window. Defines the range of tokens each local attention head can attend to.
+local_window_size: 256
+# Number of random features for kernel approximation. Null defaults to a function of dim_head if not explicitly set.
+nb_features: null
+# Use generalized attention mechanism. Enables using attention mechanisms beyond the standard softmax.
+generalized_attention: false
+# Kernel function used in the generalized attention mechanism. Defines the non-linearity applied to attention logits.
+kernel_fn: "relu"
+# Disable linear projection in the attention mechanism. If true, avoids projecting Q/K/V in the attention layers.
+no_projection: false
+# Use bias in QKV projection within the attention mechanism. Determines if bias terms are added to queries, keys, and values.
+qkv_bias: false
+# Use bias in the attention output projection. Determines if a bias term is added to the output of the attention layer.
+attn_out_bias: true
