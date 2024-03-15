@@ -300,8 +300,8 @@ class PerformerConfig(PretrainedConfig):
         self.axial_pos_shape = kwargs.pop("axial_pos_shape", (64, 64))
         self.axial_pos_emb_dim = kwargs.pop("axial_pos_emb_dim", 64)
         self.use_rotary_position = kwargs.pop("use_rotary_position", False)
-        self.vocab_size = kwargs.pop("vocab_size", 30522)
-        self.lr = kwargs.pop("lr", 3e-5)
+        self.vocab_size = kwargs.pop("vocab_size", -1)
+        self.lr = kwargs.pop("lr", 0.0001)
         self.activation_function = kwargs.pop("activation_function", "gelu")
         
         # Performer-specific configurations
@@ -309,19 +309,18 @@ class PerformerConfig(PretrainedConfig):
         self.reversible = kwargs.pop("reversible", False)
         self.attention_type = kwargs.pop("attention_type", "linear")  # Options: 'linear', 'softmax'
 
-        # Handling of any additional parameters
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        if self.deepnorm:
+            self.decoder_normalize_before = False
+            self.subln = False
+        if self.subln:
+            self.decoder_normalize_before = True
+            self.deepnorm = False
+        if self.use_xmoe:
+            self.moe_normalize_gate_prob_before_dropping = True
+            self.moe_second_expert_policy = "random"
+            assert self.moe_freq > 0 and self.moe_expert_count > 0
 
     def override(self, args):
-        """
-        Overrides the default config settings with custom values provided through command-line arguments or another dictionary.
-
-        Args:
-            args: A namespace or dictionary containing the parameters to be overridden.
-        """
         for hp in self.__dict__.keys():
-            if hasattr(args, hp) and getattr(args, hp, None) is not None:
-                self.__dict__[hp] = getattr(args, hp)
-            elif isinstance(args, dict) and hp in args:
-                self.__dict__[hp] = args[hp]
+            if getattr(args, hp, None) is not None:
+                self.__dict__[hp] = getattr(args, hp, None)
