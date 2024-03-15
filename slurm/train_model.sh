@@ -14,6 +14,7 @@
 # Set the max number of threads to use for programs using OpenMP. Should be <=
 # ppn. Does nothing if the program doesn't use OpenMP.
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
+export CODECARBON_LOG_LEVEL="error" # Options: DEBUG, info (default), wawrning, error, critical
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate <YOUR_ENV_NAME>
