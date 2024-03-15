@@ -105,7 +105,7 @@ use_slurm: true
 
 # --------------------------- TRAINING CONFIGURATION ---------------------------
 
-# Accumulate Gradient Batches (int): Accumulate gradients over n batches
+# Accumulate Gradient Batches (int): Accumulate gradients over n batches; note how this interacts with every_n_train_steps
 accumulate_grad_batches: 1
 # Early Stopping (int): Number of epochs to wait before stopping training
 early_stopping: 3
