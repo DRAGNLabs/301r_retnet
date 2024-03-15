@@ -141,25 +141,39 @@ def train_model(config: Struct):
         # Ensure the target directory exists
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        # Delete everything in the target directory
-        for item in target_dir.iterdir():
-            if item.is_file():
-                item.unlink()
-            elif item.is_dir():
-                shutil.rmtree(item)
-
         # Calculate the number of files to copy based on the percentage
-        total_files = 1031  # Total number of parquet files
+        total_files = 1031  # Total number of parquet files in the source directory
         files_to_copy = int((config.split_dataset_percentage / 100) * total_files)
 
-        # Copy the calculated number of .parquet files
-        for i in range(files_to_copy):
-            source_file = source_dir / f"part.{i}.parquet"
-            target_file = target_dir / f"part.{i}.parquet"
-            shutil.copy2(source_file, target_file)
-        
-        print(f"Copied {files_to_copy} files to {target_dir}")
+        # Count the existing files in the target directory
+        existing_files_count = len(list(target_dir.glob('*.parquet')))
 
+        # Check if the existing number of files matches the expected number of files
+        if existing_files_count == files_to_copy:
+            print(f"The specified portion of the dataset ({config.split_dataset_percentage}%) is already present in {target_dir}. No changes made.")
+        else:
+            print(f"Preparing to copy {files_to_copy} files to {target_dir}.")
+
+            # Clear the target directory if the file counts do not match
+            for item in target_dir.iterdir():
+                try:
+                    if item.is_file():
+                        item.unlink()
+                    elif item.is_dir():
+                        shutil.rmtree(item)
+                except FileNotFoundError as e:
+                    print(f"Warning: Tried to delete {item}, but file was not found.")
+
+            # Proceed to copy the calculated number of .parquet files
+            for i in range(files_to_copy):
+                source_file = source_dir / f"part.{i}.parquet"
+                if source_file.exists():  # Check if the source file exists
+                    target_file = target_dir / f"part.{i}.parquet"
+                    shutil.copy2(source_file, target_file)
+                else:
+                    print(f"Warning: File {source_file} does not exist and will not be copied.")
+                    
+            print(f"Copied {files_to_copy} files to {target_dir}.")
 
 
     
