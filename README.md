@@ -55,7 +55,7 @@ The expected order of script execution is as follows:
 2. Run `download_data.sh` to fetch the necessary data.
 3. Execute `split_data.sh` to divide the dataset into splits.
 4. Execute `train_tokenizer.sh` to prepare the tokenizer.
-5. Use `tokenize_data.sh` for data tokenization.
+5. Use `tokenize_data.sh` for data tokenization and include the names of the data splits separated by spaces.
 6. Finally, run `train_model.sh`.
 
 For example, if you want to train a RetNet model:
@@ -66,7 +66,7 @@ cd scripts/user_scripts
 ./download_data.sh
 ./split_data.sh
 ./train_tokenizer.sh
-./tokenize_data.sh
+./tokenize_data.sh train validation test
 ./train_model.sh
 ```
 
