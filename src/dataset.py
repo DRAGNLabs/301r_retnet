@@ -40,9 +40,8 @@ class DataModule(LightningDataModule):
         """
         if stage == "fit":
             # Load datasets
-            self.train_dataset = DataSet(self.tokenized_dataset_path / "train",
-                                         self.seq_len,
-                                         self.pad_token_id)
+            self.train_dataset = DataSet(self.tokenized_dataset_path / "portion_data",
+                                         self.seq_len)
             
             self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
                                         self.seq_len,
@@ -126,15 +125,11 @@ class DataSet(torch.utils.data.IterableDataset):
 
         for index, item in enumerate(iterator):
             if index % (num_workers * world_size) == (process_rank * num_workers + worker_id):
-                item = item[1].values[0].tolist()
-                if len(item) <= self.seq_len:
-                    length = len(item)
-                    item = item + [self.pad_token_id]
-                    x = item[:length]
-                    y_true = item[1:length+1]  
-                else:
-                    x = item[:self.seq_len]
-                    y_true = item[1:self.seq_len+1]
+                item = item[1].values[0].copy()
+                x = item[:self.seq_len]
+                y_true = item[1:self.seq_len+1]
+                print('x.shape: ', x.shape)
+                print('y_true: ', y_true.shape)
                 yield(x,y_true)
 
     def pad_to_longest(self, batch):
