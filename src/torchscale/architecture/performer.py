@@ -30,6 +30,7 @@ class DecoderLayer(nn.Module):
         is_moe_layer=False,
         is_encoder_decoder=False,
     ):
+        #Test comment for commit.
         super().__init__()
         self.args = args
         self.embed_dim = args.decoder_embed_dim
