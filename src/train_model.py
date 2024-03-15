@@ -180,7 +180,7 @@ def train_model(config: Struct):
                 output_dir=model_dir,
                 output_file=CO2_outfile,
                 country_iso_code="USA",
-                cloud_provider="gcp",
+                cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
                 cloud_region="us-west3")
 
     emissions_tracker.start()
