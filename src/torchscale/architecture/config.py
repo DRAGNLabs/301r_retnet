@@ -164,12 +164,19 @@ class PerformerConfig(PretrainedConfig):
         self.vocab_size = kwargs.pop("vocab_size", -1)
         self.lr = kwargs.pop("lr", 0.0001)
         self.activation_function = kwargs.pop("activation_function", "gelu")
-        
-        # Performer-specific configurations
-        self.feature_redraw_interval = kwargs.pop("feature_redraw_interval", 1000)
-        self.reversible = kwargs.pop("reversible", False)
-        self.attention_type = kwargs.pop("attention_type", "linear")  # Options: 'linear', 'softmax'
-        
+        #MOE Configs
+        self.moe_freq = kwargs.pop("moe_freq", 0)
+        self.moe_top1_expert = kwargs.pop("moe_top1_expert", False)
+        self.moe_expert_count = kwargs.pop("moe_expert_count", 0)
+        self.moe_gating_use_fp32 = kwargs.pop("moe_gating_use_fp32", True)
+        self.moe_eval_capacity_token_fraction = kwargs.pop(
+            "moe_eval_capacity_token_fraction", 0.25
+        )
+        self.moe_second_expert_policy = kwargs.pop("moe_second_expert_policy", "random")
+        self.moe_normalize_gate_prob_before_dropping = kwargs.pop(
+            "moe_normalize_gate_prob_before_dropping", False
+        )
+        self.use_xmoe = kwargs.pop("use_xmoe", False)
         # Additional Performer configurations for self-attention and cross-attention
         self.dim_head = kwargs.pop("dim_head", 64)  # Dimension of each attention head
         self.local_heads = kwargs.pop("local_heads", 0)  # Number of local attention heads
