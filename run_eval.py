@@ -2,6 +2,9 @@ import json
 import lm_eval
 import sys
 import yaml
+import time
+import random
+import subprocess
 
 from argparse import ArgumentParser
 from models import RetNetModelHF, TransformerModelHF
@@ -51,6 +54,11 @@ def run_eval(config: Struct):
     with open(config.results_out_path, "w") as f:
         json.dump(results["results"], f, indent=4)
 
+def eval_compute_time(config: Struct):
+    # input size will likely not impact compute time because the models use padding to fill the context window
+    # this should probably be tested just for a sanity check
+    rand_tokens = [random.randint(0, config.seq_len - 1) for _ in range(config.seq_len)]
+    
 
 if __name__ == "__main__":
     args = sys.argv
