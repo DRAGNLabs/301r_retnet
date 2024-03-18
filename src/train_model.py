@@ -19,10 +19,6 @@ from transformers import set_seed
 from torchinfo import summary as model_summary
 from utils import Struct
 
-# Allow torch to run float32 matrix multiplications in lower precision for
-# better performance while training if hardware is capable
-torch.backends.cuda.matmul.allow_tf32 = True
-
 class CustomModelCheckpoint(ModelCheckpoint):
     def __init__(self, dirpath, filename, monitor, save_top_k, mode, every_n_train_steps):
         super().__init__(
@@ -157,7 +153,8 @@ def train_model(config: Struct):
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger)
+            logger=tb_logger,
+            precision=config.precision)
     else:
         trainer = Trainer(
             default_root_dir=model_dir, # main directory for run
@@ -171,7 +168,8 @@ def train_model(config: Struct):
             sync_batchnorm=True,
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger)
+            logger=tb_logger,
+            precision=config.precision)
         
     ## Set up carbon emissions tracker
 
