@@ -97,12 +97,24 @@ class RetNetModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
+        perplexity = torch.exp(loss)
+
         self.log(
             name="val_loss",
             value=loss,
             prog_bar=True,
             logger=True,
             on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
+        
+        self.log(
+            name="val_perplexity", 
+            value=perplexity, 
+            prog_bar=True,
+            logger=True, 
+            on_step=False, 
             on_epoch=True,
             sync_dist=True,
             add_dataloader_idx=True)
@@ -236,12 +248,24 @@ class TransformerModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
+        perplexity = torch.exp(loss)
+
         self.log(
             name="val_loss",
             value=loss,
             prog_bar=True,
             logger=True,
             on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
+        
+        self.log(
+            name="val_perplexity", 
+            value=perplexity, 
+            prog_bar=True,
+            logger=True, 
+            on_step=False, 
             on_epoch=True,
             sync_dist=True,
             add_dataloader_idx=True)
