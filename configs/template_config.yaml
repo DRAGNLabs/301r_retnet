@@ -148,7 +148,5 @@ layers: 2
 model_type: "retnet" # Choices: "retnet", "transformer"
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
-# Value Embedding Dimension (int): Value embed dimension size
-value_embed_dim: 12
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
 vocab_size: 50000
