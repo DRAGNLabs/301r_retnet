@@ -607,8 +607,6 @@ class LongNetModelHF(PreTrainedModel):
             A tensor of dimensions: (batch size, sequence length, vocabulary
                 size).
         """
-        print(x.dtype)
-        print(x)
         preds, _ = self.decoder_stack(x)
         return preds
 
