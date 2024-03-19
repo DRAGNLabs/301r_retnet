@@ -183,7 +183,6 @@ class TransformerModel(LightningModule):
         # Create Transformer Decoder configuration for HuggingFace model
         config = DecoderConfig(
             decoder_embed_dim=config.embed_dim,
-            decoder_value_embed_dim=config.value_embed_dim,
             decoder_attention_heads=config.heads,
             decoder_ffn_embed_dim=config.ffn_dim,
             decoder_layers=config.layers,
