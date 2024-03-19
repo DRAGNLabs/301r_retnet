@@ -2,6 +2,7 @@ import argparse
 import dask
 dask.config.set({'dataframe.query-planning': True})
 import dask.dataframe as dd
+from dask.diagnostics import ProgressBar
 import pyarrow as pa
 import yaml
 
@@ -9,6 +10,7 @@ from pathlib import Path
 from transformers import PreTrainedTokenizerFast
 from utils import Struct
 
+ProgressBar().register()
 
 def tokenize_data(config, split):
 
@@ -25,9 +27,8 @@ def tokenize_data(config, split):
         tokenization_dataframe = lambda series: \
             tokenizer(
                 series,
-                padding="max_length",
-                truncation=True,
-                max_length=config.seq_len + 1,
+                padding=False,
+                truncation=False,
                 return_token_type_ids=False,
                 return_attention_mask=False)["input_ids"]
 

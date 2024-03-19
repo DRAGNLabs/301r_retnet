@@ -6,6 +6,7 @@ import sys
 import torch
 import yaml
 
+from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
 from datetime import datetime
 from models import RetNetModel, TransformerModel
@@ -171,13 +172,25 @@ def train_model(config: Struct):
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
             logger=tb_logger)
+        
+    ## Set up carbon emissions tracker
 
+    CO2_outfile = "emissions.txt" if not config.CO2_outfile else config.CO2_outfile
+    emissions_tracker = OfflineEmissionsTracker(
+                output_dir=model_dir,
+                output_file=CO2_outfile,
+                country_iso_code="USA",
+                cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
+                cloud_region="us-west3")
+
+    emissions_tracker.start()
     trainer.fit(model, datamodule=dm)
 
     print("\nDone training! Now testing model...")
 
     # Automatically load best checkpoint and test with test dataloader
     trainer.test(model, datamodule=dm)
+    emissions_tracker.stop()
 
     print("Finished training!")
 
