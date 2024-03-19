@@ -38,8 +38,10 @@ Follow Nvidia Conda Cuda installation steps below
 lspci | grep -i nvidia
 
 mamba install cuda -c nvidia
+```
 
-# Install Ninja
+Make sure that `ninja` is installed 
+```bash
 mamba install ninja
 ```
 
