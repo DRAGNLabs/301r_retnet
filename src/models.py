@@ -348,8 +348,7 @@ class LongNetModel(LightningModule):
         #     segment_length=config.segment_length,
         #     dilated_ratio=config.dilated_ratio,
         #     flash_attention=True)
-        # config = DecoderConfig(decoder_attention_heads=64, vocab_size=64000, segment_length='[2048,4096]', dilated_ratio='[2,2]', flash_attention=True)
-        config = DecoderConfig(decoder_attention_heads=64, vocab_size=64000, segment_length='[1024]', dilated_ratio='[2]', flash_attention=True)
+        config = DecoderConfig(vocab_size=64000, segment_length='[2048,4096]', dilated_ratio='[1,2]', flash_attention=True)
 
         self.model_hf = LongNetModelHF(config)
 
