@@ -122,9 +122,9 @@ class DataSet(torch.utils.data.IterableDataset):
         process_rank = get_rank()
 
         # Create iterator over rows
-        self.data = self.data.iterrows()
+        iterator = self.data.iterrows()
 
-        for index, item in enumerate(self.data):
+        for index, item in enumerate(iterator):
             if index % (num_workers * world_size) == (process_rank * num_workers + worker_id):
                 item = item[1].values[0].tolist()
                 if len(item) <= self.seq_len:
