@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=8 # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --gres=gpu:8
-#SBATCH --qos=dw87
+#SBATCH --qos=cs
 #SBATCH --mem=1000G   # memory per CPU core
 #SBATCH -J "train_model"   # job name
 #SBATCH --requeue
