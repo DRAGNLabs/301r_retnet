@@ -85,8 +85,8 @@ def train_model(config: Struct):
     # Print model info
     print("\nModel Summary:")
     total_params = model_summary(
-        model,
-        input_data=torch.ones(1, config.seq_len).long()).total_params
+        model.to(config.device),
+        input_data=torch.ones(1, config.seq_len).long().to(config.device)).total_params
 
     # Create unique label for model (model type, parameter count,
     # **hyperparameters, timestamp)

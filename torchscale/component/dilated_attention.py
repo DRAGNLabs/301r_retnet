@@ -209,6 +209,10 @@ class DilatedAttention(MultiheadAttention):
 
         attn = self.scattering(outs, lses, tgt_len, bsz, offset=offset)
 
+        # Convert data back to float32, since inner_attn_ln only works with float32
+        # Original conversion to float16 in MultiheadAttention.attention_ops()
+        attn = attn.to(torch.float32)
+
         if self.inner_attn_ln is not None:
             attn = self.inner_attn_ln(attn)
 
