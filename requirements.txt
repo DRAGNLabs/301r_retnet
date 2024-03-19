@@ -17,4 +17,5 @@ torchinfo==1.8.0
 torchtext==0.16.1
 transformers==4.36.2
 einops==0.7.0
+packaging==23.2
 git+https://github.com/DRAGNLabs/lm-evaluation-harness.git
