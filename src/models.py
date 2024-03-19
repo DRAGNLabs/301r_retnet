@@ -348,7 +348,7 @@ class LongNetModel(LightningModule):
         #     segment_length=config.segment_length,
         #     dilated_ratio=config.dilated_ratio,
         #     flash_attention=True)
-        config = DecoderConfig(vocab_size=64000, segment_length='[2048,4096]', dilated_ratio='[1,2]', flash_attention=True)
+        config = DecoderConfig(vocab_size=32768, segment_length='[2048,4096]', dilated_ratio='[1,2]', flash_attention=True)
 
         self.model_hf = LongNetModelHF(config)
 
@@ -607,6 +607,8 @@ class LongNetModelHF(PreTrainedModel):
             A tensor of dimensions: (batch size, sequence length, vocabulary
                 size).
         """
+        print(x.dtype)
+        print(x)
         preds, _ = self.decoder_stack(x)
         return preds
 
