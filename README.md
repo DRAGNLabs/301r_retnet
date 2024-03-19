@@ -32,9 +32,25 @@ mamba create -n <YOUR_ENV_NAME> python=3.11
 mamba activate <YOUR_ENV_NAME>
 ```
 
+Follow Nvidia Conda Cuda installation steps below
+```bash
+# Make sure GPU available
+lspci | grep -i nvidia
+
+mamba install cuda -c nvidia
+
+# Install Ninja
+mamba install ninja
+```
+
 Once your environment has been prepared, install all required packages:
 ```bash
 pip install -r requirements.txt
+```
+
+To install Flash Attention:
+```bash
+pip install flash-attn==2.5.6 --no-build-isolation
 ```
 
 ### 2: YAML Configuration Files
