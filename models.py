@@ -317,18 +317,20 @@ class LongNetModel(LightningModule):
 
         # Create Transformer Decoder configuration for HuggingFace model
         # This will work for LongNet as well (which this is)
-        config = DecoderConfig(
-            decoder_embed_dim=config.embed_dim,
-            decoder_value_embed_dim=config.value_embed_dim,
-            decoder_attention_heads=config.heads,
-            decoder_ffn_embed_dim=config.ffn_dim,
-            decoder_layers=config.layers,
-            dropout=config.dropout,
-            activation_dropout=config.activation_dropout,
-            vocab_size=config.vocab_size,
-            segment_length=config.segment_length,
-            dilated_ratio=config.dilated_ratio,
-            flash_attention=True)
+        # config = DecoderConfig(
+        #     decoder_embed_dim=config.embed_dim,
+        #     decoder_value_embed_dim=config.value_embed_dim,
+        #     decoder_attention_heads=config.heads,
+        #     decoder_ffn_embed_dim=config.ffn_dim,
+        #     decoder_layers=config.layers,
+        #     dropout=config.dropout,
+        #     activation_dropout=config.activation_dropout,
+        #     vocab_size=config.vocab_size,
+        #     segment_length=config.segment_length,
+        #     dilated_ratio=config.dilated_ratio,
+        #     flash_attention=True)
+        # config = DecoderConfig(decoder_attention_heads=64, vocab_size=64000, segment_length='[2048,4096]', dilated_ratio='[2,2]', flash_attention=True)
+        config = DecoderConfig(decoder_attention_heads=64, vocab_size=64000, segment_length='[1024]', dilated_ratio='[2]', flash_attention=True)
 
         self.model_hf = LongNetModelHF(config)
 
