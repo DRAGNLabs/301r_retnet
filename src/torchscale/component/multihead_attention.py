@@ -100,8 +100,6 @@ class MultiheadAttention(nn.Module):
             q = rearrange(q, '(b h) l d -> b l h d', h=self.num_heads).half()
             k = rearrange(k, '(b h) l d -> b l h d', h=self.num_heads).half()
             v = rearrange(v, '(b h) l d -> b l h d', h=self.num_heads).half()
-            print(f'q type: {q.dtype}, k type: {k.dtype}, v type: {v.dtype}')
-            print(f'q type: {q.device}, k type: {k.device}, v type: {v.device}')
 
             attn, lse = flash_attn_func(q, k, v, self.dropout, attn_mask, None, is_causal)
             attn = rearrange(attn, 'b l h d -> b l (h d)')
