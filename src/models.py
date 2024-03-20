@@ -323,8 +323,7 @@ class PerformerModel(LightningModule):
             decoder_layers=config.layers,
             dropout=config.dropout,
             activation_dropout=config.activation_dropout,
-            vocab_size=config.vocab_size
-            # Performer-specific configurations
+            vocab_size=config.vocab_size,
             dim_head=config.dim_head,  # Dimension of each attention head
             local_heads=config.local_heads,  # Number of local attention heads
             local_window_size=config.local_window_size,  # Size of the local attention window
