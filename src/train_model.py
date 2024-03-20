@@ -19,10 +19,6 @@ from transformers import set_seed
 from torchinfo import summary as model_summary
 from utils import Struct
 
-# Allow torch to run float32 matrix multiplications in lower precision for
-# better performance while training if hardware is capable
-torch.backends.cuda.matmul.allow_tf32 = True
-
 class CustomModelCheckpoint(ModelCheckpoint):
     def __init__(self, dirpath, filename, monitor, save_top_k, mode, every_n_train_steps):
         super().__init__(
@@ -51,7 +47,7 @@ def train_model(config: Struct):
         f"({config.embed_dim} / {config.heads} = " + \
         f"{config.embed_dim / config.heads} -- not an even, whole number)! " + \
         "Try changing the Embedding Dimension or number of heads."
-
+    
     # Test that the value embedding dimension is divisible by number of heads
     assert config.value_embed_dim % config.heads == 0, \
         "Value Embed Dimension not divisible by number of heads " + \
@@ -159,7 +155,8 @@ def train_model(config: Struct):
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger)
+            logger=tb_logger,
+            precision=config.precision)
     else:
         trainer = Trainer(
             default_root_dir=model_dir, # main directory for run
@@ -173,15 +170,17 @@ def train_model(config: Struct):
             sync_batchnorm=True,
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger)
+            logger=tb_logger,
+            precision=config.precision)
         
     ## Set up carbon emissions tracker
-        
+
+    CO2_outfile = "emissions.txt" if not config.CO2_outfile else config.CO2_outfile
     emissions_tracker = OfflineEmissionsTracker(
                 output_dir=model_dir,
-                output_file=config.CO2_outfile,
+                output_file=CO2_outfile,
                 country_iso_code="USA",
-                cloud_provider="gcp",
+                cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
                 cloud_region="us-west3")
 
     emissions_tracker.start()
