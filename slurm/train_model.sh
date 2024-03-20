@@ -3,7 +3,7 @@
 #SBATCH --time=10:00:00   # walltime
 #SBATCH --ntasks-per-node=1 # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:a100:1
 #SBATCH --qos=cs
 #SBATCH --mem=64G   # memory per CPU core
 #SBATCH -J "train_model"   # job name
@@ -18,5 +18,5 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate <YOUR_ENV_NAME>
 srun python3 \
-    ../../train_model.py \
+    ../../src/train_model.py \
     ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml

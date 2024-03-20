@@ -6,6 +6,7 @@ import sys
 import torch
 import yaml
 
+from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
 from datetime import datetime
 from models import RetNetModel, TransformerModel, LongNetModel
@@ -23,13 +24,14 @@ from utils import Struct
 torch.backends.cuda.matmul.allow_tf32 = True
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, filename, monitor, save_top_k, mode):
+    def __init__(self, dirpath, filename, monitor, save_top_k, mode, every_n_train_steps):
         super().__init__(
             dirpath=dirpath,
             filename=filename,
             monitor=monitor,
             save_top_k=save_top_k,
-            mode=mode)
+            mode=mode,
+            every_n_train_steps=every_n_train_steps)
         self.num_ckpts = 0
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
@@ -137,7 +139,8 @@ def train_model(config: Struct):
         filename="epoch_{epoch}_validation_{val_loss:.2f}",
         monitor="val_loss",
         save_top_k=config.save_top_k,
-        mode="min")
+        mode="min",
+        every_n_train_steps=config.every_n_train_steps)
 
     early_stopping = EarlyStopping(
         "val_loss",
@@ -171,13 +174,24 @@ def train_model(config: Struct):
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
             logger=tb_logger)
+        
+    ## Set up carbon emissions tracker
+        
+    emissions_tracker = OfflineEmissionsTracker(
+                output_dir=model_dir,
+                output_file=config.CO2_outfile,
+                country_iso_code="USA",
+                cloud_provider="gcp",
+                cloud_region="us-west3")
 
+    emissions_tracker.start()
     trainer.fit(model, datamodule=dm)
 
     print("\nDone training! Now testing model...")
 
     # Automatically load best checkpoint and test with test dataloader
     trainer.test(model, datamodule=dm)
+    emissions_tracker.stop()
 
     print("Finished training!")
 
