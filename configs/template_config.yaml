@@ -117,6 +117,8 @@ gamma: 0.85
 learning_rate: 0.001
 # Random Seed (int): Random seed for reproducibility
 rand_seed: 42
+# Precision (str): Precision for training; refer to Torch Lightning docs
+precision: fp16
 # Save Top K (int): Number of best models to save; default saves the best single checkpoint. Set to -1 to save all
 save_top_k: 3
 # Every N Train Steps (int): Checkpoint every n train steps; Note: PyTorch Lightning defines 'steps' as 
@@ -147,6 +149,6 @@ model_type: "retnet" # Choices: "retnet", "transformer"
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
-value_embed_dim: 12
+value_embed_dim: 1280
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
 vocab_size: 50000
