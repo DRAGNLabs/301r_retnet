@@ -51,9 +51,11 @@ def grid_search(config: Struct):
             "Learning Rate",
             "Embedding Dimension",
             "Batch Size",
+            "LongNet Avg Loss",
             "RetNet Avg Loss",
             "Transformer Avg Loss",
-            "Similarity Score",
+            "Similarity Score Between Transformer and RetNet",
+            "LongNet Training Time",
             "RetNet Training Time",
             "Transformer Training Time",
             "Training Time"]) + "\n")
