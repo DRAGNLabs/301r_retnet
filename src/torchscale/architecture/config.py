@@ -181,6 +181,7 @@ class PerformerConfig(PretrainedConfig):
         self.deepnorm = kwargs.pop("deepnorm", False)
         self.subln = kwargs.pop("subln", True)
         self.use_xmoe = kwargs.pop("use_xmoe", False)
+        self.no_output_layer = kwargs.pop("no_output_layer", False)
         # Additional Performer configurations for self-attention and cross-attention
         self.dim_head = kwargs.pop("dim_head", 64)  # Dimension of each attention head
         self.local_heads = kwargs.pop("local_heads", 0)  # Number of local attention heads
