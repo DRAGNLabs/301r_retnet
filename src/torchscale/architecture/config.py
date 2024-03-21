@@ -156,6 +156,7 @@ class PerformerConfig(PretrainedConfig):
         self.dropout = kwargs.pop("dropout", 0.0)
         self.activation_dropout = kwargs.pop("activation_dropout", 0.0)
         self.no_scale_embedding = kwargs.pop("no_scale_embedding", True)
+        self.layernorm_embedding = kwargs.pop("layernorm_embedding", False)
         self.drop_path_rate = kwargs.pop("drop_path_rate", 0.0)
         self.max_seq_len = kwargs.pop("max_seq_len", 512)
         self.use_relative_position = kwargs.pop("use_relative_position", False)
