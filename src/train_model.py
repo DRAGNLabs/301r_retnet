@@ -9,7 +9,7 @@ import yaml
 from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
 from datetime import datetime
-from models import RetNetModel, TransformerModel, LongNetModel
+from models import LongNetModel, RetNetModel, TransformerModel
 from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
