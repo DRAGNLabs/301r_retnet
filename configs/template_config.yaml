@@ -155,7 +155,7 @@ vocab_size: 50000
 
 # ---------------------------- LONGNET CONFIGURATION ----------------------------
 
-# Segment Length (list[int]): Length of segments for the model
-segment_length: [2048, 4096]
 # Dilated Ratio (list[int]): Ratio of dilation for the model
 dilated_ratio: [1, 2]
+# Segment Length (list[int]): Length of segments for the model
+segment_length: [2048, 4096]
