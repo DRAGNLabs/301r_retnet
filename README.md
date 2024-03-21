@@ -32,7 +32,7 @@ mamba create -n <YOUR_ENV_NAME> python=3.11
 mamba activate <YOUR_ENV_NAME>
 ```
 
-Follow Nvidia Conda Cuda installation steps below
+Follow NVIDIA Conda CUDA installation steps below:
 ```bash
 # Make sure GPU available
 lspci | grep -i nvidia
@@ -40,7 +40,7 @@ lspci | grep -i nvidia
 mamba install cuda -c nvidia
 ```
 
-Make sure that `ninja` is installed 
+Make sure that `ninja` is installed:
 ```bash
 mamba install ninja
 ```
@@ -108,97 +108,8 @@ To run the grid search, ensure your configuration file is correctly set up, then
 
 ```bash
 python3 ../../grid_search.py configs/user_configs/<YOUR_CONFIG_HERE>.yaml
-python3 ../../grid_search.py configs/user_configs/<YOUR_CONFIG_HERE>.yaml
 ```
 
-### Hugging Face Integration
-
-This feature introduces custom models built upon the Hugging Face Transformers library, enabling the incorporation of RetNet and Transformer architectures into a wide range of NLP tasks. Leveraging Hugging Face's `PreTrainedModel` class, we've developed `RetNetModelHF` and `TransformerModelHF` classes to seamlessly integrate with Hugging Face's ecosystem, facilitating easy model training, evaluation, and deployment.
-
-**Code Overview:**
-
-- **`RetNetModelHF`**: Implements the RetNet architecture as a subclass of PreTrainedModel, using Hugging Face's utilities and standards for model configuration, serialization, and compatibility with the Transformers library.
-- **`TransformerModelHF`**: Implements the Transformer architecture as a subclass of PreTrainedModel, using Hugging Face's utilities and standards for model configuration, serialization, and compatibility with the Transformers library.
-- **Configuration Classes**: Both models utilize specific configuration classes (`RetNetConfig` for RetNetModelHF and `DecoderConfig` for TransformerModelHF) to define model parameters, ensuring flexibility and ease of customization.
-
-**Usage:**
-
-To use these models within your Hugging Face-based projects, follow these steps:
-
-1. **Initialization**: Instantiate the model with the desired configuration, which can be a predefined object, a path to a configuration file, or left as default for automatic configuration.
-
-   ```python
-   from <YOUR_MODULE> import RetNetModelHF, TransformerModelHF
-
-   retnet_model = RetNetModelHF(config="path/to/retnet/config")
-   transformer_model = TransformerModelHF(config="path/to/transformer/config")
-   ```
-
-2. **Forward Pass**: Call the model with input data tensors to receive output predictions.
-
-   ```python
-   input_ids = ...  # Your input tensor here
-   retnet_output = retnet_model(input_ids)
-   transformer_output = transformer_model(input_ids)
-   ```
-
-3. **Parameter Access**: Retrieve model hyperparameters for inspection or further processing.
-
-   ```python
-   retnet_params = retnet_model.get_params()
-   transformer_params = transformer_model.get_params()
-   ```
-
-## Benchmarking for Generation Quality
-
-We use EleutherAI's open-source language model evaluation harness to empirically evaluate our models across a suite of different NLP tasks. Run the evaluation suite as follows:
-First, edit the 'tasks' parameter in the YAML file. Specify all tasks you would like to run, e.g.,
-```
-tasks:
-  - "hellaswag"
-  - "winogrande"
-```
-Alternatively, you can use `tasks: '*'` to run all benchmarks in the suite. These tasks will need to download if not yet stored locally at `~/.cache/huggingface/datasets/`. Navigate to the `slurm/run_eval.sh`, copy the script, and substitute your yaml file for the placeholder. Finally, execute:
-
-```
-# Activate environment, if using one
-mamba activate <YOUR_ENV_HERE>
-
-cd /301r_retnet/slurm/
-
-# Give your file a descriptive name, (e.g., 'retnet_40540_run_eval.sh')
-cp run_eval.sh user_slurm/<NAME_OF_NEW_FILE>.sh
-
-bash <NAME_OF_NEW_FILE>/.sh
-```
-Results will be sent to a CSV.
-
-## Carbon Emissions Tracking
-
-This project uses [CodeCarbon](https://github.com/mlco2/codecarbon) to track emissions in offline mode, meaning no data is reported to the public API. This outputs a csv file with stats with duration in seconds and power consumption measured in kilowatts. Carbon emissions (denoted by '_emissions_') is a calculation of the specified energy consumption profile and the energy consumed measured in kg.
-
-Sample output:
-
-| timestamp           | project_name | run_id                              | duration (sec) | emissions (kg) | emissions_rate | cpu_power (kW) | gpu_power (kW) | ram_power (kW) | cpu_energy (kW) | gpu_energy (kW) | ram_energy (kW) | energy_consumed (kW) | country_name | country_iso_code | region | cloud_provider | cloud_region | os                                           | python_version | codecarbon_version | cpu_count | cpu_model                        | gpu_count | gpu_model          | longitude | latitude | ram_total_size | tracking_mode | on_cloud | pue |
-|---------------------|--------------|-------------------------------------|----------|-----------|----------------|-----------|-----------|-----------|------------|------------|------------|-----------------|--------------|------------------|--------|----------------|--------------|---------------------------------------------|----------------|-------------------|-----------|----------------------------------|-----------|-------------------|-----------|----------|----------------|---------------|----------|-----|
-| 2024-03-13T16:52:45 | codecarbon   | dea8afbd-973d-4396-b103-f09eb94c1457 | 180.817  | 0.02549   | 0.000141       | 140.0     | 1066.512  | 24.0      | 0.007032   | 0.048665   | 0.0012     | 0.056896        | USA          | USA              | Utah   | gcp            | us-west3    | Linux-3.10.0-1160.108.1.el7.x86_64-x86_64-with-glibc2.17 | 3.11.6         | 2.3.4             | 8         | AMD EPYC 7763 64-Core Processor | 8         | 8 x NVIDIA A100-SXM4-80GB |           |          | 64             | machine       | Y        | 1.0 |
-
-## Acknowledgments
-
-We extend our heartfelt gratitude to the following individuals and institutions for their invaluable contributions to this project:
-
-**Nancy Fulda**: Our esteemed instructor, whose guidance and insights have significantly shaped the direction and execution of this research.
-
-**BYU Office of Research Computing**: For providing the computational resources and support that were instrumental in conducting our experiments and analyses.
-
-**Authors of the Original RetNet Paper**: We acknowledge their contributions to novel encoder architectures, which guided our investigations into RetNet and Transformers and offered a foundational framework for our research.
-
-**Microsoft TorchScale Team**: For developing and maintaining the TorchScale framework, which served as the foundational architecture for our project, enabling us to push the boundaries of what's possible in deep learning research.
-
-## Citations
-
-> [!NOTE]
-> Our paper is awaiting publication and our full citation will be given soon.
 ### Hugging Face Integration
 
 This feature introduces custom models built upon the Hugging Face Transformers library, enabling the incorporation of RetNet and Transformer architectures into a wide range of NLP tasks. Leveraging Hugging Face's `PreTrainedModel` class, we've developed `RetNetModelHF` and `TransformerModelHF` classes to seamlessly integrate with Hugging Face's ecosystem, facilitating easy model training, evaluation, and deployment.
