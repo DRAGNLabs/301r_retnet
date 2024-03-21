@@ -570,7 +570,10 @@ class PerformerModelHF(PreTrainedModel):
         self.performer_decoder = PerformerDecoder(
             self.config,
             embed_tokens=self.embeddings,
-            max_seq_len=self.config.max_seq_len
+            max_seq_len=self.config.max_seq_len,
+            num_tokens=self.config.vocab_size,
+            dim_head=self.config.dim_head,
+            dim=self.config.embed_dim,
         )
 
     def forward(self, input_ids: Tensor) -> Tensor:
