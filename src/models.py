@@ -348,7 +348,8 @@ class LongNetModel(LightningModule):
             vocab_size=config.vocab_size,
             segment_length=config.segment_length,
             dilated_ratio=config.dilated_ratio,
-            flash_attention=True)
+            flash_attention=True,
+            seq_parallel=True)
 
         self.model_hf = LongNetModelHF(config)
 
