@@ -32,7 +32,7 @@ mamba create -n <YOUR_ENV_NAME> python=3.11
 mamba activate <YOUR_ENV_NAME>
 ```
 
-Follow Nvidia Conda Cuda installation steps below
+Follow NVIDIA Conda CUDA installation steps below:
 ```bash
 # Make sure GPU available
 lspci | grep -i nvidia
@@ -40,7 +40,7 @@ lspci | grep -i nvidia
 mamba install cuda -c nvidia
 ```
 
-Make sure that `ninja` is installed 
+Make sure that `ninja` is installed:
 ```bash
 mamba install ninja
 ```
