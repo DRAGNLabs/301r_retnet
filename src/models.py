@@ -6,7 +6,7 @@ from torch import Tensor
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
-from torchscale.model.longnet import LongNetDecoder
+from torchscale.architecture.longnet import LongNetDecoder
 from transformers import PreTrainedModel
 from typing import Optional, Union
 from utils import Struct
@@ -346,8 +346,8 @@ class LongNetModel(LightningModule):
             dropout=config.dropout,
             activation_dropout=config.activation_dropout,
             vocab_size=config.vocab_size,
-            segment_length=config.segment_length,
-            dilated_ratio=config.dilated_ratio,
+            segment_length=str(config.segment_length),
+            dilated_ratio=str(config.dilated_ratio),
             flash_attention=True,
             seq_parallel=True)
 
