@@ -3,8 +3,10 @@ datasets==2.16.0
 dask==2024.2.1
 dask-expr==0.5.2
 dask-ml==2023.3.24
+einops==0.7.0
 fairscale==0.4.13
 numpy==1.26.2
+packaging==23.2
 portalocker==2.8.2
 pytorch-lightning==2.1.3
 tables==3.9.2
@@ -16,6 +18,4 @@ torch==2.1.1
 torchinfo==1.8.0
 torchtext==0.16.1
 transformers==4.36.2
-einops==0.7.0
-packaging==23.2
 git+https://github.com/DRAGNLabs/lm-evaluation-harness.git
