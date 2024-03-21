@@ -237,11 +237,11 @@ class PerformerDecoder(nn.Module):
     def __init__(
         self,
         args,
+        max_seq_len,
         embed_tokens=None,
         embed_positions=None,
         output_projection=None,
         is_encoder_decoder=False,
-        max_seq_len,
         rotary_position_emb = True,
         axial_position_emb = False,
         axial_position_shape = None,
