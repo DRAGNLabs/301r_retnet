@@ -58,12 +58,12 @@ def train_model(config: Struct):
         set_seed(config.rand_seed)
 
     # Create requested model
-    if config.model_type.lower() == "retnet":
+    if config.model_type.lower() == "longnet":
+        model = LongNetModel(config)
+    elif config.model_type.lower() == "retnet":
         model = RetNetModel(config)
     elif config.model_type.lower() == "transformer":
         model = TransformerModel(config)
-    elif config.model_type.lower() == "longnet":
-        model = LongNetModel(config)
     else:
         raise ValueError(f"Model type '{config.model_type}' not supported!")
 

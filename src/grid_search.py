@@ -2,7 +2,6 @@ import copy
 import itertools
 import sys
 import time
-import torch
 import yaml
 
 from pathlib import Path
@@ -63,6 +62,12 @@ def grid_search(config: Struct):
     similarity_scores = {}
     for lr, embed_dim, batch_size in param_combinations:
         # Prepare seperate config objects to pass
+        longnet_config = copy.deepcopy(config)
+        longnet_config.lr = lr
+        longnet_config.embed_dim = embed_dim
+        longnet_config.batch_size = batch_size
+        longnet_config.model_type = "longnet"
+        
         retnet_config = copy.deepcopy(config)
         retnet_config.lr = lr
         retnet_config.embed_dim = embed_dim
@@ -77,12 +82,16 @@ def grid_search(config: Struct):
 
         start_time = time.time()
 
-        # Train RetNet model
+
+        # Train models
+        longnet_start_time = time.time()
+        longnet_model_path, longnet_best_score = train_model(longnet_config)
+        longnet_training_time=time.time() - longnet_start_time
+
         retnet_start_time = time.time()
         retnet_model_path, retnet_best_score = train_model(retnet_config)
         retnet_training_time=time.time() - retnet_start_time
 
-        # Train Transformer model with same hyperparameters as RetNet model
         transformer_start_time = time.time()
         transformer_model_path, transformer_best_score = train_model(transformer_config)
         transformer_training_time = time.time() - transformer_start_time
@@ -105,9 +114,11 @@ def grid_search(config: Struct):
                 lr,
                 embed_dim,
                 batch_size,
+                longnet_best_score,
                 retnet_best_score,
                 transformer_best_score,
                 similarity_score,
+                longnet_training_time,
                 retnet_training_time,
                 transformer_training_time,
                 total_time])) + "\n")
