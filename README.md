@@ -165,6 +165,7 @@ To use these models within your Hugging Face-based projects, follow these steps:
    ```python
    from <YOUR_MODULE> import RetNetModelHF, TransformerModelHF
 
+   longnet_model = LongNetModelHF(config="path/to/longnet/config")
    retnet_model = RetNetModelHF(config="path/to/retnet/config")
    transformer_model = TransformerModelHF(config="path/to/transformer/config")
    ```
@@ -173,6 +174,7 @@ To use these models within your Hugging Face-based projects, follow these steps:
 
    ```python
    input_ids = ...  # Your input tensor here
+   longnet_output = longnet_model(input_ids)
    retnet_output = retnet_model(input_ids)
    transformer_output = transformer_model(input_ids)
    ```
@@ -180,6 +182,7 @@ To use these models within your Hugging Face-based projects, follow these steps:
 3. **Parameter Access**: Retrieve model hyperparameters for inspection or further processing.
 
    ```python
+   longnet_params = longnet_model.get_params()
    retnet_params = retnet_model.get_params()
    transformer_params = transformer_model.get_params()
    ```
