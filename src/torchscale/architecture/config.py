@@ -166,7 +166,7 @@ class PerformerConfig(PretrainedConfig):
         self.use_rotary_position = kwargs.pop("use_rotary_position", False)
         self.vocab_size = kwargs.pop("vocab_size", -1)
         self.lr = kwargs.pop("lr", 0.0001)
-        self.activation_function = kwargs.pop("activation_function", "gelu")
+        self.activation_fn = kwargs.pop("activation_fn", "gelu")
         #MOE Configs
         self.moe_freq = kwargs.pop("moe_freq", 0)
         self.moe_top1_expert = kwargs.pop("moe_top1_expert", False)
