@@ -569,7 +569,8 @@ class PerformerModelHF(PreTrainedModel):
         # Initialize Performer decoder stack with the given configuration and embeddings
         self.performer_decoder = PerformerDecoder(
             self.config,
-            embed_tokens=self.embeddings
+            embed_tokens=self.embeddings,
+            max_seq_len=self.config.max_seq_len
         )
 
     def forward(self, input_ids: Tensor) -> Tensor:
