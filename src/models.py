@@ -189,7 +189,8 @@ class TransformerModel(LightningModule):
             decoder_layers=config.layers,
             dropout=config.dropout,
             activation_dropout=config.activation_dropout,
-            vocab_size=config.vocab_size)
+            vocab_size=config.vocab_size,
+            flash_attention=True)
 
         self.model_hf = TransformerModelHF(config)
 
