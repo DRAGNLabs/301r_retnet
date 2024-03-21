@@ -182,6 +182,7 @@ class PerformerConfig(PretrainedConfig):
         self.deepnorm = kwargs.pop("deepnorm", False)
         self.subln = kwargs.pop("subln", True)
         self.use_xmoe = kwargs.pop("use_xmoe", False)
+        self.rel_pos_buckets = kwargs.pop("rel_pos_buckets", 0)
         self.no_output_layer = kwargs.pop("no_output_layer", False)
         self.layernorm_eps = kwargs.pop("layernorm_eps", 1e-5)
         self.share_decoder_input_output_embed = kwargs.pop(
