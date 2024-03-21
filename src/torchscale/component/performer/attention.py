@@ -8,9 +8,9 @@ from einops import rearrange, repeat
 from functools import partial
 from contextlib import contextmanager
 
-from performer.local_attention import LocalAttention
-from performer.axial_positional_embedding import AxialPositionalEmbedding
-from performer.reversible import ReversibleSequence, SequentialSequence
+from local_attention import LocalAttention
+from axial_positional_embedding import AxialPositionalEmbedding
+from reversible import ReversibleSequence, SequentialSequence
 
 from distutils.version import LooseVersion
 
