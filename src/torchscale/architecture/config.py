@@ -176,6 +176,8 @@ class PerformerConfig(PretrainedConfig):
         self.moe_normalize_gate_prob_before_dropping = kwargs.pop(
             "moe_normalize_gate_prob_before_dropping", False
         )
+        self.deepnorm = kwargs.pop("deepnorm", False)
+        self.subln = kwargs.pop("subln", True)
         self.use_xmoe = kwargs.pop("use_xmoe", False)
         # Additional Performer configurations for self-attention and cross-attention
         self.dim_head = kwargs.pop("dim_head", 64)  # Dimension of each attention head

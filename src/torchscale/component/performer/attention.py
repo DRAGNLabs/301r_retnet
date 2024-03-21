@@ -8,9 +8,9 @@ from einops import rearrange, repeat
 from functools import partial
 from contextlib import contextmanager
 
-from local_attention import LocalAttention
-from axial_positional_embedding import AxialPositionalEmbedding
-from reversible import ReversibleSequence, SequentialSequence
+from torchscale.component.performer.local_attention import LocalAttention
+from torchscale.component.performer.axial_positional_embedding import AxialPositionalEmbedding
+from torchscale.component.performer.reversible import ReversibleSequence, SequentialSequence
 
 from distutils.version import LooseVersion
 
