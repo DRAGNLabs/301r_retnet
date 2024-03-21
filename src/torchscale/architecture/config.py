@@ -187,6 +187,12 @@ class PerformerConfig(PretrainedConfig):
         self.share_decoder_input_output_embed = kwargs.pop(
             "share_decoder_input_output_embed", False
         )
+        # Fairscale
+        self.checkpoint_activations = kwargs.pop("checkpoint_activations", False)
+        self.fsdp = kwargs.pop("fsdp", False)
+        self.ddp_rank = kwargs.pop("ddp_rank", 0)
+        self.xpos_rel_pos = kwargs.pop("xpos_rel_pos", False)
+        self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
         # Additional Performer configurations for self-attention and cross-attention
         self.dim_head = kwargs.pop("dim_head", 64)  # Dimension of each attention head
         self.local_heads = kwargs.pop("local_heads", 0)  # Number of local attention heads
