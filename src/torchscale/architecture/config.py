@@ -154,6 +154,8 @@ class PerformerConfig(PretrainedConfig):
         self.decoder_layers = kwargs.pop("decoder_layers", 12)
         self.mlp_dim = kwargs.pop("mlp_dim", 3072)
         self.dropout = kwargs.pop("dropout", 0.0)
+        self.activation_dropout = kwargs.pop("activation_dropout", 0.0)
+        self.no_scale_embedding = kwargs.pop("no_scale_embedding", True)
         self.drop_path_rate = kwargs.pop("drop_path_rate", 0.0)
         self.max_seq_len = kwargs.pop("max_seq_len", 512)
         self.use_relative_position = kwargs.pop("use_relative_position", False)
