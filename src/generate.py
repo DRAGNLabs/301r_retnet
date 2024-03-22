@@ -1,7 +1,9 @@
-import torch
+import csv
 import sys
+import torch
 import yaml
 
+from datetime import datetime
 from models import RetNetModel, TransformerModel
 from transformers import PreTrainedTokenizerFast
 from utils import Struct, generate_text, generate_text_from_tokens
@@ -70,6 +72,13 @@ def generate_specific_text(config: Struct):
     print("Generated strings:")
     for idx, string in enumerate(generated_strings):
         print(f"{idx+1}: {string}\n")
+
+    if config.csv_path is not None:
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(config.csv_path, 'a', newline='') as outf:
+            writer = csv.writer(outf)
+            for string in generated_strings:
+                writer.writerow([current_time, config.model_type, string])
 
 
 if __name__ == "__main__":

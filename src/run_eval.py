@@ -36,7 +36,7 @@ def run_eval(config: Struct):
             model_args=f"pretrained={config.model_path_dir}," + \
                 f"tokenizer={config.tokenizer_path}",
             tasks=config.tasks,
-            num_fewshot=0,
+            num_fewshot=config.nshot,
             device=config.device)
     else:
         results = lm_eval.simple_evaluate(

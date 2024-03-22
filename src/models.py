@@ -60,8 +60,7 @@ class RetNetModel(LightningModule):
     def training_step(self, batch: Tensor, batch_idx: int):
         """ Training step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         # Get predictions
         preds = self.model_hf(inputs)
@@ -87,8 +86,7 @@ class RetNetModel(LightningModule):
     def validation_step(self, batch: Tensor, batch_idx: int):
         """ Validation step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         # Get predictions
         preds = self.model_hf(inputs)
@@ -99,6 +97,8 @@ class RetNetModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
+        perplexity = torch.exp(loss)
+
         self.log(
             name="val_loss",
             value=loss,
@@ -108,14 +108,23 @@ class RetNetModel(LightningModule):
             on_epoch=True,
             sync_dist=True,
             add_dataloader_idx=True)
+        
+        self.log(
+            name="val_perplexity", 
+            value=perplexity, 
+            prog_bar=True,
+            logger=True, 
+            on_step=False, 
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
 
         return loss
 
     def test_step(self, batch: Tensor, batch_idx: int):
         """ Test step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         # Get predictions
         preds = self.model_hf(inputs)
@@ -174,7 +183,6 @@ class TransformerModel(LightningModule):
         # Create Transformer Decoder configuration for HuggingFace model
         config = DecoderConfig(
             decoder_embed_dim=config.embed_dim,
-            decoder_value_embed_dim=config.value_embed_dim,
             decoder_attention_heads=config.heads,
             decoder_ffn_embed_dim=config.ffn_dim,
             decoder_layers=config.layers,
@@ -204,8 +212,7 @@ class TransformerModel(LightningModule):
     def training_step(self, batch: Tensor, batch_idx: int):
         """ Training step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         preds = self.model_hf(inputs)
 
@@ -230,8 +237,7 @@ class TransformerModel(LightningModule):
     def validation_step(self, batch: Tensor, batch_idx: int):
         """ Validation step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         preds = self.model_hf(inputs)
 
@@ -240,6 +246,8 @@ class TransformerModel(LightningModule):
 
         # Calculate loss
         loss = self.loss_fn(preds, targets)
+
+        perplexity = torch.exp(loss)
 
         self.log(
             name="val_loss",
@@ -250,14 +258,25 @@ class TransformerModel(LightningModule):
             on_epoch=True,
             sync_dist=True,
             add_dataloader_idx=True)
+        
+        self.log(
+            name="val_perplexity", 
+            value=perplexity, 
+            prog_bar=True,
+            logger=True, 
+            on_step=False, 
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
 
         return loss
 
     def test_step(self, batch: Tensor, batch_idx: int):
         """ Test step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        # inputs = batch[:, :-1]
+        # targets = batch[:, 1:]
+        inputs, targets = batch
 
         preds = self.model_hf(inputs)
 

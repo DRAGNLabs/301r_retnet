@@ -6,6 +6,7 @@ import sys
 import torch
 import yaml
 
+from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
 from datetime import datetime
 from models import RetNetModel, TransformerModel
@@ -18,18 +19,15 @@ from transformers import set_seed
 from torchinfo import summary as model_summary
 from utils import Struct
 
-# Allow torch to run float32 matrix multiplications in lower precision for
-# better performance while training if hardware is capable
-torch.backends.cuda.matmul.allow_tf32 = True
-
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, filename, monitor, save_top_k, mode):
+    def __init__(self, dirpath, filename, monitor, save_top_k, mode, every_n_train_steps):
         super().__init__(
             dirpath=dirpath,
             filename=filename,
             monitor=monitor,
             save_top_k=save_top_k,
-            mode=mode)
+            mode=mode,
+            every_n_train_steps=every_n_train_steps)
         self.num_ckpts = 0
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
@@ -49,7 +47,7 @@ def train_model(config: Struct):
         f"({config.embed_dim} / {config.heads} = " + \
         f"{config.embed_dim / config.heads} -- not an even, whole number)! " + \
         "Try changing the Embedding Dimension or number of heads."
-
+    
     # Test that the value embedding dimension is divisible by number of heads
     assert config.value_embed_dim % config.heads == 0, \
         "Value Embed Dimension not divisible by number of heads " + \
@@ -104,11 +102,8 @@ def train_model(config: Struct):
     print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    if config.tboard_path is None:
-        tboard_log_dir = Path(config.models_path) / "logs" / model_label
-    else:
-        tboard_log_dir = f"{config.tboard_path}/{model_label}"
-
+    tboard_log_dir = Path(config.models_path) / model_label / "logs"
+    
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
     tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
@@ -135,7 +130,8 @@ def train_model(config: Struct):
         filename="epoch_{epoch}_validation_{val_loss:.2f}",
         monitor="val_loss",
         save_top_k=config.save_top_k,
-        mode="min")
+        mode="min",
+        every_n_train_steps=config.every_n_train_steps)
 
     early_stopping = EarlyStopping(
         "val_loss",
@@ -154,7 +150,8 @@ def train_model(config: Struct):
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger)
+            logger=tb_logger,
+            precision=config.precision)
     else:
         trainer = Trainer(
             default_root_dir=model_dir, # main directory for run
@@ -168,14 +165,27 @@ def train_model(config: Struct):
             sync_batchnorm=True,
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger)
+            logger=tb_logger,
+            precision=config.precision)
+        
+    ## Set up carbon emissions tracker
 
+    CO2_outfile = "emissions.txt" if not config.CO2_outfile else config.CO2_outfile
+    emissions_tracker = OfflineEmissionsTracker(
+                output_dir=model_dir,
+                output_file=CO2_outfile,
+                country_iso_code="USA",
+                cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
+                cloud_region="us-west3")
+
+    emissions_tracker.start()
     trainer.fit(model, datamodule=dm)
 
     print("\nDone training! Now testing model...")
 
     # Automatically load best checkpoint and test with test dataloader
     trainer.test(model, datamodule=dm)
+    emissions_tracker.stop()
 
     print("Finished training!")
 
