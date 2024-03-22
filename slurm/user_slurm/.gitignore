@@ -2,3 +2,7 @@
 *
 # Except this file
 !.gitignore
+
+
+# And example slurm for example_compute_folder
+!train_model.sh

@@ -1,3 +1,6 @@
 This is where raw datasets would go.
 wikitext_small_test is an example dataset with a fraction of data showing how downloaded data would appear normally.
 Notably, real datasets will typically have more than 1 .parquet file for each folder, but this is to allow easy initialization.
+example_compute_config.yaml is built around starting with training a tokenizer, and skips the download_data.py.
+
+Note that the slurm script train_model.sh requires a Mamba python instance created. Follow instructions in README.md.
