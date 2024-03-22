@@ -50,6 +50,8 @@ To prepare a YAML config file, copy [template_config.yaml](./configs/template_co
 > [!TIP]
 > Once a YAML config file is prepared, it can be passed into any script in the pipeline. Before you run any scripts, it is recommended to copy all of them into the [user_scripts](./scripts/user_scripts/) directory and modify the scripts to point to the right config file.
 
+The Python scripts for data preprocessing and training can be run via the Bash scripts found in [scripts](./scripts/), or through Slurm via the scripts in [slurm](./slurm/). This README refers to the normal Bash scripts, but the process for running the scripts via Slurm is similar.
+
 The expected order of script execution is as follows:
 1. Change current directory to [scripts/user_scripts](./scripts/user_scripts/).
 2. Run [download_data.sh](./scripts/download_data.sh) to fetch the necessary data.
@@ -70,9 +72,7 @@ cd scripts/user_scripts
 ./train_model.sh
 ```
 
-The process for running the scripts via Slurm is similar. The corresponding Slurm scripts are located in the [slurm](./slurm/) folder.
-
-More details for these steps are described in the following sections.
+More details for each of these steps are described more detail in the following sections.
 
 #### Data Preprocessing
 
