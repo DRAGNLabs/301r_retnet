@@ -6,6 +6,35 @@ from models import RetNetModel, TransformerModel
 from transformers import PreTrainedTokenizerFast
 from utils import Struct, generate_text
 
+def generate_text_length_n(config: Struct, n: int, input_starting_string: list[str]):
+    if config.model_type.lower() == "retnet":
+        model = RetNetModel(config)
+    elif config.model_type.lower() == "transformer":
+        model = TransformerModel(config)
+
+    # Load in pre-trained weights from checkpoint
+    if config.checkpoint_path is None:
+        raise ValueError(
+            "To generate text, the 'checkpoint_path' value in the " + \
+            "configuration file must be set")
+    checkpoint = torch.load(config.checkpoint_path)
+    model.load_state_dict(checkpoint["state_dict"])
+
+    # Load pre-trained tokenizer
+    tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
+
+    device = torch.device(config.device)
+
+    generated_string = generate_text(
+        model=model,
+        tokenizer=tokenizer,
+        start_string_list=config.input_starting_strings,
+        device=device,
+        seq_len=config.seq_len,
+        generation_length=n)
+
+    return generated_string
+
 def generate_specific_text(config: Struct):
     """
     Args:

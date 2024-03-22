@@ -87,6 +87,81 @@ def generate_text(
     # Decode token indices lists to lists of strings and return
     return tokenizer.batch_decode(generated_token_idx_list)
 
+def generate_text_from_tokens(
+        model: nn.Module,
+        tokens: list[int],
+        start_string_list: list[str],
+        device: torch.device,
+        seq_len: int,
+        generation_length: int=100) -> list[str]:
+    """ Use model to generate text given beginning input
+    Args:
+        model (nn.Module): Model used to make predictions.
+        tokenizer (Tokenizer): Tokenizer object to handle conversions with
+            tokens and strings.
+        start_string_list (list[str]): List of strings that should be used as
+            beginnings of generated strings (prompts to the model).
+        device (torch.device): Device on which to run inference.
+        seq_len (int): Context window/sequence length.
+        generation_length (int): Total amount of tokens per generated sequence.
+
+    Returns:
+        A list of all the fully generated strings by the model.
+    """
+    # Keep track of fully generated token indices lists
+    generated_token_idx_list = []
+
+    # Move model to device
+    model = model.to(device)
+
+    # No gradients needed
+    model.eval()
+    with torch.inference_mode():
+        # Iterate over each start string
+        for input_idx in range(len(tokens)):
+            # Retrieve string's tokenized version
+            input_token_idxs = tokens[input_idx]
+
+            # Store generated sequence token indices
+            generated_token_idxs = input_token_idxs
+
+            # Get tensor with token indices
+            input_tensor = torch.tensor(input_token_idxs, dtype=torch.long)
+
+            # Add batch dimension and move to device
+            input_tensor = input_tensor.unsqueeze(0).to(device)
+
+            # Keep generating until padding or reached generation length
+            while generated_token_idxs[-1] != tokens.pad_token_id \
+                    and len(generated_token_idxs) < generation_length:
+                # Make sure input_tensor isn't longer than sequence length
+                input_tensor = input_tensor[
+                    :,
+                    max(0, input_tensor.shape[-1] - seq_len):]
+
+                # Get model predictions
+                predictions = model(input_tensor)
+
+                # Apply softmax to predictions
+                predictions = F.softmax(predictions, dim=-1)
+
+                # Get the last predicted word
+                predicted_id = predictions.argmax(dim=-1)[0, -1]
+
+                # Add predicted word to input (used as next input sequence)
+                input_tensor = torch.cat(
+                    [input_tensor, predicted_id[None, None]],
+                    dim=-1)
+
+                # Store predicted token as part of generation
+                generated_token_idxs.append(predicted_id.item())
+
+            # Store fully generated sequence of token indices for start string
+            generated_token_idx_list.append(generated_token_idxs)
+
+    # Decode token indices lists to lists of strings and return
+    # return tokenizer.batch_decode(generated_token_idx_list)
+
 
 class Struct():
     def __init__(self, **entries):
