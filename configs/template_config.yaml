@@ -42,6 +42,8 @@ results_out_path: ~
 tasks:
   - "hellaswag"
   - "winogrande"
+# N-shot (int | None): The number of examples to show the model before prompting; 'None' defaults to 0
+nshot: ~
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
