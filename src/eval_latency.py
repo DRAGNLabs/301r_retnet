@@ -17,21 +17,29 @@ from generate import generate_text_length_n
 from models import RetNetModel, TransformerModel
 
 def eval_compute_time(config: Struct):
-    # find best, worst, and average times
-    test_sequence_lengths = [config.n_tokens_to_generate // config.seq_len_frac] * config.seq_len_frac
+    test_sequence_lengths = [i * (config.seq_len // config.seq_len_frac) for i in range(1, config.seq_len_frac)]
+    test_sequence_lengths.append(config.seq_len - 1)
     results = {}
+    random_tokens = make_random_tokens(config, config.seq_len)
+    max_len_generated = False
 
-    for seq_len in test_sequence_lengths:
+    for test_seq_len in test_sequence_lengths:
         iteration_results = {'single_token_times': [], 'n_token_times': []}
-        random_tokens = make_random_tokens(config, seq_len)
+        input_tokens = random_tokens[:test_seq_len]
+
         print("Measuring single token generation time...")
         for _ in range(config.num_latency_trials):
-            iteration_results["single_token_times"].append(eval_single_token_generation_time(config, random_tokens))
+            iteration_results["single_token_times"].append(eval_single_token_generation_time(config, input_tokens))
 
         print("Measuring n token generation time...")
-        for _ in range(config.num_latency_trials):
-            iteration_results["n_token_times"].append(eval_n_tokens_generation_time(config, config.n_tokens_to_generate, random_tokens))
-        results[seq_len] = iteration_results
+        if test_seq_len >= config.seq_len - config.n_tokens_to_generate and not max_len_generated:
+            for _ in range(config.num_latency_trials):
+                iteration_results["n_token_times"].append(eval_n_tokens_generation_time(config, config.n_tokens_to_generate, input_tokens[:config.seq_len - config.n_tokens_to_generate]))
+                max_len_generated = True
+        else:
+            for _ in range(config.num_latency_trials):
+                iteration_results["n_token_times"].append(eval_n_tokens_generation_time(config, config.n_tokens_to_generate, input_tokens))
+            results[test_seq_len] = iteration_results
 
     return results
 
@@ -59,11 +67,10 @@ def make_random_tokens(config: Struct, n_tokens: int):
     return torch.tensor(tokens)
 
 if __name__ == "__main__":
-    # args = sys.argv
-    # config_path = args[1]
+    args = sys.argv
+    config_path = args[1]
 
-
-    with open('configs/user_configs/eval_latency_test.yaml', "r") as f:
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     config = Struct(**config)
