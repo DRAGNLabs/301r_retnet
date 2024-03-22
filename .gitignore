@@ -18,7 +18,7 @@ venv.bak/
 
 # Weights and saved models folders
 models/
-weights/
+tokenizers/
 
 # TensorBoard logs folder
 logs/
@@ -26,5 +26,12 @@ logs/
 # Datasets data folder
 data/
 
+# .pt files because they are too big for github
+**/*.pt
+**/*.safetensors
+
 # Out files
 *.out
+**/test.json
+*.csv
+core.*
