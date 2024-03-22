@@ -4,9 +4,9 @@ import yaml
 
 from models import RetNetModel, TransformerModel
 from transformers import PreTrainedTokenizerFast
-from utils import Struct, generate_text
+from utils import Struct, generate_text, generate_text_from_tokens
 
-def generate_text_length_n(config: Struct, n: int, input_starting_string: list[str]):
+def generate_text_length_n(config: Struct, n: int, input_tokens: torch.Tensor):
     if config.model_type.lower() == "retnet":
         model = RetNetModel(config)
     elif config.model_type.lower() == "transformer":
@@ -20,14 +20,11 @@ def generate_text_length_n(config: Struct, n: int, input_starting_string: list[s
     checkpoint = torch.load(config.checkpoint_path)
     model.load_state_dict(checkpoint["state_dict"])
 
-    # Load pre-trained tokenizer
-    tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
-
     device = torch.device(config.device)
 
-    generated_string = generate_text(
+    generated_string = generate_text_from_tokens(
         model=model,
-        tokenizer=tokenizer,
+        tokens=input_tokens,
         start_string_list=config.input_starting_strings,
         device=device,
         seq_len=config.seq_len,

@@ -89,8 +89,7 @@ def generate_text(
 
 def generate_text_from_tokens(
         model: nn.Module,
-        tokens: list[int],
-        start_string_list: list[str],
+        tokens: torch.Tensor,
         device: torch.device,
         seq_len: int,
         generation_length: int=100) -> list[str]:
@@ -158,9 +157,6 @@ def generate_text_from_tokens(
 
             # Store fully generated sequence of token indices for start string
             generated_token_idx_list.append(generated_token_idxs)
-
-    # Decode token indices lists to lists of strings and return
-    # return tokenizer.batch_decode(generated_token_idx_list)
 
 
 class Struct():

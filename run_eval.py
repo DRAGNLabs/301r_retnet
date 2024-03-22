@@ -2,20 +2,14 @@ import json
 import lm_eval
 import sys
 import yaml
-import torch
-import time
-import random
-import subprocess
 
 from argparse import ArgumentParser
 from models import RetNetModelHF, TransformerModelHF
 from pathlib import Path
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
-from transformers import AutoModel, AutoConfig, AutoModelForCausalLM, PreTrainedTokenizerFast
+from transformers import AutoModel, AutoConfig, AutoModelForCausalLM
 from typing import Optional, List
 from utils import Struct
-from generate import generate_text_length_n
-from models import RetNetModel, TransformerModel
 
 def run_eval(config: Struct):
     """ Run evaluation on all tasks (benchmarks).
@@ -56,47 +50,6 @@ def run_eval(config: Struct):
 
     with open(config.results_out_path, "w") as f:
         json.dump(results["results"], f, indent=4)
-
-def eval_compute_time(config: Struct, single_token_num_trials: int, n_token_num_trials: int, n_tokens: int, seq_len_split: int):
-    # find best, worst, and average times
-    test_sequence_lengths = [n_tokens // seq_len_split] * seq_len_split
-    single_token_times = []
-    n_token_times = []
-
-    for seq_len in test_sequence_lengths:
-        random_tokens = make_random_tokens(config, seq_len)
-        print("Measuring single token generation time...")
-        for _ in range(single_token_num_trials):
-            single_token_times.append(eval_single_token_time(config))
-
-        print("Measuring n token generation time...")
-        for _ in range(n_token_num_trials):
-            n_token_times.append(eval_n_tokens_time(config, n_tokens))
-
-        return single_token_times, n_token_times
-
-def eval_single_token_time(config: Struct):
-    # measure the time to generate a single token
-    start = time.time()
-    generate_text_length_n(config, 1)
-    end = time.time()
-    generation_time = end - start
-    return generation_time
-
-def eval_n_tokens_time(config: Struct, n_tokens: int):
-    # measure the time to generate n tokens
-    start = time.time()
-    generation_time = generate_text_length_n(config, n_tokens)
-    end = time.time()
-    generation_time = end - start
-    return generation_time
-
-def make_random_tokens(config: Struct, n_tokens: int):
-    # generate n random tokens
-    tokens = []
-    for _ in range(n_tokens):
-        tokens.append(random.randint(0, config.vocab_size - 1))
-    return tokens
 
 if __name__ == "__main__":
     args = sys.argv
