@@ -14,6 +14,7 @@ from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.plugins.environments import SLURMEnvironment
+from subprocess import run
 from tabulate import tabulate
 from transformers import set_seed
 from torchinfo import summary as model_summary
