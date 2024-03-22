@@ -37,4 +37,5 @@ data/
 core.*
 
 # Allow example directory with data to exist in github.
-!example_compute_folder/data/
+!example_compute_folder/data
+!example_compute_folder/data/models/

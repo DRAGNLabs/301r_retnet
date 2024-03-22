@@ -1,0 +1,3 @@
+This is where raw datasets would go.
+wikitext_small_test is an example dataset with a fraction of data showing how downloaded data would appear normally.
+Notably, real datasets will typically have more than 1 .parquet file for each folder, but this is to allow easy initialization.
