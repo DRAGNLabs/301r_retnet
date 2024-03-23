@@ -81,6 +81,13 @@ tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/c4"
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
 tboard_path: "<YOUR_PATH_HERE>/data/runs"
 
+# This is where you can specify what percentage of C4 data you want to use for training
+# IMPORTANT!!!!!
+# When set to true, you will need to go into dataset.py and edit the setup function in the DataModule class
+# Then instead of training from the train directory, you will change that to "portion_data" (About line 43)
+split_dataset: true
+split_dataset_percentage: 1
+
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
 # If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
 CO2_outfile: ~ # Example: "CO2_grid_search.csv"
