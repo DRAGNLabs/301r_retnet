@@ -117,7 +117,7 @@ learning_rate: 0.001
 # Random Seed (int): Random seed for reproducibility
 rand_seed: 42
 # Precision (str): Precision for training; refer to Torch Lightning docs
-precision: fp16
+precision: bf16
 # Save Top K (int): Number of best models to save; default saves the best single checkpoint. Set to -1 to save all
 save_top_k: 3
 # Every N Train Steps (int): Checkpoint every n train steps; Note: PyTorch Lightning defines 'steps' as 
