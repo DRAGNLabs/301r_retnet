@@ -49,7 +49,10 @@ nshot: ~
 
 # Checkpoint Path (str): Path to checkpoint to load for generation/inference.
 # Typically is the "best_model_path" from training
-checkpoint_path: ~
+checkpoint_path: "/home/knj28/301r_retnet/example_compute_folder/data/models/transformer_8057032_LR0.001_ED80_FFN12_H4_S128_2024-03-23-19:02:34/checkpoints/epoch_epoch=0_validation_val_loss=6.20.ckpt"
+# Trained Model Path (str): Path to model folder where checkpoints are stored.
+# Is the model name from training.
+trained_model_path: "/home/knj28/301r_retnet/example_compute_folder/data/models/transformer_8057032_LR0.001_ED80_FFN12_H4_S128_2024-03-23-19:02:34"
 
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: "text"
