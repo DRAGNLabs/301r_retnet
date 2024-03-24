@@ -17,7 +17,7 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 export CODECARBON_LOG_LEVEL="error" # Options: DEBUG, info (default), warning, error, critical
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
-mamba activate <NEED_MAMBA_HERE>
+mamba activate test_longnet
 srun python3 \
     ../../src/train_model.py \
-    ../../configs/user_configs/longnet_test_config.yaml
+    ../../configs/user_configs/example_compute_config.yaml

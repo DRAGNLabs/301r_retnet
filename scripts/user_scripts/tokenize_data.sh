@@ -6,7 +6,7 @@ run_command() {
     local arg="$1"
     python3 \
         ../../src/tokenize_data.py \
-        ../../configs/user_configs/longnet_test_config.yaml \
+        ../../configs/user_configs/example_compute_config.yaml \
         "$arg" &
     pid=$!
     echo "Started process with PID $pid for argument: $arg"
