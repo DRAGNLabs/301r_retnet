@@ -86,7 +86,7 @@ This repository is designed to utilize datasets available through the HuggingFac
 
 2. By cloning the HuggingFace Dataset repo directly, and downloading the necessary data. [download_c4.sh](./scripts/download_c4.sh) exists as an example of this for the C4 dataset. This method is good for very large datasets.
 
-It should be noted that datasets can come in a variety of different formats. Currently, this repo works best with Parquet files. If the data is downloaded in a different format, the code may need to be changed to accomodate.
+It should be noted that datasets can come in a variety of different formats. Currently, this repo works best with [Parquet](https://parquet.apache.org/) files. If the data is downloaded in a different format, the code may need to be changed to accomodate.
 
 ##### Splitting the Data
 
