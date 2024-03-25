@@ -21,15 +21,18 @@ from torchinfo import summary as model_summary
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, filename, monitor, save_top_k, mode, every_n_train_steps):
+    def __init__(self, dirpath, monitor, save_top_k, mode, every_n_train_steps):
+        self.num_ckpts = 0
+        self.file_name = f"{self.num_ckpts}_epoch_{epoch}_validation_{val_loss:.2f}"
+        
         super().__init__(
             dirpath=dirpath,
-            filename=filename,
+            filename=self.file_name,
             monitor=monitor,
             save_top_k=save_top_k,
             mode=mode,
             every_n_train_steps=every_n_train_steps)
-        self.num_ckpts = 0
+
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         super().on_save_checkpoint(
@@ -131,7 +134,6 @@ def train_model(config: Struct):
     # Implement callbacks
     model_checkpoint = CustomModelCheckpoint(
         dirpath=checkpoints_dir,
-        filename="epoch_{epoch}_validation_{val_loss:.2f}",
         monitor="val_loss",
         save_top_k=config.save_top_k,
         mode="min",
