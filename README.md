@@ -92,7 +92,7 @@ It should be noted that datasets can come in a variety of different formats. Cur
 
 After downloading the data, you can split the data into separate train/validation/test splits via the [split_data.py](./src/split_data.py) script, run through [split_data.sh](./scripts/split_data.sh).
 
-Optionally, within [split_data.py](./src/split_data.py), you can specify to shuffle the data while splitting. This is more expensive for larger datasets. Any other preprocessing and pretokenization steps should occur within this step.
+Optionally, within [split_data.py](./src/split_data.py), you can specify to shuffle the data while splitting. This is more expensive for larger datasets. This and any other preprocessing or pretokenization steps should occur here prior to splitting the data.
 
 ##### Training a Tokenizer
 
