@@ -82,7 +82,7 @@ This repository uses [Dask](https://docs.dask.org/en/stable/) to load and proces
 
 This repository is designed to utilize datasets available through the HuggingFace Hub. There are two ways to download data:
 
-1. [download_data.py](./src/download_data.py), run via the [download_data.sh](./scripts/download_data.sh) script, can download data through the HuggingFace Filesystem. To do this, ensure that the correct parameters are set in the configuration YAML, specifically `hf_filesystem_path`. This must correspond to the correct HF Filesystem path. This method is good for smaller datasets that can easily fit in memory.
+1. By running [download_data.py](./src/download_data.py), via the [download_data.sh](./scripts/download_data.sh) script, you can download data through the HuggingFace Filesystem. To do this, ensure that the correct parameters are set in the configuration YAML, specifically `hf_filesystem_path`. This must correspond to the correct HF Filesystem path. This method is good for smaller datasets that can easily fit in memory.
 
 2. By cloning the HuggingFace Dataset repo directly, and downloading the necessary data. [download_c4.sh](./scripts/download_c4.sh) exists as an example of this for the C4 dataset. This method is good for very large datasets.
 
