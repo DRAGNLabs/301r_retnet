@@ -35,6 +35,3 @@ data/
 **/test.json
 *.csv
 core.*
-
-# Ignore the training script
-slurm/train_model.sh
