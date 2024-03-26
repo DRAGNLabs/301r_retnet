@@ -151,6 +151,7 @@ def train_model(config: Struct):
             default_root_dir=model_dir, # main directory for run
             accelerator=config.device,
             devices=config.num_devices,
+            strategy=config.strategy,
             max_epochs=config.epochs,
             val_check_interval=config.val_check_interval,
             accumulate_grad_batches=config.accumulate_grad_batches,
