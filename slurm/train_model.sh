@@ -1,5 +1,5 @@
 #!/bin/bash --login
-
+export restarts=9
 #SBATCH --time=10:00:00   # walltime
 #SBATCH --ntasks-per-node=1 # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
