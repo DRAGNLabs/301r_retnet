@@ -87,6 +87,7 @@ tboard_path: "<YOUR_PATH_HERE>/data/runs"
 # Then instead of training from the train directory, you will change that to "portion_data" (About line 43)
 split_dataset: true
 split_dataset_percentage: 1
+train_model_data_path: "portion_data" # Set to "train" to use the full training directory for your model
 
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
 # If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
