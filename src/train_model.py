@@ -132,14 +132,14 @@ def train_model(config: Struct):
         print(f"\nUsing {config.split_dataset_percentage}% of the dataset for training")
 
         # Define the source and target directories
-        source_dir = Path("/grphome/grp_retnet/compute/data/datasets_tokenized/c4/train")
-        target_dir = Path("/grphome/grp_retnet/compute/data/datasets_tokenized/c4/portion_data")
+        source_dir = Path(config.tokenized_dataset_path + "/train")
+        target_dir = Path(config.tokenized_dataset_path + "/portion_data")
 
         # Ensure the target directory exists
         target_dir.mkdir(parents=True, exist_ok=True)
 
         # Calculate the number of files to copy based on the percentage
-        total_files = 1031  # Total number of parquet files in the source directory
+        total_files = len(list(source_dir.glob('*.parquet')))
         files_to_copy = int((config.split_dataset_percentage / 100) * total_files)
 
         # Count the existing files in the target directory
