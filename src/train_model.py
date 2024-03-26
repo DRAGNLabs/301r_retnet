@@ -44,8 +44,7 @@ class CustomModelCheckpoint(ModelCheckpoint):
         self.num_ckpts += 1
 
         # Print GPU memory usage
-        print(run("nvidia-smi -q -d MEMORY", shell=True, capture_output=True).stdout)
-
+        print(torch.cuda.memory_summary())  # Prints per device
 
 def train_model(config: Struct):
     # Test that the head dimension will be an even, whole number
