@@ -81,11 +81,9 @@ tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/c4"
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
 tboard_path: "<YOUR_PATH_HERE>/data/runs"
 
-# This is where you can specify what percentage of C4 data you want to use for training
-# IMPORTANT!!!!!
-# When set to true, you will need to go into dataset.py and edit the setup function in the DataModule class
-# Then instead of training from the train directory, you will change that to "portion_data" (About line 43)
+# Split Dataset Boolean (T/F): Decide if you want to train your model on a smaller portion of C4
 split_dataset: true
+# Specify Percentage of Dataset (int): Decide what percentage of C4 you want to train on
 split_dataset_percentage: 1
 train_model_data_path: "portion_data" # Set to "train" to use the full training directory for your model
 
