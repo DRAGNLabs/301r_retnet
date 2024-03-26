@@ -2,10 +2,10 @@
 import json
 import os
 import signal
+import shutil
 import sys
 import torch
 import yaml
-import shutil
 
 from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
