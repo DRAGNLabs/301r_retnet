@@ -127,8 +127,8 @@ def train_model(config: Struct):
         f"{-torch.log(torch.tensor(1 / config.vocab_size))}")
 
     # Checks to see if you want to use a portion of the dataset for training
-    if (config.split_dataset != 1):
-        print(f"\nUsing {config.split_dataset_percentage}% of the dataset for training")
+    if (config.split_dataset != 1.0):
+        print(f"\nUsing {config.split_dataset * 100}% of the dataset for training")
 
         # Define the source and target directories
         source_dir = Path(config.tokenized_dataset_path + "/train")
@@ -139,14 +139,15 @@ def train_model(config: Struct):
 
         # Calculate the number of files to copy based on the percentage
         total_files = len(list(source_dir.glob('*.parquet')))
-        files_to_copy = int((config.split_dataset_percentage / 100) * total_files)
+        files_to_copy = int((config.split_dataset) * total_files)
 
         # Count the existing files in the target directory
         existing_files_count = len(list(target_dir.glob('*.parquet')))
+        print(f"\nThere are {files_to_copy} files being copied which is actually {(files_to_copy / existing_files_count)*100}% of the training data")
 
         # Check if the existing number of files matches the expected number of files
         if existing_files_count == files_to_copy:
-            print(f"The specified portion of the dataset ({config.split_dataset_percentage}%) is already present in {target_dir}. No changes made.")
+            print(f"The specified portion of the dataset ({config.split_dataset * 100}%) is already present in {target_dir}. No changes made.")
         else:
             print(f"Preparing to copy {files_to_copy} files to {target_dir}.")
 
