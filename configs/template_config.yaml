@@ -42,6 +42,8 @@ results_out_path: ~
 tasks:
   - "hellaswag"
   - "winogrande"
+# N-shot (int | None): The number of examples to show the model before prompting; 'None' defaults to 0
+nshot: ~
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
@@ -50,21 +52,24 @@ tasks:
 checkpoint_path: ~
 
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
-dataset_feature: "text"
+dataset_feature: text
 # HuggingFace Dataset Name (str)
-dataset_name: "c4"
+dataset_name: wikitext
 # HuggingFace Dataset Subset (str)
-dataset_subset: "c4-en"
+dataset_subset: wikitext-2-v1
+# HuggingFace Filesystem path (str): Path to the HuggingFace dataset
+# This can differ based on the HF repo
+hf_filesystem_path: hf://datasets/wikitext/wikitext-2-v1
 
 # Train Model (str): Path to model folder
-models_path: "<YOUR_PATH_HERE>/data/models"
+models_path: <YOUR_PATH_HERE>/data/models
 
 # Root Data Path (str): Useful for any new features that don't want to specify a
 # new path parameter in the config
-root_data_path: "<YOUR_PATH_HERE>/data"
+root_data_path: <YOUR_PATH_HERE>/data
 
 # Download Data (str): Path to raw dataset folder
-raw_dataset_path: "<YOUR_PATH_HERE>/data/datasets/c4"
+raw_dataset_path: <YOUR_PATH_HERE>/data/datasets/wikitext
 
 # Splits (List[int]): Train split, Validation Split, and Test Split
 splits:
@@ -73,13 +78,10 @@ splits:
   - 0.1
 
 # Train Tokenizer (str): Path to tokenizer folder
-tokenizer_path: "<YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer"
+tokenizer_path: <YOUR_PATH_HERE>/data/tokenizers/wikitext_tokenizer
 
 # Tokenize Data (str): Path to tokenized dataset folder
-tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/c4"
-
-# TensorBoard Path (str): Path for where TensorBoard files go, optional
-tboard_path: "<YOUR_PATH_HERE>/data/runs"
+tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/wikitext
 
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
 # If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
@@ -88,18 +90,16 @@ CO2_outfile: ~ # Example: "CO2_grid_search.csv"
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
 # Device Type (str): Device to train on
-device: "cuda" # Options: "cpu", "cuda"
+device: cuda # Options: "cpu", "cuda"
 # Number of GPUs (int)
 num_devices: 1
 # Number of Nodes (int)
 num_nodes: 1
-# Number of Processes (int): Number of cpu cores. Used for data preprocessing
-num_proc: 4
 # Num Workers (int): Number of workers for dataloaders. Recommended to set to
 # one less than number of CPU cores available
 num_workers: 0
 # Strategy (string): Distributed strategy for training. Likely no need to change
-strategy: "ddp" # Options: "ddp", "ddp_spawn"
+strategy: ddp # Options: "ddp", "ddp_spawn"
 # Use Slurm (bool): Whether to use Slurm for training
 use_slurm: true
 
@@ -118,7 +118,7 @@ learning_rate: 0.001
 # Random Seed (int): Random seed for reproducibility
 rand_seed: 42
 # Precision (str): Precision for training; refer to Torch Lightning docs
-precision: fp16
+precision: bf16
 # Save Top K (int): Number of best models to save; default saves the best single checkpoint. Set to -1 to save all
 save_top_k: 3
 # Every N Train Steps (int): Checkpoint every n train steps; Note: PyTorch Lightning defines 'steps' as 

@@ -1,16 +1,18 @@
 import datasets
-import sys
-import time
-import yaml
-
-from datasets import DatasetDict
-from pathlib import Path
-from utils import Struct
-
 import dask
 dask.config.set({'dataframe.query-planning': True})
 import dask.dataframe as dd
 import dask_ml
+import sys
+import time
+import yaml
+
+from dask.diagnostics import ProgressBar
+from datasets import DatasetDict
+from pathlib import Path
+from utils import Struct
+
+ProgressBar().register()
 
 def split_data(config):
     """ 
