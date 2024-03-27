@@ -24,15 +24,14 @@ def generate_text_length_n(config: Struct, n: int, input_tokens: torch.Tensor):
 
     device = torch.device(config.device)
 
-    generated_string = generate_text_from_tokens(
+    generation_time = generate_text_from_tokens(
         model=model,
         tokens=input_tokens,
-        start_string_list=config.input_starting_strings,
         device=device,
         seq_len=config.seq_len,
         generation_length=n)
 
-    return generated_string
+    return generation_time
 
 def generate_specific_text(config: Struct):
     """

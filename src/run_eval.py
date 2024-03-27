@@ -52,6 +52,7 @@ def run_eval(config: Struct):
         json.dump(results["results"], f, indent=4)
 
 if __name__ == "__main__":
+    print('running latency eval')
     args = sys.argv
     config_path = args[1]
 

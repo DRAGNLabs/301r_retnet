@@ -1,4 +1,5 @@
 import torch
+import time
 import torch.nn.functional as F
 
 from tokenizers import Tokenizer
@@ -89,7 +90,7 @@ def generate_text(
 
 def generate_text_from_tokens(
         model: nn.Module,
-        tokens: torch.Tensor,
+        tokens: list[int],
         device: torch.device,
         seq_len: int,
         generation_length: int=100) -> list[str]:
@@ -116,47 +117,49 @@ def generate_text_from_tokens(
     # No gradients needed
     model.eval()
     with torch.inference_mode():
-        # Iterate over each start string
-        for input_idx in range(len(tokens)):
-            # Retrieve string's tokenized version
-            input_token_idxs = tokens[input_idx]
+        # Retrieve string's tokenized version
+        input_token_idxs = tokens
 
-            # Store generated sequence token indices
-            generated_token_idxs = input_token_idxs
+        # Store generated sequence token indices
+        generated_token_idxs = input_token_idxs
 
-            # Get tensor with token indices
-            input_tensor = torch.tensor(input_token_idxs, dtype=torch.long)
+        # Get tensor with token indices
+        input_tensor = torch.tensor(input_token_idxs, dtype=torch.long)
 
-            # Add batch dimension and move to device
-            input_tensor = input_tensor.unsqueeze(0).to(device)
+        # Add batch dimension and move to device
+        input_tensor = input_tensor.unsqueeze(0).to(device)
 
-            # Keep generating until padding or reached generation length
-            while generated_token_idxs[-1] != tokens.pad_token_id \
-                    and len(generated_token_idxs) < generation_length:
-                # Make sure input_tensor isn't longer than sequence length
-                input_tensor = input_tensor[
-                    :,
-                    max(0, input_tensor.shape[-1] - seq_len):]
+        times = []
+        # Keep generating until padding or reached generation length
+        for _ in range(generation_length):
+            # Make sure input_tensor isn't longer than sequence length
+            input_tensor = input_tensor[
+                :,
+                max(0, input_tensor.shape[-1] - seq_len):]
 
-                # Get model predictions
-                predictions = model(input_tensor)
+            # Get model predictions
+            start = time.time()
+            predictions = model(input_tensor)
+            end = time.time()
+            times.append(end - start)
 
-                # Apply softmax to predictions
-                predictions = F.softmax(predictions, dim=-1)
+            # Apply softmax to predictions
+            predictions = F.softmax(predictions, dim=-1)
 
-                # Get the last predicted word
-                predicted_id = predictions.argmax(dim=-1)[0, -1]
+            # Get the last predicted word
+            predicted_id = predictions.argmax(dim=-1)[0, -1]
 
-                # Add predicted word to input (used as next input sequence)
-                input_tensor = torch.cat(
-                    [input_tensor, predicted_id[None, None]],
-                    dim=-1)
+            # Add predicted word to input (used as next input sequence)
+            input_tensor = torch.cat(
+                [input_tensor, predicted_id[None, None]],
+                dim=-1)
 
-                # Store predicted token as part of generation
-                generated_token_idxs.append(predicted_id.item())
+            # Store predicted token as part of generation
+            generated_token_idxs.append(predicted_id.item())
 
-            # Store fully generated sequence of token indices for start string
-            generated_token_idx_list.append(generated_token_idxs)
+        print('tokens generated: ', len(times))
+        print('time taken: ', sum(times))
+        return sum(times)
 
 
 class Struct():
