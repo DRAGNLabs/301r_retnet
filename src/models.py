@@ -276,8 +276,6 @@ class TransformerModel(LightningModule):
     def test_step(self, batch: Tensor, batch_idx: int):
         """ Test step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        # inputs = batch[:, :-1]
-        # targets = batch[:, 1:]
         inputs, targets = batch
 
         preds = self.model_hf(inputs)
@@ -373,8 +371,7 @@ class LongNetModel(LightningModule):
     def training_step(self, batch: Tensor, batch_idx: int):
         """ Training step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         preds = self.model_hf(inputs)
 
@@ -399,8 +396,7 @@ class LongNetModel(LightningModule):
     def validation_step(self, batch: Tensor, batch_idx: int):
         """ Validation step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         preds = self.model_hf(inputs)
 
@@ -425,8 +421,7 @@ class LongNetModel(LightningModule):
     def test_step(self, batch: Tensor, batch_idx: int):
         """ Test step, called automatically by PyTorch Lightning. """
         # Unpack batch
-        inputs = batch[:, :-1]
-        targets = batch[:, 1:]
+        inputs, targets = batch
 
         preds = self.model_hf(inputs)
 
