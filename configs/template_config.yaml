@@ -83,7 +83,7 @@ tokenizer_path: <YOUR_PATH_HERE>/data/tokenizers/wikitext_tokenizer
 # Tokenize Data (str): Path to tokenized dataset folder
 tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/wikitext
 
-# Split Dataset Boolean (T/F): Decide if you want to train your model on a smaller portion of your dataset
+# Split Dataset Boolean (bool): Decide if you want to train your model on a smaller portion of your dataset
 split_dataset: false
 # Specify Percentage of Dataset (int): Decide what percentage of the data you want to train on
 split_dataset_percentage: 1
