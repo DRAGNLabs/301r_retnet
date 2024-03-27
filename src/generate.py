@@ -8,7 +8,13 @@ from models import RetNetModel, TransformerModel
 from transformers import PreTrainedTokenizerFast
 from utils import Struct, generate_text, generate_text_from_tokens
 
-def generate_text_length_n(config: Struct, n: int, input_tokens: torch.Tensor):
+def generate_text_length_n(config: Struct, n: int, input_tokens: List[int]):
+    """
+    Args:
+        config (Struct): A Struct object with all configuration fields.
+        n (int): The number of tokens to generate
+        input_tokens (List[int]): The list of input tokens
+    """
     if config.model_type.lower() == "retnet":
         model = RetNetModel(config)
     elif config.model_type.lower() == "transformer":

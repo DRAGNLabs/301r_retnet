@@ -39,6 +39,7 @@ model_path_dir: ~
 results_out_path: ~
 
 # Tasks (List[str]): A list of tests to apply in the evaluation test harness
+# Note, latency evaluation is a custom solution and does not run through the evaluation harness
 tasks:
   - "hellaswag"
   - "winogrande"
@@ -46,18 +47,19 @@ tasks:
 # N-shot (int | None): The number of examples to show the model before prompting; 'None' defaults to 0
 nshot: ~
 
-# The number of tokens to generate during a single round in latency evaluation
+# The number of tokens to generate during a single round in latency evaluation; 'None' defaults to 10
 n_tokens_to_generate:
   50
 
-# How many pieces to divide the sequence length into. 
-# Example: sequence_length=100, seq_len_frac=10, test_sequence_lengths=[0,10,20,...,80,90,100]
-seq_len_frac:
-  10
-
-# How many times to generate tokens at a given sequence length size (so that we can get averages)
+# num_latency_trials (int): The number of generation trials to run at each test sequence length; 'None' defaults to 5
 num_latency_trials:
   10
+
+# What sizes of sequence length to test (List[int]); No values defaults to model.seq_len
+test_sequence_lengths:
+  - 10
+  - 100
+  - 1000
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 

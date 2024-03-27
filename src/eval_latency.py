@@ -1,61 +1,78 @@
 import json
-import sys
-import yaml
-import torch
-import time
 import random
 import subprocess
+import sys
+import time
+import torch
+import yaml
 
 from argparse import ArgumentParser
-from models import RetNetModelHF, TransformerModelHF
-from pathlib import Path
-from torchscale.architecture.config import RetNetConfig, DecoderConfig
-from transformers import AutoModel, AutoConfig, AutoModelForCausalLM, PreTrainedTokenizerFast
-from typing import Optional, List
-from utils import Struct
 from generate import generate_text_length_n
-from models import RetNetModel, TransformerModel
-
-# measure the time to generate a single token
-def eval_single_token_generation_time(config: Struct, input_tokens: torch.Tensor):
-    generation_time = generate_text_length_n(config=config, n=1, input_tokens=input_tokens)
-    return generation_time
-
-# measure the time to generate n tokens
-def eval_n_tokens_generation_time(config: Struct, n_tokens_to_generate: int, input_tokens: torch.Tensor):
-    generation_time = generate_text_length_n(config=config, n=n_tokens_to_generate, input_tokens=input_tokens)
-    return generation_time
+from models import RetNetModel, TransformerModel, RetNetModelHF, TransformerModelHF
+from pathlib import Path
+from torchscale.architecture.config import DecoderConfig, RetNetConfig
+from transformers import AutoConfig, AutoModel, AutoModelForCausalLM, PreTrainedTokenizerFast
+from typing import List, Optional
+from utils import Struct
 
 def eval_latency(config: Struct):
-    test_sequence_lengths = [i * (config.seq_len // config.seq_len_frac) for i in range(1, config.seq_len_frac)]
-    test_sequence_lengths.append(config.seq_len - 1)
+    """
+    Args:
+        config (Struct): A Struct object with all configuration fields.
+
+    Format of results will be:
+        {
+            test_seq_len: {
+                'single_token_times': {
+                    [trial1, trial2,...]
+                },
+
+                'n_token_times': {
+                    [trial1, trial2,...]
+                }
+            }
+        }
+    """
     results = {}
-    random_tokens = [random.randint(0, config.vocab_size - 1) for _ in range(n_tokens)]
-    # the first couple token generation take longer than all the following generations
+
+    test_sequence_lengths = config.test_sequence_lengths.sort()
+    if len(test_sequence_lengths) == 0:
+        test_sequence_lengths = [config.seq_len]
+
+    num_latency_trials = config.num_latency_trials
+    if not num_latency_trials:
+        num_latency_trials = 5
+
+    n_tokens_to_generate = config.n_tokens_to_generate
+    if not n_tokens_to_generate:
+        n_tokens_to_generate = 10
+
+    # Generate a list of pretokenized data 
+    random_tokens = [random.randint(0, config.vocab_size - 1) for _ in range(test_sequence_lengths[-1])]
+
+    # The first couple token generation take longer than all the following generations
+    # Generating these few tokens should alleviate that behavior
     generate_text_length_n(config=config, n=1, input_tokens=random_tokens[0:1])
     generate_text_length_n(config=config, n=1, input_tokens=random_tokens[0:1])
 
-    max_len_generated = False
-
+    # Evaluate token generation at each prescribed sequence length
     for test_seq_len in test_sequence_lengths:
-        print('test_seq_len: ', test_seq_len)
         iteration_results = {'single_token_times': [], 'n_token_times': []}
         input_tokens = random_tokens[:test_seq_len]
-        print('input_tokens length: ', len(input_tokens))
 
+        # Measure the time to generate a single token
         print("Measuring single token generation time...")
-        for _ in range(config.num_latency_trials):
-            iteration_results["single_token_times"].append(eval_single_token_generation_time(config, input_tokens))
+        for _ in range(num_latency_trials):
+            generation_time = generate_text_length_n(config=config, n=1, input_tokens=input_tokens)
+            iteration_results["single_token_times"].append(generation_time)
 
+        # Measure the tme to generate n tokens
         print(f"Measuring {test_seq_len} token generation time...")
-        if test_seq_len >= config.seq_len - config.n_tokens_to_generate and not max_len_generated:
-            for _ in range(config.num_latency_trials):
-                iteration_results["n_token_times"].append(eval_n_tokens_generation_time(config, config.n_tokens_to_generate, input_tokens[:config.seq_len - config.n_tokens_to_generate]))
-                max_len_generated = True
-        else:
-            for _ in range(config.num_latency_trials):
-                iteration_results["n_token_times"].append(eval_n_tokens_generation_time(config, config.n_tokens_to_generate, input_tokens))
-            results[test_seq_len] = iteration_results
+        for _ in range(num_latency_trials):
+            generation_time = generate_text_length_n(config=config, n=n_tokens_to_generate, input_tokens=input_tokens)
+            iteration_results["n_token_times"].append(generation_time)
+
+        results[test_seq_len] = iteration_results
 
     print(results)
 

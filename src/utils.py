@@ -1,5 +1,5 @@
-import torch
 import time
+import torch
 import torch.nn.functional as F
 
 from tokenizers import Tokenizer
