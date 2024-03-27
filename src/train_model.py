@@ -15,25 +15,25 @@ from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.plugins.environments import SLURMEnvironment
+from subprocess import run
 from tabulate import tabulate
 from transformers import set_seed
 from torchinfo import summary as model_summary
 from utils import Struct
 
-# Allow torch to run float32 matrix multiplications in lower precision for
-# better performance while training if hardware is capable
-torch.backends.cuda.matmul.allow_tf32 = True
-
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, filename, monitor, save_top_k, mode, every_n_train_steps):
+    def __init__(self, dirpath, monitor, save_top_k, mode, every_n_train_steps):
+        self.num_ckpts = 0
+        self.file_name = f"{self.num_ckpts}_epoch_{epoch}_validation_{val_loss:.2f}"
+        
         super().__init__(
             dirpath=dirpath,
-            filename=filename,
+            filename=self.file_name,
             monitor=monitor,
             save_top_k=save_top_k,
             mode=mode,
             every_n_train_steps=every_n_train_steps)
-        self.num_ckpts = 0
+
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         super().on_save_checkpoint(
@@ -44,6 +44,8 @@ class CustomModelCheckpoint(ModelCheckpoint):
             os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
         self.num_ckpts += 1
 
+        # Print GPU memory usage
+        print(torch.cuda.memory_summary())  # Prints per device
 
 def train_model(config: Struct):
     # Test that the head dimension will be an even, whole number
@@ -52,7 +54,7 @@ def train_model(config: Struct):
         f"({config.embed_dim} / {config.heads} = " + \
         f"{config.embed_dim / config.heads} -- not an even, whole number)! " + \
         "Try changing the Embedding Dimension or number of heads."
-
+    
     # Test that the value embedding dimension is divisible by number of heads
     assert config.value_embed_dim % config.heads == 0, \
         "Value Embed Dimension not divisible by number of heads " + \
@@ -107,11 +109,8 @@ def train_model(config: Struct):
     print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    if config.tboard_path is None:
-        tboard_log_dir = Path(config.models_path) / "logs" / model_label
-    else:
-        tboard_log_dir = f"{config.tboard_path}/{model_label}"
-
+    tboard_log_dir = Path(config.models_path) / model_label / "logs"
+    
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
     tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
@@ -180,7 +179,6 @@ def train_model(config: Struct):
     # Implement callbacks
     model_checkpoint = CustomModelCheckpoint(
         dirpath=checkpoints_dir,
-        filename="epoch_{epoch}_validation_{val_loss:.2f}",
         monitor="val_loss",
         save_top_k=config.save_top_k,
         mode="min",
@@ -198,12 +196,14 @@ def train_model(config: Struct):
             default_root_dir=model_dir, # main directory for run
             accelerator=config.device,
             devices=config.num_devices,
+            strategy=config.strategy,
             max_epochs=config.epochs,
             val_check_interval=config.val_check_interval,
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger)
+            logger=tb_logger,
+            precision=config.precision)
     else:
         trainer = Trainer(
             default_root_dir=model_dir, # main directory for run
@@ -217,7 +217,8 @@ def train_model(config: Struct):
             sync_batchnorm=True,
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger)
+            logger=tb_logger,
+            precision=config.precision)
         
     ## Set up carbon emissions tracker
 
