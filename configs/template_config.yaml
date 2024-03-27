@@ -87,7 +87,8 @@ tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/wikitext
 split_dataset: false
 # Specify Percentage of Dataset (int): Decide what percentage of the data you want to train on
 split_dataset_percentage: 1
- # Train Model on Portion of Data Path (str): Set to the name of your train directory in your tokenized dataset if you want to use all of it, else use "portion_data"
+ # Train Model on Portion of Data Path (str): Set to the name of your train directory in your tokenized dataset.
+ # If you want to use all of train directory, use path name, else use "portion_data"
 train_model_data_path: "train"
 
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
