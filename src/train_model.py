@@ -14,7 +14,6 @@ from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.plugins.environments import SLURMEnvironment
-from subprocess import run
 from tabulate import tabulate
 from transformers import set_seed
 from torchinfo import summary as model_summary
@@ -39,9 +38,6 @@ class CustomModelCheckpoint(ModelCheckpoint):
         pl_module.save_pretrained(
             os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
         self.num_ckpts += 1
-
-        # Print GPU memory usage
-        print(run("nvidia-smi -q -d MEMORY", shell=True, capture_output=True).stdout)
 
 
 def train_model(config: Struct):
@@ -108,8 +104,11 @@ def train_model(config: Struct):
     print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    tboard_log_dir = Path(config.models_path) / model_label / "logs"
-    
+    if config.tboard_path is None:
+        tboard_log_dir = Path(config.models_path) / "logs" / model_label
+    else:
+        tboard_log_dir = f"{config.tboard_path}/{model_label}"
+
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
     tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
