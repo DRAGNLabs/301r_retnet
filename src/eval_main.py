@@ -5,7 +5,7 @@ import json
 from argparse import ArgumentParser
 from pathlib import Path
 from utils import Struct
-from eval_suite import run_eval
+# from eval_suite import run_eval
 from eval_latency import eval_latency
 
 if __name__ == "__main__":
@@ -17,6 +17,6 @@ if __name__ == "__main__":
 
     config = Struct(**config)
 
-    run_eval(config)
+    # run_eval(config)
     if 'latency' in config.tasks:
       eval_latency(config)
