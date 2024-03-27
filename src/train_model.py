@@ -127,7 +127,7 @@ def train_model(config: Struct):
         f"{-torch.log(torch.tensor(1 / config.vocab_size))}")
 
     # Checks to see if you want to use a portion of the dataset for training
-    if config.split_dataset:
+    if (config.split_dataset != 1):
         print(f"\nUsing {config.split_dataset_percentage}% of the dataset for training")
 
         # Define the source and target directories
