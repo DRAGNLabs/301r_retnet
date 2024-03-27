@@ -42,8 +42,22 @@ results_out_path: ~
 tasks:
   - "hellaswag"
   - "winogrande"
+  - "latency"
 # N-shot (int | None): The number of examples to show the model before prompting; 'None' defaults to 0
 nshot: ~
+
+# The number of tokens to generate during a single round in latency evaluation
+n_tokens_to_generate:
+  50
+
+# How many pieces to divide the sequence length into. 
+# Example: sequence_length=100, seq_len_frac=10, test_sequence_lengths=[0,10,20,...,80,90,100]
+seq_len_frac:
+  10
+
+# How many times to generate tokens at a given sequence length size (so that we can get averages)
+num_latency_trials:
+  10
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 

@@ -50,15 +50,3 @@ def run_eval(config: Struct):
 
     with open(config.results_out_path, "w") as f:
         json.dump(results["results"], f, indent=4)
-
-if __name__ == "__main__":
-    print('running latency eval')
-    args = sys.argv
-    config_path = args[1]
-
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
-
-    config = Struct(**config)
-
-    run_eval(config)
