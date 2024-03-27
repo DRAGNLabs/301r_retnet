@@ -81,12 +81,12 @@ tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/c4"
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
 tboard_path: "<YOUR_PATH_HERE>/data/runs"
 
-# Split Dataset Boolean (T/F): Decide if you want to train your model on a smaller portion of C4
-split_dataset: true
-# Specify Percentage of Dataset (int): Decide what percentage of C4 you want to train on
+# Split Dataset Boolean (T/F): Decide if you want to train your model on a smaller portion of your dataset
+split_dataset: false
+# Specify Percentage of Dataset (int): Decide what percentage of the data you want to train on
 split_dataset_percentage: 1
- # Train Model on Portion of Data Path (str): Set to "Train" if you want to use the full dataset, else use "portion_data"
-train_model_data_path: "portion_data"
+ # Train Model on Portion of Data Path (str): Set to the name of your train directory in your tokenized dataset if you want to use all of it, else use "portion_data"
+train_model_data_path: "train"
 
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
 # If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
