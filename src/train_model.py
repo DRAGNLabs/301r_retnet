@@ -23,7 +23,7 @@ from utils import Struct
 class CustomModelCheckpoint(ModelCheckpoint):
     def __init__(self, dirpath, monitor, save_top_k, mode, every_n_train_steps):
         self.num_ckpts = 0
-        self.file_name = f"{self.num_ckpts}_epoch_{epoch}_validation_{val_loss:.2f}"
+        self.file_name = f"{self.num_ckpts}"+"_epoch_{epoch}_validation_{val_loss:.2f}"
         
         super().__init__(
             dirpath=dirpath,
