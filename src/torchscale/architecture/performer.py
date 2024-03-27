@@ -266,6 +266,7 @@ class PerformerDecoder(nn.Module):
 
         # Performer positional embedding initialization
         self.max_seq_len = max_seq_len
+        print("num_tokens: " + str(num_tokens))
         self.token_emb = nn.Embedding(num_tokens, dim)
 
         if rotary_position_emb:
@@ -406,40 +407,44 @@ class PerformerDecoder(nn.Module):
         token_embedding=None,
         incremental_state=None,
     ):
-        # positions = None
-        # if self.embed_positions is not None:
-        #     positions = self.embed_positions(
-        #         tokens, incremental_state=incremental_state
-        #     )
+        positions = None
+        if self.embed_positions is not None:
+            positions = self.embed_positions(
+                tokens, incremental_state=incremental_state
+            )
 
-        # if incremental_state is not None and not self.is_first_step(incremental_state):
-        #     tokens = tokens[:, -1:]
-        #     if positions is not None:
-        #         positions = positions[:, -1:]
+        if incremental_state is not None and not self.is_first_step(incremental_state):
+            tokens = tokens[:, -1:]
+            if positions is not None:
+                positions = positions[:, -1:]
 
-        # if token_embedding is None:
-        #     token_embedding = self.embed_tokens(tokens)
+        if token_embedding is None:
+            token_embedding = self.embed_tokens(tokens.long())
 
-        # x = embed = self.embed_scale * token_embedding
+        x = embed = self.embed_scale * token_embedding
 
-        # if positions is not None:
-        #     x += positions
+        if positions is not None:
+            x += positions
 
-        # if self.layernorm_embedding is not None:
-        #     x = self.layernorm_embedding(x)
-
-        # x = self.dropout_module(x)
-
-
-        # token and positional embeddings
-        x = self.token_emb(x)
-        x += self.pos_emb(x)
+        if self.layernorm_embedding is not None:
+            x = self.layernorm_embedding(x)
 
         x = self.dropout_module(x)
 
-        embed = x
-
         return x, embed
+
+        # # Apply token embeddings
+        # token_embeddings = self.token_emb(tokens)
+
+        # # Apply token embeddings, ensuring tokens are of Long type for embedding layer compatibility
+        # token_embeddings = self.token_emb(tokens.long())
+
+        # # Apply positional embeddings
+        # positional_embeddings = self.pos_emb(tokens)
+        
+        # # Combine embeddings and apply dropout
+        # embeddings = self.dropout(token_embeddings + positional_embeddings)
+        # return embeddings
 
     def is_first_step(self, incremental_state):
         if incremental_state is None:

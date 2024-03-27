@@ -353,6 +353,7 @@ class PerformerModel(LightningModule):
         Returns:
             Tensor: Model predictions, shaped (batch_size, sequence_length, vocab_size).
         """
+        print(x)
         preds = self.model_hf(x)
         return preds
 
