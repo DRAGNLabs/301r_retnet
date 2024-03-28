@@ -419,6 +419,24 @@ class PerformerDecoder(nn.Module):
                 positions = positions[:, -1:]
 
         if token_embedding is None:
+            # -------------------------------------------------
+            print(f"Tokens shape: {tokens.shape}, Tokens dtype: {tokens.dtype}")
+
+            print(f"Unique tokens: {torch.unique(tokens)}")
+
+            max_token = tokens.max().item()
+            min_token = tokens.min().item()
+            print(f"Max token index: {max_token}, Min token index: {min_token}")
+            
+            if max_token >= 46858 or min_token < 0:
+                print("Warning: Tokens contain out-of-range values!")
+
+            print(f"Embedding matrix size: {self.embed_tokens.weight.size()}")
+
+            tokens_long = tokens.long()
+            print(f"Tokens converted to long, shape: {tokens_long.shape}, dtype: {tokens_long.dtype}")
+            print(f"Max token index after conversion: {tokens_long.max().item()}, Min token index after conversion: {tokens_long.min().item()}")
+            # -------------------------------------------------
             token_embedding = self.embed_tokens(tokens.long())
 
         x = embed = self.embed_scale * token_embedding
