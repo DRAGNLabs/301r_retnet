@@ -586,7 +586,7 @@ class PerformerModelHF(PreTrainedModel):
         # Create embeddings layer with padding index set to 0
         self.embeddings = nn.Embedding(
             num_embeddings=self.config.vocab_size,
-            embedding_dim=self.config.embed_dim,
+            embedding_dim=self.config.decoder_embed_dim,
             padding_idx=0
         )
 
