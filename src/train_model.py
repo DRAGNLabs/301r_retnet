@@ -9,12 +9,11 @@ import yaml
 from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
 from datetime import datetime
-from models import RetNetModel, TransformerModel
+from models import LongNetModel, RetNetModel, TransformerModel
 from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.plugins.environments import SLURMEnvironment
-from subprocess import run
 from tabulate import tabulate
 from transformers import set_seed
 from torchinfo import summary as model_summary
@@ -64,7 +63,9 @@ def train_model(config: Struct):
         set_seed(config.rand_seed)
 
     # Create requested model
-    if config.model_type.lower() == "retnet":
+    if config.model_type.lower() == "longnet":
+        model = LongNetModel(config)
+    elif config.model_type.lower() == "retnet":
         model = RetNetModel(config)
     elif config.model_type.lower() == "transformer":
         model = TransformerModel(config)
@@ -87,8 +88,8 @@ def train_model(config: Struct):
     # Print model info
     print("\nModel Summary:")
     total_params = model_summary(
-        model,
-        input_data=torch.ones(1, config.seq_len).long()).total_params
+        model.to(config.device),
+        input_data=torch.ones(1, config.seq_len).long().to(config.device)).total_params
 
     # Create unique label for model (model type, parameter count,
     # **hyperparameters, timestamp)
@@ -108,8 +109,11 @@ def train_model(config: Struct):
     print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    tboard_log_dir = Path(config.models_path) / model_label / "logs"
-    
+    if config.tboard_path is None:
+        tboard_log_dir = Path(config.models_path) / "logs" / model_label
+    else:
+        tboard_log_dir = f"{config.tboard_path}/{model_label}"
+
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
     tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
