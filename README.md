@@ -1,6 +1,6 @@
 # <PAPER_TITLE_PLACEHOLDER> 📝
 
-This project compares and analyzes the RetNet and the Transformer architectures, utilizing Microsoft's TorchScale library for implementation. More information can be found in our paper # <PAPER_TITLE_PLACEHOLDER> 📝.
+This project compares and analyzes the RetNet and the Transformer architectures, utilizing Microsoft's TorchScale library for implementation. More information can be found in our paper # <PAPER_TITLE_PLACEHOLDER> 📝 and corresponding trained models can be found on the DRAGN-Labs [HuggingFace](https://huggingface.co/DRAGN-Labs/DRAGN-3B-Transformer) page. 
 
 ## Reference to Original Paper
 
