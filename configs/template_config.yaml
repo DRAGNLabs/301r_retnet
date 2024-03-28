@@ -146,7 +146,7 @@ heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
 # Model Type (str): Name of model architecture to train
-model_type: retnet # Choices: "retnet", "transformer"
+model_type: retnet # Choices: "retnet", "transformer", "performer"
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
@@ -167,7 +167,7 @@ nb_features: null
 # Use generalized attention mechanism. Enables using attention mechanisms beyond the standard softmax.
 generalized_attention: false
 # Kernel function used in the generalized attention mechanism. Defines the non-linearity applied to attention logits.
-kernel_fn: "relu"
+kernel_fn: relu
 # Disable linear projection in the attention mechanism. If true, avoids projecting Q/K/V in the attention layers.
 no_projection: false
 # Use bias in QKV projection within the attention mechanism. Determines if bias terms are added to queries, keys, and values.
