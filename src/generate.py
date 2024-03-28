@@ -4,8 +4,10 @@ import torch
 import yaml
 
 from datetime import datetime
-from models import RetNetModel, TransformerModel
 from transformers import PreTrainedTokenizerFast
+from architecture.lightning.performer import PerformerLightning
+from architecture.lightning.retnet import RetNetLightning
+from architecture.lightning.transformer import TransformerLightning
 from utils import Struct, generate_text
 
 def generate_specific_text(config: Struct):
@@ -16,9 +18,11 @@ def generate_specific_text(config: Struct):
 
     # Create appropriate model type
     if config.model_type.lower() == "retnet":
-        model = RetNetModel(config)
+        model = RetNetLightning(config)
     elif config.model_type.lower() == "transformer":
-        model = TransformerModel(config)
+        model = TransformerLightning(config)
+    elif config.model_type.lower() == "performer":
+        model = PerformerLightning(config)
 
     # Load in pre-trained weights from checkpoint
     if config.checkpoint_path is None:

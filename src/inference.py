@@ -5,11 +5,13 @@ import yaml
 
 from dataset import DataModule
 from datetime import datetime
-from models import RetNetModel, TransformerModel
 from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from torchinfo import summary as model_summary
+from architecture.lightning.performer import PerformerLightning
+from architecture.lightning.retnet import RetNetLightning
+from architecture.lightning.transformer import TransformerLightning
 from utils import Struct
 
 
@@ -23,9 +25,11 @@ def inference(config: Struct):
         config (Struct): A Struct object with all configuration fields.
     """
     if config.model_type.lower() == "retnet":
-        model = RetNetModel(config)
+        model = RetNetLightning(config)
     elif config.model_type.lower() == "transformer":
-        model = TransformerModel(config)
+        model = TransformerLightning(config)
+    elif config.model_type.lower() == "performer":
+        model = PerformerLightning(config)
     else:
         raise ValueError(f"Model type '{config.model_type}' not supported!")
 

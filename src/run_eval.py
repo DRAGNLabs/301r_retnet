@@ -4,9 +4,11 @@ import sys
 import yaml
 
 from argparse import ArgumentParser
-from models import RetNetModelHF, TransformerModelHF
 from pathlib import Path
-from torchscale.architecture.config import RetNetConfig, DecoderConfig
+from architecture.hugging_face.performer import PerformerHF
+from architecture.hugging_face.retnet import RetNetHF
+from architecture.hugging_face.transformer import TransformerHF
+from torchscale.architecture.config import PerformerConfig, RetNetConfig, DecoderConfig
 from transformers import AutoModel, AutoConfig, AutoModelForCausalLM
 from typing import Optional, List
 from utils import Struct
@@ -25,12 +27,12 @@ def run_eval(config: Struct):
     AutoConfig.register("retnet", RetNetConfig)
     AutoConfig.register("custom_transformer", DecoderConfig)
     AutoConfig.register("performer", PerformerConfig)
-    AutoModel.register(RetNetConfig, RetNetModelHF)
-    AutoModel.register(DecoderConfig, TransformerModelHF)
-    AutoModel.register(PerformerConfig, PerformerModelHF)
-    AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
-    AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
-    AutoModelForCausalLM.register(PerformerConfig, PerformerModelHF)
+    AutoModel.register(RetNetConfig, RetNetHF)
+    AutoModel.register(DecoderConfig, TransformerHF)
+    AutoModel.register(PerformerConfig, PerformerHF)
+    AutoModelForCausalLM.register(RetNetConfig, RetNetHF)
+    AutoModelForCausalLM.register(DecoderConfig, TransformerHF)
+    AutoModelForCausalLM.register(PerformerConfig, PerformerHF)
 
     lm_eval.tasks.initialize_tasks()
     if config.tokenizer_path:
