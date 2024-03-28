@@ -98,12 +98,24 @@ class RetNetModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
+        perplexity = torch.exp(loss)
+
         self.log(
             name="val_loss",
             value=loss,
             prog_bar=True,
             logger=True,
             on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
+        
+        self.log(
+            name="val_perplexity", 
+            value=perplexity, 
+            prog_bar=True,
+            logger=True, 
+            on_step=False, 
             on_epoch=True,
             sync_dist=True,
             add_dataloader_idx=True)
@@ -172,7 +184,6 @@ class TransformerModel(LightningModule):
         # Create Transformer Decoder configuration for HuggingFace model
         config = DecoderConfig(
             decoder_embed_dim=config.embed_dim,
-            decoder_value_embed_dim=config.value_embed_dim,
             decoder_attention_heads=config.heads,
             decoder_ffn_embed_dim=config.ffn_dim,
             decoder_layers=config.layers,
@@ -237,12 +248,24 @@ class TransformerModel(LightningModule):
         # Calculate loss
         loss = self.loss_fn(preds, targets)
 
+        perplexity = torch.exp(loss)
+
         self.log(
             name="val_loss",
             value=loss,
             prog_bar=True,
             logger=True,
             on_step=True,
+            on_epoch=True,
+            sync_dist=True,
+            add_dataloader_idx=True)
+        
+        self.log(
+            name="val_perplexity", 
+            value=perplexity, 
+            prog_bar=True,
+            logger=True, 
+            on_step=False, 
             on_epoch=True,
             sync_dist=True,
             add_dataloader_idx=True)
