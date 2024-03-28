@@ -591,7 +591,7 @@ class PerformerModelHF(PreTrainedModel):
         )
 
         # Initialize Performer decoder stack with the given configuration and embeddings
-        self.performer_decoder = PerformerDecoder(
+        self.decoder_stack = PerformerDecoder(
             self.config,
             embed_tokens=self.embeddings,
             max_seq_len=self.config.max_seq_len,
@@ -600,23 +600,18 @@ class PerformerModelHF(PreTrainedModel):
             dim=self.config.embed_dim,
         )
 
-    def forward(self, input_ids: Tensor) -> Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         """
-        Defines the forward pass of the Performer model.
-
         Args:
-            input_ids (Tensor): Tensor of input token IDs, shaped [batch_size, sequence_length].
+            x (Tensor): Long tensor of dimensions: (batch size, sequence
+                length).
 
         Returns:
-            Tensor: Output tensor shaped [batch_size, sequence_length, vocab_size], containing
-            the logits over the vocabulary for each token position.
+            A tensor of dimensions: (batch size, sequence length, vocabulary
+                size).
         """
-        # Embedding tokens using the embedding layer
-        embedding_output = self.embeddings(input_ids)
-        
-        # Passing embeddings through the Performer decoder stack
-        output = self.performer_decoder(embedding_output)
-        return output
+        preds, _ = self.decoder_stack(x)
+        return preds
 
     def get_params(self) -> dict:
         """
