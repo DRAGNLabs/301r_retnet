@@ -1,5 +1,5 @@
 from torchscale.architecture.performer import PerformerDecoder
-from models.hugging_face.hugging_face import HuggingFace
+from architecture.hugging_face.hugging_face import HuggingFace
 
 class PerformerHF(HuggingFace):
     def __init__(self, config):

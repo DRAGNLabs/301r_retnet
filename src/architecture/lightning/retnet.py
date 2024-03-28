@@ -1,5 +1,5 @@
-from models.hugging_face.retnet import RetNetHF
-from models.lightning.lightning import LightningModel
+from architecture.hugging_face.retnet import RetNetHF
+from architecture.lightning.lightning import LightningModel
 from torchscale.architecture.config import RetNetConfig
 
 

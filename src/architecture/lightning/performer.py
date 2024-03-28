@@ -1,5 +1,5 @@
-from models.hugging_face.performer import PerformerHF
-from models.lightning.lightning import LightningModel
+from architecture.hugging_face.performer import PerformerHF
+from architecture.lightning.lightning import LightningModel
 from torchscale.architecture.config import PerformerConfig
 
 

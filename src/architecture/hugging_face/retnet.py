@@ -1,5 +1,5 @@
 from torchscale.architecture.retnet import RetNetDecoder
-from models.hugging_face.hugging_face import HuggingFace
+from architecture.hugging_face.hugging_face import HuggingFace
 
 class RetNetHF(HuggingFace):
     def __init__(self, config):

@@ -1,5 +1,5 @@
 from torchscale.architecture.decoder import Decoder
-from models.hugging_face.hugging_face import HuggingFace
+from architecture.hugging_face.hugging_face import HuggingFace
 
 class TransformerHF(HuggingFace):
     def __init__(self, config):

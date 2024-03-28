@@ -1,5 +1,5 @@
-from models.hugging_face.transformer import TransformerHF
-from models.lightning.lightning import LightningModel
+from architecture.hugging_face.transformer import TransformerHF
+from architecture.lightning.lightning import LightningModel
 from torchscale.architecture.config import DecoderConfig
 
 
