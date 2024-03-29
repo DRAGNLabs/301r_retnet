@@ -34,10 +34,9 @@ def download_data(config):
     print(f"File path: {dataset_dir}")
     print(f"Data name: {config.dataset_name}")
     print(f"Data subset: {config.dataset_subset}")
-    print(f"HF file system path: {config.hf_filesystem_path}")
 
     # This path may need to be modified depending on the dataset.
-    fs_path = config.hf_filesystem_path
+    fs_path = f"hf://datasets/{config.dataset_name}/{config.dataset_subset}"
 
     # Can also use 'read_json', etc.; depends on HF repo.
     dataset = dd.read_parquet(fs_path)
