@@ -115,23 +115,27 @@ class DecoderLayer(nn.Module):
 
     def build_self_attention(self, embed_dim, args):
         # Replace with FastAttention initialization
+        if args.kernel_fn == "relu":
+            kernel_fn = nn.ReLU()
+        elif args.kernel_fn == "gelu":
+            kernel_fn = nn.GELU()
         return SelfAttention(
             dim=args.embed_dim,
             heads=args.decoder_attention_heads,
-            causal=True,  # Enabling causal attention
-            dim_head=64,  # Example dimension, adjust as necessary
-            local_heads = 0,
-            local_window_size = 256,
-            nb_features = None, # Defaults to int(dim_head * log(dim_head))
-            feature_redraw_interval = 1000,
-            generalized_attention = False,
-            kernel_fn = nn.ReLU(),
+            causal=args.causal,  # Enabling causal attention
+            dim_head=args.dim_head,  # Example dimension, adjust as necessary
+            local_heads = args.local_heads,
+            local_window_size = args.local_window_size,
+            nb_features = args.nb_features, # Defaults to int(dim_head * log(dim_head))
+            feature_redraw_interval = args.feature_redraw_interval,
+            generalized_attention = args.generalized_attention,
+            kernel_fn = kernel_fn,
             dropout=args.dropout,
             no_projection = False,
             qkv_bias = False,
             attn_out_bias = True
         )
-
+    
     def build_encoder_attention(self, embed_dim, args):
         return CrossAttention(
             dim=args.embed_dim,
