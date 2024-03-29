@@ -57,9 +57,11 @@ trained_model_path: "/home/knj28/301r_retnet/example_compute_folder/data/models/
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: "text"
 # HuggingFace Dataset Name (str)
-dataset_name: "c4"
+dataset_name: "wikitext"
 # HuggingFace Dataset Subset (str)
-dataset_subset: "c4-en"
+dataset_subset: "wikitext-2-v1"
+# This can differ based on the HF repo
+hf_filesystem_path: hf://datasets/wikitext/wikitext-2-v1
 
 # Train Model (str): Path to model folder
 models_path: "/home/knj28/301r_retnet/example_compute_folder/data/models"
@@ -147,10 +149,17 @@ heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
 # Model Type (str): Name of model architecture to train
-model_type: "transformer" # Choices: "retnet", "transformer"
+model_type: "longnet" # Choices: "retnet", "transformer"
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
 value_embed_dim: 1280
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
 vocab_size: 50000
+
+# ---------------------------- LONGNET CONFIGURATION ----------------------------
+
+# Dilated Ratio (list[int]): Ratio of dilation for the model
+dilated_ratio: [1, 2]
+# Segment Length (list[int]): Length of segments for the model
+segment_length: [128, 256]
