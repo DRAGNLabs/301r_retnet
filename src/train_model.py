@@ -20,15 +20,18 @@ from torchinfo import summary as model_summary
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, filename, monitor, save_top_k, mode, every_n_train_steps):
+    def __init__(self, dirpath, monitor, save_top_k, mode, every_n_train_steps):
+        self.num_ckpts = 0
+        self.file_name = f"{self.num_ckpts}_epoch_{epoch}_validation_{val_loss:.2f}"
+        
         super().__init__(
             dirpath=dirpath,
-            filename=filename,
+            filename=self.file_name,
             monitor=monitor,
             save_top_k=save_top_k,
             mode=mode,
             every_n_train_steps=every_n_train_steps)
-        self.num_ckpts = 0
+
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         super().on_save_checkpoint(
@@ -39,6 +42,8 @@ class CustomModelCheckpoint(ModelCheckpoint):
             os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
         self.num_ckpts += 1
 
+        # Print GPU memory usage
+        print(torch.cuda.memory_summary())  # Prints per device
 
 def train_model(config: Struct):
     # Test that the head dimension will be an even, whole number
@@ -132,7 +137,6 @@ def train_model(config: Struct):
     # Implement callbacks
     model_checkpoint = CustomModelCheckpoint(
         dirpath=checkpoints_dir,
-        filename="epoch_{epoch}_validation_{val_loss:.2f}",
         monitor="val_loss",
         save_top_k=config.save_top_k,
         mode="min",
@@ -150,6 +154,7 @@ def train_model(config: Struct):
             default_root_dir=model_dir, # main directory for run
             accelerator=config.device,
             devices=config.num_devices,
+            strategy=config.strategy,
             max_epochs=config.epochs,
             val_check_interval=config.val_check_interval,
             accumulate_grad_batches=config.accumulate_grad_batches,
