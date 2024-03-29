@@ -143,7 +143,9 @@ def train_model(config: Struct):
 
         # Count the existing files in the target directory
         existing_files_count = len(list(target_dir.glob('*.parquet')))
-        print(f"\nThere are {existing_files_count} .parquet files available, of which {files_to_copy} files are being copied which is actually {(files_to_copy / total_files)*100:.4f}% of the training data, instead of {config.split_dataset * 100}%")
+        print(f"\nThere are {existing_files_count} .parquet files available, of which {files_to_copy} files 
+              are being copied which is actually {(files_to_copy / total_files)*100:.4f}% of the training data, 
+              instead of {config.split_dataset * 100}%")
 
         # Check if the existing number of files matches the expected number of files
         if existing_files_count == files_to_copy:
