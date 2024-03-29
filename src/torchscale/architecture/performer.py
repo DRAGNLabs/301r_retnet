@@ -173,21 +173,32 @@ class DecoderLayer(nn.Module):
         self_attn_rel_pos=None,
         cross_attn_rel_pos=None,
         is_first_step=False,
+        self_pos_emb = None, 
+        self_context = None, 
+        self_mask = None, 
+        self_context_mask = None
     ):
         residual = x
         if self.normalize_before:
             x = self.self_attn_layer_norm(x)
 
         # Apply performer self-attention. The attention mask ensures causality in the decoder.
+        # x, attn = self.self_attn(
+        #     query=x,
+        #     key=x,
+        #     value=x,
+        #     key_padding_mask=self_attn_padding_mask,
+        #     incremental_state=incremental_state,
+        #     attn_mask=self_attn_mask,
+        #     rel_pos=self_attn_rel_pos,
+        #     is_first_step=is_first_step,
+        # )
         x, attn = self.self_attn(
-            query=x,
-            key=x,
-            value=x,
-            key_padding_mask=self_attn_padding_mask,
-            incremental_state=incremental_state,
-            attn_mask=self_attn_mask,
-            rel_pos=self_attn_rel_pos,
-            is_first_step=is_first_step,
+            x,
+            pos_emb = self_pos_emb, 
+            context = self_context, 
+            mask = self_mask, 
+            context_mask = self_context_mask
         )
         x = self.dropout_module(x)
 
@@ -444,15 +455,12 @@ class PerformerDecoder(nn.Module):
         # # Apply token embeddings
         # token_embeddings = self.token_emb(tokens)
 
-        # # Apply token embeddings, ensuring tokens are of Long type for embedding layer compatibility
-        # token_embeddings = self.token_emb(tokens.long())
-
         # # Apply positional embeddings
         # positional_embeddings = self.pos_emb(tokens)
         
         # # Combine embeddings and apply dropout
-        # embeddings = self.dropout(token_embeddings + positional_embeddings)
-        # return embeddings
+        # embeddings = self.dropout_module(token_embeddings + positional_embeddings)
+        # return embeddings, token_embeddings
 
     def is_first_step(self, incremental_state):
         if incremental_state is None:
