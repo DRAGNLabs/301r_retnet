@@ -1,5 +1,6 @@
 # Ignore the following folders in this directory
 data/datasets_tokenized
+data/datasets_raw
 data/models
 tokenizer
 
