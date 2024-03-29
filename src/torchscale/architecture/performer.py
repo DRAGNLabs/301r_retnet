@@ -131,27 +131,31 @@ class DecoderLayer(nn.Module):
             generalized_attention = args.generalized_attention,
             kernel_fn = kernel_fn,
             dropout=args.dropout,
-            no_projection = False,
-            qkv_bias = False,
-            attn_out_bias = True
+            no_projection = args.no_projection,
+            qkv_bias = args.qkv_bias,
+            attn_out_bias = args.attn_out_bias
         )
     
     def build_encoder_attention(self, embed_dim, args):
+        if args.kernel_fn == "relu":
+            kernel_fn = nn.ReLU()
+        elif args.kernel_fn == "gelu":
+            kernel_fn = nn.GELU()
         return CrossAttention(
             dim=args.embed_dim,
             heads=args.decoder_attention_heads,
             causal=False,
-            dim_head=64,
-            local_heads = 0,
-            local_window_size = 256,
-            nb_features = None,
-            feature_redraw_interval = 1000,
-            generalized_attention = False,
-            kernel_fn = nn.ReLU(),
+            dim_head=args.dim_head,
+            local_heads = args.local_heads,
+            local_window_size = args.local_window_size,
+            nb_features = args.nb_features,
+            feature_redraw_interval = args.feature_redraw_interval,
+            generalized_attention = args.generalized_attention,
+            kernel_fn = kernel_fn,
             dropout=args.dropout,
-            no_projection = False,
-            qkv_bias = False,
-            attn_out_bias = True
+            no_projection = args.no_projection,
+            qkv_bias = args.qkv_bias,
+            attn_out_bias = args.attn_out_bias
         )
 
     def residual_connection(self, x, residual):
