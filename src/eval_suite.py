@@ -1,14 +1,8 @@
 import json
 import lm_eval
-import sys
-import yaml
-
-from argparse import ArgumentParser
 from models import RetNetModelHF, TransformerModelHF
-from pathlib import Path
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from transformers import AutoModel, AutoConfig, AutoModelForCausalLM
-from typing import Optional, List
 from utils import Struct
 
 def run_eval(config: Struct):
@@ -29,7 +23,8 @@ def run_eval(config: Struct):
     AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
     AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
 
-    lm_eval.tasks.initialize_tasks()
+    task_manager = lm_eval.tasks.TaskManager()
+
     if config.tokenizer_path:
         results = lm_eval.simple_evaluate(
             model="hf",
@@ -37,14 +32,17 @@ def run_eval(config: Struct):
                 f"tokenizer={config.tokenizer_path}",
             tasks=config.tasks,
             num_fewshot=config.nshot,
-            device=config.device)
+            device=config.device,
+            task_manager=task_manager,
+            )
     else:
         results = lm_eval.simple_evaluate(
             model="hf",
             model_args=f"pretrained={config.model_path_dir}",
             tasks=config.tasks,
             num_fewshot=0,
-            device=config.device)
+            device=config.device,
+            task_manager=task_manager)
 
     print(results["results"])
 
