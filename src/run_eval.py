@@ -5,9 +5,9 @@ import yaml
 
 from argparse import ArgumentParser
 from pathlib import Path
-from architecture.hugging_face.performer import PerformerHF
-from architecture.hugging_face.retnet import RetNetHF
-from architecture.hugging_face.transformer import TransformerHF
+from architecture.hugging_face.performer_hf import PerformerHF
+from architecture.hugging_face.retnet_hf import RetNetHF
+from architecture.hugging_face.transformer_hf import TransformerHF
 from torchscale.architecture.config import PerformerConfig, RetNetConfig, DecoderConfig
 from transformers import AutoModel, AutoConfig, AutoModelForCausalLM
 from typing import Optional, List

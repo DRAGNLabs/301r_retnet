@@ -1,4 +1,4 @@
-from architecture.hugging_face.retnet import RetNetHF
+from architecture.hugging_face.retnet_hf import RetNetHF
 from architecture.lightning.lightning import LightningModel
 from torchscale.architecture.config import RetNetConfig
 

@@ -17,9 +17,9 @@ from subprocess import run
 from tabulate import tabulate
 from transformers import set_seed
 from torchinfo import summary as model_summary
-from architecture.lightning.performer import PerformerLightning
-from architecture.lightning.retnet import RetNetLightning
-from architecture.lightning.transformer import TransformerLightning
+from architecture.lightning.performer_lightning import PerformerLightning
+from architecture.lightning.retnet_lightning import RetNetLightning
+from architecture.lightning.transformer_lightning import TransformerLightning
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):

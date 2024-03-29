@@ -1,4 +1,4 @@
-from architecture.hugging_face.performer import PerformerHF
+from architecture.hugging_face.performer_hf import PerformerHF
 from architecture.lightning.lightning import LightningModel
 from torchscale.architecture.config import PerformerConfig
 
