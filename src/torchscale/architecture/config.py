@@ -198,6 +198,8 @@ class PerformerConfig(PretrainedConfig):
         self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
         # Additional Performer configurations for self-attention and cross-attention
         self.dim_head = kwargs.pop("dim_head", 64)  # Dimension of each attention head
+        self.causal = kwargs.pop("causal", True)  # Enable causal linear attention
+        self.feature_redraw_interval = kwargs.pop("feature_redraw_interval", 1000) # Number of Feature Redraw Intervals
         self.local_heads = kwargs.pop("local_heads", 0)  # Number of local attention heads
         self.local_window_size = kwargs.pop("local_window_size", 256)  # Size of the local attention window
         self.nb_features = kwargs.pop("nb_features", None)  # Number of random features for kernel approximation
