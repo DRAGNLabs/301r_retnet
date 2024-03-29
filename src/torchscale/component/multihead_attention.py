@@ -165,6 +165,9 @@ class MultiheadAttention(nn.Module):
         attn, attn_weights = self.attention_ops(q, k, v, key_padding_mask=key_padding_mask, attn_mask=attn_mask, rel_pos=rel_pos, is_causal=is_causal)
 
         if self.inner_attn_ln is not None:
+            # Convert data back to float32, since inner_attn_ln only works with float32
+            # Original conversion to float16 in MultiheadAttention.attention_ops()
+            attn = attn.to(torch.float32)
             attn = self.inner_attn_ln(attn)
 
         attn = self.out_proj(attn)
