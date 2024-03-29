@@ -1,6 +1,6 @@
 # <PAPER_TITLE_PLACEHOLDER> 📝
 
-This project compares and analyzes the RetNet and the Transformer architectures, utilizing Microsoft's TorchScale library for implementation. More information can be found in our paper # <PAPER_TITLE_PLACEHOLDER> 📝.
+This project compares and analyzes the RetNet and the Transformer architectures, utilizing Microsoft's TorchScale library for implementation. More information can be found in our paper # <PAPER_TITLE_PLACEHOLDER> 📝 and corresponding trained models can be found on the DRAGN-Labs [HuggingFace](https://huggingface.co/DRAGN-Labs/DRAGN-3B-Transformer) page. 
 
 ## Reference to Original Paper
 
@@ -32,9 +32,27 @@ mamba create -n <YOUR_ENV_NAME> python=3.11
 mamba activate <YOUR_ENV_NAME>
 ```
 
+Follow NVIDIA Conda CUDA installation steps below:
+```bash
+# Make sure GPU available
+lspci | grep -i nvidia
+
+mamba install cuda -c nvidia
+```
+
+Make sure that `ninja` is installed:
+```bash
+mamba install ninja
+```
+
 Once your environment has been prepared, install all required packages:
 ```bash
 pip install -r requirements.txt
+```
+
+To install Flash Attention:
+```bash
+pip install flash-attn==2.5.6 --no-build-isolation
 ```
 
 ### 2: YAML Configuration Files
@@ -50,15 +68,13 @@ To prepare a YAML config file, copy [template_config.yaml](./configs/template_co
 > [!TIP]
 > Once a YAML config file is prepared, it can be passed into any script in the pipeline. Before you run any scripts, it is recommended to copy all of them into the [user_scripts](./scripts/user_scripts/) directory and modify the scripts to point to the right config file.
 
-The Python scripts for data preprocessing and training can be run via the Bash scripts found in [scripts](./scripts/), or through Slurm via the scripts in [slurm](./slurm/). This README refers to the normal Bash scripts, but the process for running the scripts via Slurm is similar.
-
 The expected order of script execution is as follows:
-1. Change current directory to [scripts/user_scripts](./scripts/user_scripts/).
-2. Run [download_data.sh](./scripts/download_data.sh) to fetch the necessary data.
-3. Execute [split_data.sh](./scripts/split_data.sh) to divide the dataset into splits.
-4. Execute [train_tokenizer.sh](./scripts/train_tokenizer.sh) to prepare the tokenizer.
-5. Use [tokenize_data.sh](./scripts/tokenize_data.sh) for data tokenization and include the names of the data splits separated by spaces.
-6. Finally, run [train_model.sh](./scripts/train_model.sh).
+1. Change current directory to `scripts/user_scripts`.
+2. Run `download_data.sh` to fetch the necessary data.
+3. Execute `split_data.sh` to divide the dataset into splits.
+4. Execute `train_tokenizer.sh` to prepare the tokenizer.
+5. Use `tokenize_data.sh` for data tokenization and include the names of the data splits separated by spaces.
+6. Finally, run `train_model.sh`.
 
 For example, if you want to train a RetNet model:
 
@@ -71,40 +87,6 @@ cd scripts/user_scripts
 ./tokenize_data.sh train validation test
 ./train_model.sh
 ```
-
-More details for each of these steps are described more detail in the following sections.
-
-#### Data Preprocessing
-
-This repository uses [Dask](https://docs.dask.org/en/stable/) to load and process data. Our code is configured to load datasets into Dask from Parquet files. If using a different file format, this may need to be changed.
-
-##### Downloading Data
-
-This repository is designed to utilize datasets available through the HuggingFace Hub. There are two ways to download data:
-
-1. By running [download_data.py](./src/download_data.py), via the [download_data.sh](./scripts/download_data.sh) script, you can download data through the [HuggingFace Filesystem](https://huggingface.co/docs/huggingface_hub/v0.22.0.rc0/en/package_reference/hf_file_system#huggingface_hub.HfFileSystem). To do this, ensure that the correct parameters are set in the configuration YAML, specifically `hf_filesystem_path`. This must correspond to the correct HF Filesystem path. This method is good for smaller datasets that can easily fit in memory.
-
-2. By cloning the HuggingFace Dataset repo directly, and downloading the necessary data. [download_c4.sh](./scripts/download_c4.sh) exists as an example of this for the C4 dataset. This method is good for very large datasets.
-
-It should be noted that datasets can come in a variety of different formats. Currently, this repo works best with [Parquet](https://parquet.apache.org/) files. If the data is downloaded in a different format, the code may need to be changed to accomodate.
-
-##### Splitting the Data
-
-After downloading the data, you can split the data into separate train/validation/test splits via the [split_data.py](./src/split_data.py) script, run through [split_data.sh](./scripts/split_data.sh).
-
-Optionally, within [split_data.py](./src/split_data.py), you can specify to shuffle the data while splitting. This is more expensive for larger datasets. This and any other preprocessing or pretokenization steps should occur here prior to splitting the data.
-
-##### Training a Tokenizer
-
-A tokenizer can be trained by running the [train_tokenizer.py](./src/train_tokenizer.py) script through [train_tokenizer.sh](./scripts/train_tokenizer.sh). Ensure that the proper paths are set in your configuration file.
-
-##### Tokenizing the Data
-
-[tokenizer_data.py](./src/tokenize_data.py) will tokenize your data, using the tokenizer you have specified. An additional parameter, `split`, is needed to pass into this script. It can be `train`, `validation`, or `test`. This allows you to tokenize each split in parallel. [tokenize_data.sh](./scripts/tokenize_data.sh) is setup to do each split in parallel. When running through Slurm, you will need to start a job for each split. See [tokenize_data.sh](./slurm/tokenize_data.sh) for more information.
-
-#### Training
-
-You can train a model by running [train_model.py](./src/train_model.py) through [train_model.sh](./scripts/train_model.sh). During training, data is loaded lazily through Dask, and padded/truncated dynamically for each batch. This behaviour can be seen/changed in [dataset.py](./src/dataset.py)
 
 ## Features
 
@@ -147,6 +129,7 @@ To use these models within your Hugging Face-based projects, follow these steps:
    ```python
    from <YOUR_MODULE> import RetNetModelHF, TransformerModelHF
 
+   longnet_model = LongNetModelHF(config="path/to/longnet/config")
    retnet_model = RetNetModelHF(config="path/to/retnet/config")
    transformer_model = TransformerModelHF(config="path/to/transformer/config")
    ```
@@ -155,6 +138,7 @@ To use these models within your Hugging Face-based projects, follow these steps:
 
    ```python
    input_ids = ...  # Your input tensor here
+   longnet_output = longnet_model(input_ids)
    retnet_output = retnet_model(input_ids)
    transformer_output = transformer_model(input_ids)
    ```
@@ -162,6 +146,7 @@ To use these models within your Hugging Face-based projects, follow these steps:
 3. **Parameter Access**: Retrieve model hyperparameters for inspection or further processing.
 
    ```python
+   longnet_params = longnet_model.get_params()
    retnet_params = retnet_model.get_params()
    transformer_params = transformer_model.get_params()
    ```
