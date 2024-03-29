@@ -145,8 +145,8 @@ class PerformerConfig(PretrainedConfig):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.embed_dim = kwargs.pop("embed_dim", 768)
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
+        self.embed_dim = self.decoder_embed_dim
         self.decoder_attention_heads = kwargs.pop("decoder_attention_heads", 12)
         self.depth = kwargs.pop("depth", 12)
         self.heads = kwargs.pop("heads", 12)
