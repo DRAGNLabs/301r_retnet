@@ -124,7 +124,7 @@ rand_seed: 42
 precision: fp16
 # Save Top K (int): Number of best models to save; default saves the best single checkpoint. Set to -1 to save all
 save_top_k: 3
-# Every N hours (int): Checkpoint every n hours; overrides every_n_train_steps default (None or 0). 
+# Every N hours (int): Checkpoint every n hours; overrides every_n_train_steps if not set to default (None or 0). 
 every_n_hours: 0
 # Every N Train Steps (int): Checkpoint every n train steps; Note: PyTorch Lightning defines 'steps' as 
 # optimizer steps, not batch forward passes, distinct when accumulate_grad_batches > 1.
