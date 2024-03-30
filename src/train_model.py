@@ -25,9 +25,19 @@ class CustomModelCheckpoint(ModelCheckpoint):
         self.file_name = f"{self.num_ckpts}"+"_epoch_{epoch}_validation_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         
         if every_n_hours is not None and every_n_train_steps is not None:
-            print("Warning: You have set both 'every_n_hours' and 'every_n_train_steps' in your yaml.")
-            print(f"Using 'every_n_hours' ({every_n_hours}) and changing 'every_n_train_steps' from {every_n_train_steps} to 'None'.")
-            every_n_train_steps = None
+            if every_n_hours <= 0:
+                print("Warning: You have set both 'every_n_hours' and 'every_n_train_steps' in your yaml.")
+                print(f"With 'every_n_hours' set {every_n_hours}, i.e., <= 0; 
+                      resetting to 'None' and using every_n_train_steps ({every_n_train_steps}).")
+                every_n_hours = None
+            else:
+                print("Warning: You have set both 'every_n_hours' and 'every_n_train_steps' in your yaml.")
+                print(f"Using 'every_n_hours' ({every_n_hours}) and changing 'every_n_train_steps' from 
+                      {every_n_train_steps} to 'None'.")
+                every_n_train_steps = None
+
+            # Change every_n_hours to timedelta
+            every_n_hours = datetime.timedelta(hours=every_n_hours)
 
         super().__init__(
             dirpath=dirpath,
