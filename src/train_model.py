@@ -20,16 +20,22 @@ from torchinfo import summary as model_summary
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, monitor, save_top_k, mode, every_n_train_steps):
+    def __init__(self, dirpath, monitor, save_top_k, mode, every_n_hours, every_n_train_steps):
         self.num_ckpts = 0
-        self.file_name = f"{self.num_ckpts}"+"_epoch_{epoch}_validation_{val_loss:.2f}"
+        self.file_name = f"{self.num_ckpts}"+"_epoch_{epoch}_validation_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         
+        if every_n_hours is not None and every_n_train_steps is not None:
+            print("Warning: You have set both 'every_n_hours' and 'every_n_train_steps' in your yaml.")
+            print(f"Using 'every_n_hours' ({every_n_hours}) and changing 'every_n_train_steps' from {every_n_train_steps} to 'None'.")
+            every_n_train_steps = None
+
         super().__init__(
             dirpath=dirpath,
             filename=self.file_name,
             monitor=monitor,
             save_top_k=save_top_k,
             mode=mode,
+            train_time_interval=every_n_hours,
             every_n_train_steps=every_n_train_steps)
 
 
@@ -140,6 +146,7 @@ def train_model(config: Struct):
         monitor="val_loss",
         save_top_k=config.save_top_k,
         mode="min",
+        every_n_hours=config.every_n_hours,
         every_n_train_steps=config.every_n_train_steps)
 
     early_stopping = EarlyStopping(
