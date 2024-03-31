@@ -86,6 +86,7 @@ class EncoderConfig(object):
 
 
 class DecoderConfig(PretrainedConfig):
+    model_type = 'custom_transformer'
     def __init__(self, **kwargs):
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
         self.decoder_attention_heads = kwargs.pop("decoder_attention_heads", 12)
