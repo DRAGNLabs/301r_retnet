@@ -5,6 +5,7 @@ dask-expr==0.5.2
 dask-ml==2023.3.24
 einops==0.7.0
 fairscale==0.4.13
+flash-attn==2.5.6
 lm_eval==0.4.2
 numpy==1.26.2
 packaging==23.2
