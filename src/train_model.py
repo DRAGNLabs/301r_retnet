@@ -8,7 +8,7 @@ import yaml
 
 from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import LongNetModel, RetNetModel, TransformerModel
 from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
@@ -37,7 +37,7 @@ class CustomModelCheckpoint(ModelCheckpoint):
                 every_n_train_steps = None
 
             # Change every_n_hours to timedelta
-            every_n_hours = datetime.timedelta(hours=every_n_hours)
+            every_n_hours = timedelta(hours=every_n_hours)
 
         super().__init__(
             dirpath=dirpath,
@@ -105,7 +105,7 @@ def train_model(config: Struct):
     print("\nModel Summary:")
     total_params = model_summary(
         model.to(config.device),
-        input_data=torch.ones(1, config.seq_len).long().to(config.device)).total_params
+        input_data=torch.ones(1, config.seq_len).long().to(config.device), device=config.device).total_params
 
     # Create unique label for model (model type, parameter count,
     # **hyperparameters, timestamp)
