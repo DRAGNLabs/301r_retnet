@@ -1,12 +1,12 @@
+import json
 import sys
 import yaml
-import json
 
 from argparse import ArgumentParser
+from eval_latency import eval_latency
+# from eval_suite import run_eval
 from pathlib import Path
 from utils import Struct
-# from eval_suite import run_eval
-from eval_latency import eval_latency
 
 if __name__ == "__main__":
     args = sys.argv

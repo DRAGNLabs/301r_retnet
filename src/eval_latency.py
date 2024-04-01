@@ -36,7 +36,7 @@ def eval_latency(config: Struct):
     results = {}
 
     test_sequence_lengths = config.test_sequence_lengths.sort()
-    if len(test_sequence_lengths) == 0:
+    if not test_sequence_lengths:
         test_sequence_lengths = [config.seq_len]
 
     num_latency_trials = config.num_latency_trials
@@ -49,9 +49,10 @@ def eval_latency(config: Struct):
 
     # Generate a list of pretokenized data 
     random_tokens = [random.randint(0, config.vocab_size - 1) for _ in range(test_sequence_lengths[-1])]
+    print(random_tokens)
 
     # The first couple token generation take longer than all the following generations
-    # Generating these few tokens should alleviate that behavior
+    # Generating these few tokens beforehand should alleviate that behavior
     generate_text_length_n(config=config, n=1, input_tokens=random_tokens[0:1])
     generate_text_length_n(config=config, n=1, input_tokens=random_tokens[0:1])
 

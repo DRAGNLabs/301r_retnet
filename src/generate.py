@@ -6,6 +6,7 @@ import yaml
 from datetime import datetime
 from models import RetNetModel, TransformerModel
 from transformers import PreTrainedTokenizerFast
+from typing import List
 from utils import Struct, generate_text, generate_text_from_tokens
 
 def generate_text_length_n(config: Struct, n: int, input_tokens: List[int]):
@@ -96,3 +97,4 @@ if __name__ == "__main__":
     config = Struct(**config)
 
     generate_specific_text(config)
+    

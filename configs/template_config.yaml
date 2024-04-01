@@ -19,6 +19,7 @@
 # -------------------- TESTING AND GENERATION CONFIGURATION --------------------
 
 # Generation Length (int): Maximum number of tokens during generation
+# This is not considered in latency eval
 gen_len: 100
 
 # Input Starting Strings (List[str]): Starting strings for generation.py
@@ -47,7 +48,7 @@ tasks:
 # N-shot (int | None): The number of examples to show the model before prompting; 'None' defaults to 0
 nshot: ~
 
-# The number of tokens to generate during a single round in latency evaluation; 'None' defaults to 10
+# n_tokens_to_generate (int): number of tokens to generate during a single round in latency evaluation; 'None' defaults to 10
 n_tokens_to_generate:
   50
 
