@@ -1,14 +1,8 @@
 import json
 import lm_eval
-import sys
-import yaml
-
-from argparse import ArgumentParser
 from models import LongNetModelHF, RetNetModelHF, TransformerModelHF
-from pathlib import Path
 from torchscale.architecture.config import RetNetConfig, DecoderConfig
 from transformers import AutoModel, AutoConfig, AutoModelForCausalLM
-from typing import Optional, List
 from utils import Struct
 
 def run_eval(config: Struct):
@@ -24,6 +18,7 @@ def run_eval(config: Struct):
 
     AutoConfig.register("retnet", RetNetConfig)
     AutoConfig.register("custom_transformer", DecoderConfig)
+    AutoConfig.register("longnet", DecoderConfig)
     AutoModel.register(DecoderConfig, LongNetModelHF)
     AutoModel.register(RetNetConfig, RetNetModelHF)
     AutoModel.register(DecoderConfig, TransformerModelHF)
@@ -31,36 +26,28 @@ def run_eval(config: Struct):
     AutoModelForCausalLM.register(RetNetConfig, RetNetModelHF)
     AutoModelForCausalLM.register(DecoderConfig, TransformerModelHF)
 
-    lm_eval.tasks.initialize_tasks()
+    task_manager = lm_eval.tasks.TaskManager()
+
     if config.tokenizer_path:
         results = lm_eval.simple_evaluate(
             model="hf",
             model_args=f"pretrained={config.model_path_dir}," + \
                 f"tokenizer={config.tokenizer_path}",
             tasks=config.tasks,
-            num_fewshot=0,
-            device=config.device)
+            num_fewshot=config.nshot,
+            device=config.device,
+            task_manager=task_manager,
+            )
     else:
         results = lm_eval.simple_evaluate(
             model="hf",
             model_args=f"pretrained={config.model_path_dir}",
             tasks=config.tasks,
             num_fewshot=0,
-            device=config.device)
+            device=config.device,
+            task_manager=task_manager)
 
     print(results["results"])
 
     with open(config.results_out_path, "w") as f:
         json.dump(results["results"], f, indent=4)
-
-
-if __name__ == "__main__":
-    args = sys.argv
-    config_path = args[1]
-
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
-
-    config = Struct(**config)
-
-    run_eval(config)

@@ -6,14 +6,14 @@ import yaml
 from datetime import datetime
 from models import LongNetModel, RetNetModel, TransformerModel
 from transformers import PreTrainedTokenizerFast
-from utils import Struct, generate_text
+from typing import List
+from utils import Struct, generate_text, generate_text_from_tokens
 
-def generate_specific_text(config: Struct):
+def prepare_model_device(config: Struct):
     """
     Args:
         config (Struct): A Struct object with all configuration fields.
     """
-
     # Create appropriate model type
     if config.model_type.lower() == "longnet":
         model = LongNetModel(config)
@@ -32,10 +32,36 @@ def generate_specific_text(config: Struct):
     checkpoint = torch.load(config.checkpoint_path)
     model.load_state_dict(checkpoint["state_dict"])
 
+    device = torch.device(config.device)
+    return model, device
+
+def generate_text_length_n(config: Struct, n: int, input_tokens: List[int]):
+    """
+    Args:
+        config (Struct): A Struct object with all configuration fields.
+        n (int): The number of tokens to generate
+        input_tokens (List[int]): The list of input tokens
+    """
+    model, device = prepare_model_device(config)
+    generation_time = generate_text_from_tokens(
+        model=model,
+        tokens=input_tokens,
+        device=device,
+        seq_len=config.seq_len,
+        generation_length=n)
+
+    return generation_time
+
+def generate_specific_text(config: Struct):
+    """
+    Args:
+        config (Struct): A Struct object with all configuration fields.
+    """
+
+    model, device = prepare_model_device(config)
+
     # Load pre-trained tokenizer
     tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
-
-    device = torch.device(config.device)
 
     # Get completed strings
     print("Generating text...")
@@ -69,3 +95,4 @@ if __name__ == "__main__":
     config = Struct(**config)
 
     generate_specific_text(config)
+    
