@@ -15,4 +15,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate <YOUR ENVIRONMENT>
-python3 ../../src/eval_main.py ../../configs/user_configs/template_config.yaml
+python3 ../../src/eval_main.py ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml
