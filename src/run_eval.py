@@ -49,6 +49,9 @@ def run_eval(config: Struct):
 
     print(results["results"])
 
+    # Ensure the output directory exists
+    Path(config.results_out_path).parent.mkdir(parents=True, exist_ok=True)
+    
     with open(config.results_out_path, "w") as f:
         json.dump(results["results"], f, indent=4)
 
