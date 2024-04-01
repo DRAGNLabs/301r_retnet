@@ -97,6 +97,9 @@ tokenizer_path: "<YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer"
 # Tokenize Data (str): Path to tokenized dataset folder
 tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/c4"
 
+# TensorBoard Path (str): Path for where TensorBoard files go, optional
+tboard_path: "<YOUR_PATH_HERE>/data/runs"
+
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
 # If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
 CO2_outfile: ~ # Example: "CO2_grid_search.csv"
@@ -121,9 +124,10 @@ use_slurm: true
 
 # --------------------------- TRAINING CONFIGURATION ---------------------------
 
-# Accumulate Gradient Batches (int): Accumulate gradients over n batches; note how this interacts with every_n_train_steps
+# Accumulate Gradient Batches (int): Accumulate gradients over n batches; note how this interacts w/ every_n_train_steps
 accumulate_grad_batches: 1
-# Early Stopping (int): Number of epochs to wait before stopping training
+# Early Stopping (int): Number of validations w/out improvement to wait before stopping training;
+# 0 deactivates feature; Defaults to 3
 early_stopping: 3
 # Epochs (int): Number of epochs to train for
 epochs: 1
@@ -161,10 +165,17 @@ heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
 # Model Type (str): Name of model architecture to train
-model_type: "retnet" # Choices: "retnet", "transformer"
+model_type: "retnet" # Choices: "retnet", "transformer", "longnet"
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
 value_embed_dim: 1280
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
 vocab_size: 50000
+
+# ---------------------------- LONGNET CONFIGURATION ----------------------------
+
+# Dilated Ratio (list[int]): Ratio of dilation for the model
+dilated_ratio: [1, 2]
+# Segment Length (list[int]): Length of segments for the model
+segment_length: [2048, 4096]

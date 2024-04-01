@@ -9,7 +9,7 @@ import yaml
 from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
 from datetime import datetime
-from models import RetNetModel, TransformerModel
+from models import LongNetModel, RetNetModel, TransformerModel
 from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
@@ -20,15 +20,18 @@ from torchinfo import summary as model_summary
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, filename, monitor, save_top_k, mode, every_n_train_steps):
+    def __init__(self, dirpath, monitor, save_top_k, mode, every_n_train_steps):
+        self.num_ckpts = 0
+        self.file_name = f"{self.num_ckpts}"+"_epoch_{epoch}_validation_{val_loss:.2f}"
+        
         super().__init__(
             dirpath=dirpath,
-            filename=filename,
+            filename=self.file_name,
             monitor=monitor,
             save_top_k=save_top_k,
             mode=mode,
             every_n_train_steps=every_n_train_steps)
-        self.num_ckpts = 0
+
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
         super().on_save_checkpoint(
@@ -39,6 +42,8 @@ class CustomModelCheckpoint(ModelCheckpoint):
             os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
         self.num_ckpts += 1
 
+        # Print GPU memory usage
+        print(torch.cuda.memory_summary())  # Prints per device
 
 def train_model(config: Struct):
     # Test that the head dimension will be an even, whole number
@@ -58,7 +63,9 @@ def train_model(config: Struct):
         set_seed(config.rand_seed)
 
     # Create requested model
-    if config.model_type.lower() == "retnet":
+    if config.model_type.lower() == "longnet":
+        model = LongNetModel(config)
+    elif config.model_type.lower() == "retnet":
         model = RetNetModel(config)
     elif config.model_type.lower() == "transformer":
         model = TransformerModel(config)
@@ -81,8 +88,8 @@ def train_model(config: Struct):
     # Print model info
     print("\nModel Summary:")
     total_params = model_summary(
-        model,
-        input_data=torch.ones(1, config.seq_len).long()).total_params
+        model.to(config.device),
+        input_data=torch.ones(1, config.seq_len).long().to(config.device)).total_params
 
     # Create unique label for model (model type, parameter count,
     # **hyperparameters, timestamp)
@@ -102,8 +109,11 @@ def train_model(config: Struct):
     print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    tboard_log_dir = Path(config.models_path) / model_label / "logs"
-    
+    if config.tboard_path is None:
+        tboard_log_dir = Path(config.models_path) / "logs" / model_label
+    else:
+        tboard_log_dir = f"{config.tboard_path}/{model_label}"
+
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
 
     tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
@@ -127,7 +137,6 @@ def train_model(config: Struct):
     # Implement callbacks
     model_checkpoint = CustomModelCheckpoint(
         dirpath=checkpoints_dir,
-        filename="epoch_{epoch}_validation_{val_loss:.2f}",
         monitor="val_loss",
         save_top_k=config.save_top_k,
         mode="min",
@@ -145,6 +154,7 @@ def train_model(config: Struct):
             default_root_dir=model_dir, # main directory for run
             accelerator=config.device,
             devices=config.num_devices,
+            strategy=config.strategy,
             max_epochs=config.epochs,
             val_check_interval=config.val_check_interval,
             accumulate_grad_batches=config.accumulate_grad_batches,
