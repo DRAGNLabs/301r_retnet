@@ -182,17 +182,6 @@ class DecoderLayer(nn.Module):
         if self.normalize_before:
             x = self.self_attn_layer_norm(x)
 
-        # Apply performer self-attention. The attention mask ensures causality in the decoder.
-        # x, attn = self.self_attn(
-        #     query=x,
-        #     key=x,
-        #     value=x,
-        #     key_padding_mask=self_attn_padding_mask,
-        #     incremental_state=incremental_state,
-        #     attn_mask=self_attn_mask,
-        #     rel_pos=self_attn_rel_pos,
-        #     is_first_step=is_first_step,
-        # )
         x = self.self_attn(
             x,
             pos_emb = self_pos_emb, 
@@ -428,16 +417,6 @@ class PerformerDecoder(nn.Module):
         x = self.dropout_module(x)
 
         return x, embed
-
-        # # Apply token embeddings
-        # token_embeddings = self.token_emb(tokens)
-
-        # # Apply positional embeddings
-        # positional_embeddings = self.pos_emb(tokens)
-        
-        # # Combine embeddings and apply dropout
-        # embeddings = self.dropout_module(token_embeddings + positional_embeddings)
-        # return embeddings, token_embeddings
 
     def is_first_step(self, incremental_state):
         if incremental_state is None:
