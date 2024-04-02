@@ -158,14 +158,19 @@ vocab_size: 50000
 dim_head: 64
 # Number of local attention heads. Determines how many heads are used for local attention as opposed to global attention.
 local_heads: 0
+# If the performer should use causal attention
+causal: true
 # Size of the local attention window. Defines the range of tokens each local attention head can attend to.
 local_window_size: 256
 # Number of random features for kernel approximation. Null defaults to a function of dim_head if not explicitly set.
 nb_features: null
+# Redrawing avoids unlucky projections on Q and K
+feature_redraw_interval: 1000
 # Use generalized attention mechanism. Enables using attention mechanisms beyond the standard softmax.
 generalized_attention: false
 # Kernel function used in the generalized attention mechanism. Defines the non-linearity applied to attention logits.
-kernel_fn: relu
+# Note that torchscale uses gelu and performer uses relu by default
+kernel_fn: relu # relu or gelu
 # Disable linear projection in the attention mechanism. If true, avoids projecting Q/K/V in the attention layers.
 no_projection: false
 # Use bias in QKV projection within the attention mechanism. Determines if bias terms are added to queries, keys, and values.
