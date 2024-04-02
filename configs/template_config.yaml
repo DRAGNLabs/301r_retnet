@@ -98,8 +98,6 @@ num_nodes: 1
 # Num Workers (int): Number of workers for dataloaders. Recommended to set to
 # one less than number of CPU cores available
 num_workers: 0
-# Strategy (string): Distributed strategy for training. Likely no need to change
-strategy: ddp # Options: "ddp", "ddp_spawn"
 # Use Slurm (bool): Whether to use Slurm for training
 use_slurm: true
 

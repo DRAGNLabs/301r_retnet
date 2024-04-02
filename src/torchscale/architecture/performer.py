@@ -263,7 +263,6 @@ class PerformerDecoder(nn.Module):
 
         # Performer positional embedding initialization
         self.max_seq_len = max_seq_len
-        print("num_tokens: " + str(num_tokens))
         self.token_emb = nn.Embedding(num_tokens, dim)
 
         if rotary_position_emb:
@@ -457,24 +456,6 @@ class PerformerDecoder(nn.Module):
         token_embeddings=None,
         **kwargs
     ):
-        # -------------------------------------------------
-        print(f"Tokens shape: {prev_output_tokens.shape}, Tokens dtype: {prev_output_tokens.dtype}")
-
-        print(f"Unique tokens: {torch.unique(prev_output_tokens)}")
-
-        max_token = prev_output_tokens.max().item()
-        min_token = prev_output_tokens.min().item()
-        print(f"Max token index: {max_token}, Min token index: {min_token}")
-        
-        if max_token >= 46858 or min_token < 0:
-            print("Warning: Tokens contain out-of-range values!")
-
-        print(f"Embedding matrix size: {self.embed_tokens.weight.size()}")
-
-        tokens_long = prev_output_tokens.long()
-        print(f"Tokens converted to long, shape: {tokens_long.shape}, dtype: {tokens_long.dtype}")
-        print(f"Max token index after conversion: {tokens_long.max().item()}, Min token index after conversion: {tokens_long.min().item()}")
-        # -------------------------------------------------
 
 
         # embed tokens and positions
@@ -486,7 +467,6 @@ class PerformerDecoder(nn.Module):
         # relative position
         self_attn_rel_pos_bias = None
         slen = prev_output_tokens.size(1)
-
         if self.self_attn_relative_position is not None:
             self_attn_rel_pos_bias = self.self_attn_relative_position(
                 batch_size=x.size(0), qlen=slen, klen=slen

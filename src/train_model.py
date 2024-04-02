@@ -13,6 +13,7 @@ from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.plugins.environments import SLURMEnvironment
+from pytorch_lightning.strategies import DDPStrategy
 from subprocess import run
 from tabulate import tabulate
 from transformers import set_seed
@@ -154,21 +155,21 @@ def train_model(config: Struct):
             default_root_dir=model_dir, # main directory for run
             accelerator=config.device,
             devices=config.num_devices,
-            strategy=config.strategy,
+            strategy=DDPStrategy(find_unused_parameters=True),
             max_epochs=config.epochs,
             val_check_interval=config.val_check_interval,
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
             callbacks=[early_stopping, model_checkpoint],
             logger=tb_logger,
-            precision=config.precision)
+            precision=config.precision,)
     else:
         trainer = Trainer(
             default_root_dir=model_dir, # main directory for run
             accelerator=config.device,
             num_nodes=config.num_nodes,
             devices=config.num_devices,
-            strategy=config.strategy,
+            strategy=DDPStrategy(find_unused_parameters=True),
             max_epochs=config.epochs,
             val_check_interval=config.val_check_interval,
             accumulate_grad_batches=config.accumulate_grad_batches,
@@ -176,7 +177,7 @@ def train_model(config: Struct):
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
             logger=tb_logger,
-            precision=config.precision)
+            precision=config.precision,)
         
     ## Set up carbon emissions tracker
 
