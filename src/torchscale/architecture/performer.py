@@ -193,7 +193,7 @@ class DecoderLayer(nn.Module):
         #     rel_pos=self_attn_rel_pos,
         #     is_first_step=is_first_step,
         # )
-        x, attn = self.self_attn(
+        x = self.self_attn(
             x,
             pos_emb = self_pos_emb, 
             context = self_context, 
@@ -208,28 +208,6 @@ class DecoderLayer(nn.Module):
         x = self.residual_connection(x, residual)
         if not self.normalize_before:
             x = self.self_attn_layer_norm(x)
-
-        if self.encoder_attn is not None and encoder_out is not None:
-            residual = x
-            if self.normalize_before:
-                x = self.encoder_attn_layer_norm(x)
-
-            x, attn = self.encoder_attn(
-                query=x,
-                key=encoder_out,
-                value=encoder_out,
-                key_padding_mask=encoder_padding_mask,
-                incremental_state=None,
-                rel_pos=cross_attn_rel_pos,
-            )
-            x = self.dropout_module(x)
-
-            if self.drop_path is not None:
-                x = self.drop_path(x)
-
-            x = self.residual_connection(x, residual)
-            if not self.normalize_before:
-                x = self.encoder_attn_layer_norm(x)
 
         residual = x
         if self.normalize_before:
@@ -247,7 +225,7 @@ class DecoderLayer(nn.Module):
         if not self.normalize_before:
             x = self.final_layer_norm(x)
 
-        return x, attn, None, l_aux
+        return x, None, l_aux
 
 
 # The PerformerDecoder class represents the entire decoder made up of multiple layers of DecoderLayer.
@@ -552,7 +530,7 @@ class PerformerDecoder(nn.Module):
                 if idx not in incremental_state:
                     incremental_state[idx] = {}
 
-            x, layer_attn, _, l_aux_i = layer(
+            x, _, l_aux_i = layer(
                 x,
                 encoder_out["encoder_out"] if encoder_out is not None else None,
                 encoder_out["encoder_padding_mask"]
