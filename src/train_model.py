@@ -1,5 +1,6 @@
 # General
 import json
+import numpy as np
 import os
 import signal
 import sys
@@ -16,7 +17,6 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from tabulate import tabulate
 from transformers import set_seed
-from torchinfo import summary as model_summary
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
@@ -85,11 +85,9 @@ def train_model(config: Struct):
         arg_table.append(row)
     print(tabulate(arg_table, tablefmt="grid"))
 
-    # Print model info
-    print("\nModel Summary:")
-    total_params = model_summary(
-        model.to(config.device),
-        input_data=torch.ones(1, config.seq_len).long().to(config.device)).total_params
+    # Get number of parameters in model
+    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+    total_params = sum([np.prod(p.size()) for p in model_parameters])
 
     # Create unique label for model (model type, parameter count,
     # **hyperparameters, timestamp)
