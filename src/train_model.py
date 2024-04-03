@@ -71,7 +71,7 @@ def train_model(config: Struct):
         model = TransformerModel(config)
     else:
         raise ValueError(f"Model type '{config.model_type}' not supported!")
-
+        
     # Print all arguments for recordkeeping
     print("Arguments:")
     arg_table = []
@@ -91,10 +91,12 @@ def train_model(config: Struct):
 
     # Create unique label for model (model type, parameter count,
     # **hyperparameters, timestamp)
-    model_label = f"{config.model_type}_{total_params}" + \
-        f"_LR{config.learning_rate}_ED{config.embed_dim}" + \
-        f"_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}" + \
-        f"_{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
+    if config.model_label is not None:
+        model_label = config.model_label
+    else:
+        model_label = f"{config.model_type}_{total_params}" + \
+            f"_LR{config.learning_rate}_ED{config.embed_dim}" + \
+            f"_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}"
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
@@ -108,7 +110,7 @@ def train_model(config: Struct):
 
     # Create SummaryWriter to record logs for TensorBoard
     if config.tboard_path is None:
-        tboard_log_dir = Path(config.models_path) / "logs" / model_label
+        tboard_log_dir = Path(model_dir) / "logs"
     else:
         tboard_log_dir = f"{config.tboard_path}/{model_label}"
 
