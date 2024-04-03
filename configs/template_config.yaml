@@ -35,13 +35,13 @@ csv_path: None
 # Example: "/tmp/data/models/<MODEL_NAME>/checkpoints/hf_ckpt_<CHECKPOINT_NUM>"
 model_path_dir: ~
 
-# Model Name (str): Label to use for model run, all checkpoints and logs are saved
+# Model Label (str): Label to use for model run, all checkpoints and logs are saved
 # under this path. Good to use a unique name. If not specified, one is generated.
 # However, the generated one many not be unique. A unique name is critical for 
 # Slurm requeuing. If there already exists a folder with the model name,
 # the checkpoints may be overwritten.
 # Example: 4-1-retnet-7B
-model_name: ~
+model_label: ~
 
 # Results Out Path (str): JSON file path where test harness results are stored.
 # Example: "<YOUR_PATH_HERE>/data/models/<MODEL_NAME>/eval_results.json"
