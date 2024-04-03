@@ -19,7 +19,6 @@
 # -------------------- TESTING AND GENERATION CONFIGURATION --------------------
 
 # Generation Length (int): Maximum number of tokens during generation
-# This is not considered in latency eval
 gen_len: 100
 
 # Input Starting Strings (List[str]): Starting strings for generation.py
@@ -40,50 +39,39 @@ model_path_dir: ~
 results_out_path: ~
 
 # Tasks (List[str]): A list of tests to apply in the evaluation test harness
-# Note, latency evaluation is a custom solution and does not run through the evaluation harness
 tasks:
   - "hellaswag"
   - "winogrande"
-  - "latency"
 # N-shot (int | None): The number of examples to show the model before prompting; 'None' defaults to 0
 nshot: ~
-
-# n_tokens_to_generate (int): number of tokens to generate during a single round in latency evaluation; 'None' defaults to 10
-n_tokens_to_generate:
-  50
-
-# num_latency_trials (int): The number of generation trials to run at each test sequence length; 'None' defaults to 5
-num_latency_trials:
-  10
-
-# What sizes of sequence length to test (List[int]); No values defaults to model.seq_len
-test_sequence_lengths:
-  - 10
-  - 100
-  - 1000
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
 # Checkpoint Path (str): Path to checkpoint to load for generation/inference.
 # Typically is the "best_model_path" from training
-checkpoint_path: ~
+checkpoint_path: "/home/knj28/301r_retnet/example_compute_folder/data/models/transformer_8057032_LR0.001_ED80_FFN12_H4_S128_2024-03-23-19:02:34/checkpoints/epoch_epoch=0_validation_val_loss=6.20.ckpt"
+# Trained Model Path (str): Path to model folder where checkpoints are stored.
+# Is the model name from training.
+trained_model_path: "/home/knj28/301r_retnet/example_compute_folder/data/models/transformer_8057032_LR0.001_ED80_FFN12_H4_S128_2024-03-23-19:02:34"
 
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: "text"
 # HuggingFace Dataset Name (str)
-dataset_name: "c4"
+dataset_name: "wikitext"
 # HuggingFace Dataset Subset (str)
-dataset_subset: "c4-en"
+dataset_subset: "wikitext-2-v1"
+# This can differ based on the HF repo
+hf_filesystem_path: hf://datasets/wikitext/wikitext-2-v1
 
 # Train Model (str): Path to model folder
-models_path: "<YOUR_PATH_HERE>/data/models"
+models_path: "/home/knj28/301r_retnet/example_compute_folder/data/models"
 
 # Root Data Path (str): Useful for any new features that don't want to specify a
 # new path parameter in the config
-root_data_path: "<YOUR_PATH_HERE>/data"
+root_data_path: "/home/knj28/301r_retnet/example_compute_folder/data"
 
 # Download Data (str): Path to raw dataset folder
-raw_dataset_path: "<YOUR_PATH_HERE>/data/datasets/c4"
+raw_dataset_path: "/home/knj28/301r_retnet/example_compute_folder/data/datasets_raw/wikitext_small_test"
 
 # Splits (List[int]): Train split, Validation Split, and Test Split
 splits:
@@ -92,13 +80,10 @@ splits:
   - 0.1
 
 # Train Tokenizer (str): Path to tokenizer folder
-tokenizer_path: "<YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer"
+tokenizer_path: "/home/knj28/301r_retnet/example_compute_folder/tokenizer/wikitext_small_test_tokenizer"
 
 # Tokenize Data (str): Path to tokenized dataset folder
-tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/c4"
-
-# TensorBoard Path (str): Path for where TensorBoard files go, optional
-tboard_path: "<YOUR_PATH_HERE>/data/runs"
+tokenized_dataset_path: "/home/knj28/301r_retnet/example_compute_folder/data/datasets_tokenized/wikitext_small_test"
 
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
 # If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
@@ -124,12 +109,9 @@ use_slurm: true
 
 # --------------------------- TRAINING CONFIGURATION ---------------------------
 
-# Accumulate Gradient Batches (int): Accumulate gradients over n batches; note how this interacts w/ every_n_train_steps
+# Accumulate Gradient Batches (int): Accumulate gradients over n batches; note how this interacts with every_n_train_steps
 accumulate_grad_batches: 1
-# Batch Size (int): Batch size for training
-batch_size: 8
-# Early Stopping (int): Number of validations w/out improvement to wait before stopping training;
-# 0 deactivates feature; Defaults to 3
+# Early Stopping (int): Number of epochs to wait before stopping training
 early_stopping: 3
 # Epochs (int): Number of epochs to train for
 epochs: 1
@@ -140,14 +122,12 @@ learning_rate: 0.001
 # Random Seed (int): Random seed for reproducibility
 rand_seed: 42
 # Precision (str): Precision for training; refer to Torch Lightning docs
-precision: fp16
+precision: 16
 # Save Top K (int): Number of best models to save; default saves the best single checkpoint. Set to -1 to save all
 save_top_k: 3
-# Every N hours (int or float): Checkpoint every n hours; overrides every_n_train_steps if not set to default (None or 0). 
-every_n_hours: ~
-# Every N Train Steps (int): Checkpoint every n train steps; Overridden by every_n_hours if it's not set to 0 or None;
-# Note: PyTorch Lightning defines 'steps' as optimizer steps, not batch forward passes, distinct when accumulate_grad_batches > 1.
-every_n_train_steps: 10000
+# Every N Train Steps (int): Checkpoint every n train steps; Note: PyTorch Lightning defines 'steps' as 
+# optimizer steps, not batch forward passes, distinct when accumulate_grad_batches > 1.
+every_n_train_steps: 1000
 # Validation Check Interval (float): Validation frequency (fraction of an epoch)
 val_check_interval: 0.5
 
@@ -156,6 +136,8 @@ val_check_interval: 0.5
 # Activation Dropout (float): Probability of an element to be zeroed during
 # dropout after activation between FFN layers
 activation_dropout: 0.0
+# Batch Size (int): Batch size for training
+batch_size: 16
 # Dropout (float): Probability of an element to be zeroed during dropout
 dropout: 0.1
 # Embedding Dimension (int): Embedding dimension size of each token
@@ -167,7 +149,7 @@ heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
 # Model Type (str): Name of model architecture to train
-model_type: "retnet" # Choices: "retnet", "transformer", "longnet"
+model_type: "longnet" # Choices: "retnet", "transformer"
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
@@ -180,4 +162,4 @@ vocab_size: 50000
 # Dilated Ratio (list[int]): Ratio of dilation for the model
 dilated_ratio: [1, 2]
 # Segment Length (list[int]): Length of segments for the model
-segment_length: [2048, 4096]
+segment_length: [128, 256]

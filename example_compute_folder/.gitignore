@@ -1,0 +1,11 @@
+# Ignore the following folders in this directory
+data/datasets_tokenized
+data/datasets_raw
+data/models
+tokenizer
+
+# Except this file
+!.gitignore
+
+# And all info files.
+!info.txt
