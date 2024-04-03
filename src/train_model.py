@@ -9,7 +9,7 @@ import yaml
 
 from codecarbon import OfflineEmissionsTracker
 from dataset import DataModule
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import LongNetModel, RetNetModel, TransformerModel
 from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
@@ -21,16 +21,32 @@ from torchinfo import summary as model_summary
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, monitor, save_top_k, mode, every_n_train_steps):
+    def __init__(self, dirpath, monitor, save_top_k, mode, every_n_hours, every_n_train_steps):
         self.num_ckpts = 0
-        self.file_name = f"{self.num_ckpts}"+"_epoch_{epoch}_validation_{val_loss:.2f}"
+        self.file_name = f"{self.num_ckpts}"+"_epoch_{epoch}_validation_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         
+        if every_n_hours is not None and every_n_train_steps is not None:
+            if every_n_hours <= 0:
+                print("Warning: You have set both 'every_n_hours' and 'every_n_train_steps' in your yaml.")
+                print(f"With 'every_n_hours' set {every_n_hours}, i.e., <= 0; \
+                      resetting to 'None' and using every_n_train_steps ({every_n_train_steps}).")
+                every_n_hours = None
+            else:
+                print("Warning: You have set both 'every_n_hours' and 'every_n_train_steps' in your yaml.")
+                print(f"Using 'every_n_hours' ({every_n_hours}) and changing 'every_n_train_steps' from \
+                      {every_n_train_steps} to 'None'.")
+                every_n_train_steps = None
+
+            # Change every_n_hours to timedelta
+            every_n_hours = timedelta(hours=every_n_hours)
+
         super().__init__(
             dirpath=dirpath,
             filename=self.file_name,
             monitor=monitor,
             save_top_k=save_top_k,
             mode=mode,
+            train_time_interval=every_n_hours,
             every_n_train_steps=every_n_train_steps)
 
 
@@ -90,7 +106,7 @@ def train_model(config: Struct):
     print("\nModel Summary:")
     total_params = model_summary(
         model.to(config.device),
-        input_data=torch.ones(1, config.seq_len).long().to(config.device)).total_params
+        input_data=torch.ones(1, config.seq_len).long().to(config.device), device=config.device).total_params
 
     # Create unique label for model (model type, parameter count,
     # **hyperparameters, timestamp)
@@ -189,6 +205,7 @@ def train_model(config: Struct):
         monitor="val_loss",
         save_top_k=config.save_top_k,
         mode="min",
+        every_n_hours=config.every_n_hours,
         every_n_train_steps=config.every_n_train_steps)
 
     early_stopping = EarlyStopping(

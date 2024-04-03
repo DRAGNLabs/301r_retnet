@@ -32,11 +32,8 @@ def inference(config: Struct):
         raise ValueError(f"Model type '{config.model_type}' not supported!")
 
     # Create SummaryWriter to record logs for TensorBoard
-    if config.tboard_path is None:
-        tboard_log_dir = Path(config.model_path_dir) / "logs"
-    else:
-        tboard_log_dir = f"{config.tboard_path}/" + \
-            f"{Path(config.model_path_dir).name}"
+    tboard_log_dir = Path(config.trained_model_path) / "inference" / "logs"
+    tboard_log_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
 

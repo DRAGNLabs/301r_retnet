@@ -2,3 +2,8 @@
 *
 # Except this file
 !.gitignore
+
+# And add in example .sh files for example_compute_folder
+!train_tokenizer.sh
+!tokenize_data.sh
+
