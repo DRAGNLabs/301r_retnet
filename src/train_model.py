@@ -70,7 +70,7 @@ def train_model(config: Struct):
         model = TransformerModel(config)
     else:
         raise ValueError(f"Model type '{config.model_type}' not supported!")
-        
+
     # Print all arguments for recordkeeping
     print("Arguments:")
     arg_table = []
