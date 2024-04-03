@@ -126,6 +126,8 @@ use_slurm: true
 
 # Accumulate Gradient Batches (int): Accumulate gradients over n batches; note how this interacts w/ every_n_train_steps
 accumulate_grad_batches: 1
+# Batch Size (int): Batch size for training
+batch_size: 8
 # Early Stopping (int): Number of validations w/out improvement to wait before stopping training;
 # 0 deactivates feature; Defaults to 3
 early_stopping: 3
@@ -141,8 +143,10 @@ rand_seed: 42
 precision: fp16
 # Save Top K (int): Number of best models to save; default saves the best single checkpoint. Set to -1 to save all
 save_top_k: 3
-# Every N Train Steps (int): Checkpoint every n train steps; Note: PyTorch Lightning defines 'steps' as 
-# optimizer steps, not batch forward passes, distinct when accumulate_grad_batches > 1.
+# Every N hours (int or float): Checkpoint every n hours; overrides every_n_train_steps if not set to default (None or 0). 
+every_n_hours: ~
+# Every N Train Steps (int): Checkpoint every n train steps; Overridden by every_n_hours if it's not set to 0 or None;
+# Note: PyTorch Lightning defines 'steps' as optimizer steps, not batch forward passes, distinct when accumulate_grad_batches > 1.
 every_n_train_steps: 10000
 # Validation Check Interval (float): Validation frequency (fraction of an epoch)
 val_check_interval: 0.5
@@ -152,8 +156,6 @@ val_check_interval: 0.5
 # Activation Dropout (float): Probability of an element to be zeroed during
 # dropout after activation between FFN layers
 activation_dropout: 0.0
-# Batch Size (int): Batch size for training
-batch_size: 8
 # Dropout (float): Probability of an element to be zeroed during dropout
 dropout: 0.1
 # Embedding Dimension (int): Embedding dimension size of each token
