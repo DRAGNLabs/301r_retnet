@@ -2,6 +2,3 @@
 *
 # Except this file
 !.gitignore
-
-# Also don't keep example_compute_config.yaml as example of system running.
-example_compute_config.yaml
