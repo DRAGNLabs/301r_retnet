@@ -1,6 +1,5 @@
 # General
 import json
-import numpy as np
 import os
 import signal
 import sys
@@ -86,8 +85,7 @@ def train_model(config: Struct):
     print(tabulate(arg_table, tablefmt="grid"))
 
     # Get number of parameters in model
-    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
-    total_params = sum([np.prod(p.size()) for p in model_parameters])
+    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
     # Create unique label for model (model type, parameter count,
     # **hyperparameters, timestamp)
