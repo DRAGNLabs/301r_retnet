@@ -16,7 +16,6 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from tabulate import tabulate
 from transformers import set_seed
-from torchinfo import summary as model_summary
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
@@ -101,18 +100,17 @@ def train_model(config: Struct):
         arg_table.append(row)
     print(tabulate(arg_table, tablefmt="grid"))
 
-    # Print model info
-    print("\nModel Summary:")
-    total_params = model_summary(
-        model.to(config.device),
-        input_data=torch.ones(1, config.seq_len).long().to(config.device), device=config.device).total_params
+    # Get number of parameters in model
+    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
     # Create unique label for model (model type, parameter count,
     # **hyperparameters, timestamp)
-    model_label = f"{config.model_type}_{total_params}" + \
-        f"_LR{config.learning_rate}_ED{config.embed_dim}" + \
-        f"_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}" + \
-        f"_{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}"
+    if config.model_label is not None:
+        model_label = config.model_label
+    else:
+        model_label = f"{config.model_type}_{total_params}" + \
+            f"_LR{config.learning_rate}_ED{config.embed_dim}" + \
+            f"_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}"
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
@@ -126,7 +124,7 @@ def train_model(config: Struct):
 
     # Create SummaryWriter to record logs for TensorBoard
     if config.tboard_path is None:
-        tboard_log_dir = Path(config.models_path) / "logs" / model_label
+        tboard_log_dir = Path(model_dir) / "logs"
     else:
         tboard_log_dir = f"{config.tboard_path}/{model_label}"
 
