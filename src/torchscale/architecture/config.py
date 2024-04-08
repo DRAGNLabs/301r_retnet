@@ -319,3 +319,9 @@ class RetNetConfig(PretrainedConfig):
             self.moe_normalize_gate_prob_before_dropping = True
             self.moe_second_expert_policy = "random"
             assert self.moe_freq > 0 and self.moe_expert_count > 0
+
+class LongNetConfig(DecoderConfig):
+
+    model_type = "longnet"
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
