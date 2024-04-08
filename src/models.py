@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from pytorch_lightning import LightningModule
 from torch import Tensor
-from torchscale.architecture.config import RetNetConfig, DecoderConfig
+from torchscale.architecture.config import RetNetConfig, DecoderConfig, LongNetConfig
 from torchscale.architecture.decoder import Decoder
 from torchscale.architecture.retnet import RetNetDecoder
 from torchscale.architecture.longnet import LongNetDecoder
@@ -567,21 +567,21 @@ class TransformerModelHF(PreTrainedModel):
 
 class LongNetModelHF(PreTrainedModel):
     """ Create model with LongNet architecture. """
-    config_class = DecoderConfig
+    config_class = LongNetConfig
 
-    def __init__(self, config: Optional[DecoderConfig]=None):
+    def __init__(self, config: Optional[LongNetConfig]=None):
         """ Use configuration object to create corresponding LongNet model.
         Args:
-            config (DecoderConfig): A Decoder configuration object.
+            config (LongNetConfig): A Decoder configuration object.
         """
         # Create Transformer Decoder configuration
         # This will work for LongNet as well (which this is)
         if not config:
-            self.config = DecoderConfig()
-        elif isinstance(config, DecoderConfig):
+            self.config = LongNetConfig()
+        elif isinstance(config, LongNetConfig):
             self.config = config
         else:
-            raise ValueError("If given, config must be a DecoderConfig object.")
+            raise ValueError("If given, config must be a LongNetConfig object.")
 
         super().__init__(self.config)
 
