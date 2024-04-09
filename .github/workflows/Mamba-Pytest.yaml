@@ -1,4 +1,4 @@
-name: Python Package using Conda
+name: Mamba Env Pytest
 
 on: [workflow_dispatch]
 
