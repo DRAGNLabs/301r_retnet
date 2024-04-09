@@ -1,4 +1,5 @@
 name: Mamba Env Pytest
+run-name: Mamba Env Pytest
 
 on: [workflow_dispatch]
 
