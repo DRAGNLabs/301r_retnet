@@ -4,8 +4,7 @@ from transformers import PretrainedConfig
 
 
 class DecoderConfig(PretrainedConfig):
-    model_type = "custom_transformer"
-
+    model_type = 'custom_transformer'
     def __init__(self, **kwargs):
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
         self.decoder_attention_heads = kwargs.pop("decoder_attention_heads", 12)
@@ -51,12 +50,30 @@ class DecoderConfig(PretrainedConfig):
         self.ddp_rank = kwargs.pop("ddp_rank", 0)
         self.xpos_rel_pos = kwargs.pop("xpos_rel_pos", False)
         self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
+        # Dilated Attention
+        self.flash_attention = kwargs.pop("flash_attention", False)
+        self.segment_length = kwargs.pop("segment_length", None)
+        self.dilated_ratio = kwargs.pop("dilated_ratio", None)
+        self.seq_parallel = kwargs.pop("seq_parallel", False)
+        self.postprocessing()
+
+    def override(self, args):
+        for hp in self.__dict__.keys():
+            if getattr(args, hp, None) is not None:
+                self.__dict__[hp] = getattr(args, hp, None)
+        self.postprocessing()
+
+    def postprocessing(self):
+        if self.segment_length is not None and self.segment_length != '':
+            self.segment_length = eval(self.segment_length)
+        if self.dilated_ratio is not None and self.dilated_ratio != '':
+            self.dilated_ratio = eval(self.dilated_ratio)
 
         if self.deepnorm:
-            self.decoder_normalize_before = False
+            self.encoder_normalize_before = False
             self.subln = False
         if self.subln:
-            self.decoder_normalize_before = True
+            self.encoder_normalize_before = True
             self.deepnorm = False
         if self.use_xmoe:
             self.moe_normalize_gate_prob_before_dropping = True
@@ -70,13 +87,12 @@ class DecoderConfig(PretrainedConfig):
                 
 
 class RetNetConfig(PretrainedConfig):
-    model_type = 'retnet'
 
+    model_type = "retnet"
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
         self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
         self.decoder_value_embed_dim = kwargs.pop("decoder_value_embed_dim", 1280)
-        self.decoder_retention_heads = kwargs.pop("decoder_retention_heads", 4)
+        self.decoder_retention_heads = kwargs.pop("decoder_retention_heads", 3)
         self.decoder_ffn_embed_dim = kwargs.pop("decoder_ffn_embed_dim", 1280)
         self.decoder_layers = kwargs.pop("decoder_layers", 12)
         self.decoder_normalize_before = kwargs.pop("decoder_normalize_before", True)
@@ -122,6 +138,87 @@ class RetNetConfig(PretrainedConfig):
         self.xpos_rel_pos = kwargs.pop("xpos_rel_pos", False)
         self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
         self.lr = kwargs.pop("lr", 0.0001)
+
+        if self.deepnorm:
+            self.encoder_normalize_before = False
+            self.subln = False
+        if self.subln:
+            self.encoder_normalize_before = True
+            self.deepnorm = False
+        if self.use_xmoe:
+            self.moe_normalize_gate_prob_before_dropping = True
+            self.moe_second_expert_policy = "random"
+            assert self.moe_freq > 0 and self.moe_expert_count > 0
+
+
+class PerformerConfig(PretrainedConfig):
+    model_type = 'performer'
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.decoder_embed_dim = kwargs.pop("decoder_embed_dim", 768)
+        self.embed_dim = self.decoder_embed_dim
+        self.decoder_attention_heads = kwargs.pop("decoder_attention_heads", 12)
+        self.depth = kwargs.pop("depth", 12)
+        self.heads = kwargs.pop("heads", 12)
+        self.decoder_ffn_embed_dim = kwargs.pop("decoder_ffn_embed_dim", 3072)
+        self.decoder_layers = kwargs.pop("decoder_layers", 12)
+        self.mlp_dim = kwargs.pop("mlp_dim", 3072)
+        self.dropout = kwargs.pop("dropout", 0.0)
+        self.activation_dropout = kwargs.pop("activation_dropout", 0.0)
+        self.no_scale_embedding = kwargs.pop("no_scale_embedding", True)
+        self.layernorm_embedding = kwargs.pop("layernorm_embedding", False)
+        self.drop_path_rate = kwargs.pop("drop_path_rate", 0.0)
+        self.max_seq_len = kwargs.pop("max_seq_len", 512)
+        self.use_relative_position = kwargs.pop("use_relative_position", False)
+        self.use_axial_position = kwargs.pop("use_axial_position", False)
+        self.axial_pos_shape = kwargs.pop("axial_pos_shape", (64, 64))
+        self.axial_pos_emb_dim = kwargs.pop("axial_pos_emb_dim", 64)
+        self.use_rotary_position = kwargs.pop("use_rotary_position", False)
+        self.vocab_size = kwargs.pop("vocab_size", -1)
+        self.lr = kwargs.pop("lr", 0.0001)
+        self.activation_fn = kwargs.pop("activation_fn", "gelu")
+        #MOE Configs
+        self.moe_freq = kwargs.pop("moe_freq", 0)
+        self.moe_top1_expert = kwargs.pop("moe_top1_expert", False)
+        self.moe_expert_count = kwargs.pop("moe_expert_count", 0)
+        self.moe_gating_use_fp32 = kwargs.pop("moe_gating_use_fp32", True)
+        self.moe_eval_capacity_token_fraction = kwargs.pop(
+            "moe_eval_capacity_token_fraction", 0.25
+        )
+        self.moe_second_expert_policy = kwargs.pop("moe_second_expert_policy", "random")
+        self.moe_normalize_gate_prob_before_dropping = kwargs.pop(
+            "moe_normalize_gate_prob_before_dropping", False
+        )
+        self.deepnorm = kwargs.pop("deepnorm", False)
+        self.bert_init = kwargs.pop("bert_init", False)
+        self.multiway = kwargs.pop("multiway", False)
+        self.subln = kwargs.pop("subln", True)
+        self.use_xmoe = kwargs.pop("use_xmoe", False)
+        self.rel_pos_buckets = kwargs.pop("rel_pos_buckets", 0)
+        self.no_output_layer = kwargs.pop("no_output_layer", False)
+        self.layernorm_eps = kwargs.pop("layernorm_eps", 1e-5)
+        self.share_decoder_input_output_embed = kwargs.pop(
+            "share_decoder_input_output_embed", False
+        )
+        # Fairscale
+        self.checkpoint_activations = kwargs.pop("checkpoint_activations", False)
+        self.fsdp = kwargs.pop("fsdp", False)
+        self.ddp_rank = kwargs.pop("ddp_rank", 0)
+        self.xpos_rel_pos = kwargs.pop("xpos_rel_pos", False)
+        self.xpos_scale_base = kwargs.pop("xpos_scale_base", 512)
+        # Additional Performer configurations for self-attention and cross-attention
+        self.dim_head = kwargs.pop("dim_head", 64)  # Dimension of each attention head
+        self.causal = kwargs.pop("causal", True)  # Enable causal linear attention
+        self.feature_redraw_interval = kwargs.pop("feature_redraw_interval", 1000) # Number of Feature Redraw Intervals
+        self.local_heads = kwargs.pop("local_heads", 0)  # Number of local attention heads
+        self.local_window_size = kwargs.pop("local_window_size", 256)  # Size of the local attention window
+        self.nb_features = kwargs.pop("nb_features", None)  # Number of random features for kernel approximation
+        self.generalized_attention = kwargs.pop("generalized_attention", False)  # Use generalized attention
+        self.kernel_fn = kwargs.pop("kernel_fn", "relu")  # Kernel function for attention
+        self.no_projection = kwargs.pop("no_projection", False)  # Disable linear projection in attention
+        self.qkv_bias = kwargs.pop("qkv_bias", False)  # Use bias in QKV projection
+        self.attn_out_bias = kwargs.pop("attn_out_bias", True)  # Use bias in attention output projection
 
         if self.deepnorm:
             self.decoder_normalize_before = False
