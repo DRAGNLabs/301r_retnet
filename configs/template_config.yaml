@@ -105,9 +105,6 @@ tokenizer_path: <YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer
 # Tokenize Data (str): Path to tokenized dataset folder
 tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/c4
 
-# TensorBoard Path (str): Path for where TensorBoard files go, optional
-tboard_path: <YOUR_PATH_HERE>/data/runs
-
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
 # If left empty, defaults to 'emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
 CO2_outfile: ~ # Example: CO2_grid_search.csv
