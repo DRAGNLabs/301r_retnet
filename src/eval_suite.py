@@ -18,7 +18,7 @@ def run_eval(config: Struct):
 
     AutoConfig.register("retnet", RetNetConfig)
     AutoConfig.register("custom_transformer", DecoderConfig)
-    AutoConfig.register("longnet", LongNetConfig)  # <-- this breaks now bc it overrides custom transformer
+    AutoConfig.register("longnet", LongNetConfig)
     AutoModel.register(LongNetConfig, LongNetModelHF)
     AutoModel.register(RetNetConfig, RetNetModelHF)
     AutoModel.register(DecoderConfig, TransformerModelHF)
