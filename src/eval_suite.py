@@ -1,8 +1,8 @@
 import json
 import lm_eval
 from models import LongNetModelHF, RetNetModelHF, TransformerModelHF
-from torchscale.architecture.config import RetNetConfig, DecoderConfig, LongNetConfig
-from transformers import AutoModel, AutoConfig, AutoModelForCausalLM
+from torchscale.architecture.config import DecoderConfig, LongNetConfig, RetNetConfig
+from transformers import AutoConfig, AutoModel, AutoModelForCausalLM
 from utils import Struct
 
 def run_eval(config: Struct):
