@@ -24,15 +24,15 @@ gen_len: 100
 
 # Input Starting Strings (List[str]): Starting strings for generation.py
 input_starting_strings:
-  - "Once upon a time, there was"
-  - "A long time ago, in a galaxy far, far"
-  - "It truly happened so suddenly! In one moment"
+  - Once upon a time, there was
+  - A long time ago, in a galaxy far, far
+  - It truly happened so suddenly! In one moment
 
 # CSV Path (str): Path to CSV file to generate from; default None if not using
 csv_path: None
 
 # Model Path Directory (str): Path to model to run test harness on.
-# Example: "/tmp/data/models/<MODEL_NAME>/checkpoints/hf_ckpt_<CHECKPOINT_NUM>"
+# Example: /tmp/data/models/<MODEL_NAME>/checkpoints/hf_ckpt_<CHECKPOINT_NUM>
 model_path_dir: ~
 
 # Model Label (str): Label to use for model run, all checkpoints and logs are saved
@@ -44,15 +44,15 @@ model_path_dir: ~
 model_label: ~
 
 # Results Out Path (str): JSON file path where test harness results are stored.
-# Example: "<YOUR_PATH_HERE>/data/models/<MODEL_NAME>/eval_results.json"
+# Example: <YOUR_PATH_HERE>/data/models/<MODEL_NAME>/eval_results.json
 results_out_path: ~
 
 # Tasks (List[str]): A list of tests to apply in the evaluation test harness
 # Note, latency evaluation is a custom solution and does not run through the evaluation harness
 tasks:
-  - "hellaswag"
-  - "winogrande"
-  - "latency"
+  - hellaswag
+  - winogrande
+  - latency
 # N-shot (int | None): The number of examples to show the model before prompting; 'None' defaults to 0
 nshot: ~
 
@@ -73,25 +73,25 @@ test_sequence_lengths:
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
 # Checkpoint Path (str): Path to checkpoint to load for generation/inference.
-# Typically is the "best_model_path" from training
+# Typically is the best_model_path from training
 checkpoint_path: ~
 
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
-dataset_feature: "text"
+dataset_feature: text
 # HuggingFace Dataset Name (str)
-dataset_name: "c4"
+dataset_name: c4
 # HuggingFace Dataset Subset (str)
-dataset_subset: "c4-en"
+dataset_subset: c4-en
 
 # Train Model (str): Path to model folder
-models_path: "<YOUR_PATH_HERE>/data/models"
+models_path: <YOUR_PATH_HERE>/data/models
 
 # Root Data Path (str): Useful for any new features that don't want to specify a
 # new path parameter in the config
-root_data_path: "<YOUR_PATH_HERE>/data"
+root_data_path: <YOUR_PATH_HERE>/data
 
 # Download Data (str): Path to raw dataset folder
-raw_dataset_path: "<YOUR_PATH_HERE>/data/datasets/c4"
+raw_dataset_path: <YOUR_PATH_HERE>/data/datasets/c4
 
 # Splits (List[int]): Train split, Validation Split, and Test Split
 splits:
@@ -100,22 +100,22 @@ splits:
   - 0.1
 
 # Train Tokenizer (str): Path to tokenizer folder
-tokenizer_path: "<YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer"
+tokenizer_path: <YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer
 
 # Tokenize Data (str): Path to tokenized dataset folder
-tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/c4"
+tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/c4
 
 # TensorBoard Path (str): Path for where TensorBoard files go, optional
-tboard_path: "<YOUR_PATH_HERE>/data/runs"
+tboard_path: <YOUR_PATH_HERE>/data/runs
 
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
-# If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
-CO2_outfile: ~ # Example: "CO2_grid_search.csv"
+# If left empty, defaults to 'emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
+CO2_outfile: ~ # Example: CO2_grid_search.csv
 
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
 # Device Type (str): Device to train on
-device: "cuda" # Options: "cpu", "cuda"
+device: cuda # Options: 'cpu', 'cuda'
 # Number of GPUs (int)
 num_devices: 1
 # Number of Nodes (int)
@@ -126,7 +126,7 @@ num_proc: 4
 # one less than number of CPU cores available
 num_workers: 0
 # Strategy (string): Distributed strategy for training. Likely no need to change
-strategy: "ddp" # Options: "ddp", "ddp_spawn"
+strategy: ddp # Options: 'ddp', 'ddp_spawn'
 # Use Slurm (bool): Whether to use Slurm for training
 use_slurm: true
 
@@ -175,7 +175,7 @@ heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
 # Model Type (str): Name of model architecture to train
-model_type: "retnet" # Choices: "retnet", "transformer", "longnet"
+model_type: retnet # Choices: 'retnet', 'transformer', 'longnet'
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
