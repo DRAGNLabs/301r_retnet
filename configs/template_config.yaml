@@ -43,6 +43,10 @@ model_path_dir: ~
 # Example: 4-1-retnet-7B
 model_label: ~
 
+# Checkpoint Path (str): Path to checkpoint to load for generation/inference/latency tests.
+# Typically is the 'best_model_path' from training
+checkpoint_path: ~
+
 # Results Out Path (str): JSON file path where test harness results are stored.
 # Example: <YOUR_PATH_HERE>/data/models/<MODEL_NAME>/eval_results.json
 results_out_path: ~
@@ -53,6 +57,7 @@ tasks:
   - hellaswag
   - winogrande
   - latency
+  
 # N-shot (int | None): The number of examples to show the model before prompting; 'None' defaults to 0
 nshot: ~
 
@@ -71,10 +76,6 @@ test_sequence_lengths:
   - 1000
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
-
-# Checkpoint Path (str): Path to checkpoint to load for generation/inference.
-# Typically is the best_model_path from training
-checkpoint_path: ~
 
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: text
