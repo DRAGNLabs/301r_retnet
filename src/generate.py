@@ -8,6 +8,7 @@ from transformers import PreTrainedTokenizerFast
 from typing import List
 from architecture.lightning.performer_lightning import PerformerLightning
 from architecture.lightning.retnet_lightning import RetNetLightning
+from architecture.lightning.longnet_lightning import LongNetLightning
 from architecture.lightning.transformer_lightning import TransformerLightning
 from utils import Struct, generate_text, generate_text_from_tokens
 
@@ -18,7 +19,7 @@ def prepare_model_device(config: Struct):
     """
     # Create appropriate model type
     if config.model_type.lower() == "longnet":
-        model = LongNetModel(config)
+        model = LongNetLightning(config)
     elif config.model_type.lower() == "retnet":
         model = RetNetLightning(config)
     elif config.model_type.lower() == "transformer":

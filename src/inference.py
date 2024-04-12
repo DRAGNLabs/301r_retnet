@@ -11,6 +11,7 @@ from pytorch_lightning.plugins.environments import SLURMEnvironment
 from torchinfo import summary as model_summary
 from architecture.lightning.performer_lightning import PerformerLightning
 from architecture.lightning.retnet_lightning import RetNetLightning
+from architecture.lightning.longnet_lightning import LongNetLightning
 from architecture.lightning.transformer_lightning import TransformerLightning
 from utils import Struct
 
@@ -25,7 +26,7 @@ def inference(config: Struct):
         config (Struct): A Struct object with all configuration fields.
     """
     if config.model_type.lower() == "longnet":
-        model = LongNetModel(config)
+        model = LongNetLightning(config)
     elif config.model_type.lower() == "retnet":
         model = RetNetLightning(config)
     elif config.model_type.lower() == "transformer":

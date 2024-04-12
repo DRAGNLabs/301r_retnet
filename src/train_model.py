@@ -20,6 +20,7 @@ from transformers import set_seed
 from torchinfo import summary as model_summary
 from architecture.lightning.performer_lightning import PerformerLightning
 from architecture.lightning.retnet_lightning import RetNetLightning
+from architecture.lightning.longnet_lightning import LongNetLightning
 from architecture.lightning.transformer_lightning import TransformerLightning
 from utils import Struct
 
@@ -84,7 +85,7 @@ def train_model(config: Struct):
 
     # Create requested model
     if config.model_type.lower() == "longnet":
-        model = LongNetModel(config)
+        model = LongNetLightning(config)
     elif config.model_type.lower() == "retnet":
         model = RetNetLightning(config)
     elif config.model_type.lower() == "transformer":
