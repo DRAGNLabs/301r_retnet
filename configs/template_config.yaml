@@ -84,14 +84,14 @@ dataset_name: "c4"
 dataset_subset: "c4-en"
 
 # Train Model (str): Path to model folder
-models_path: "<YOUR_PATH_HERE>/data/models"
+models_path: <YOUR_PATH_HERE>/data/models
 
 # Root Data Path (str): Useful for any new features that don't want to specify a
 # new path parameter in the config
-root_data_path: "<YOUR_PATH_HERE>/data"
+root_data_path: <YOUR_PATH_HERE>/data
 
 # Download Data (str): Path to raw dataset folder
-raw_dataset_path: "<YOUR_PATH_HERE>/data/datasets/c4"
+raw_dataset_path: <YOUR_PATH_HERE>/data/datasets/c4
 
 # Splits (List[int]): Train split, Validation Split, and Test Split
 splits:
@@ -100,19 +100,19 @@ splits:
   - 0.1
 
 # Train Tokenizer (str): Path to tokenizer folder
-tokenizer_path: "<YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer"
+tokenizer_path: <YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer
 
 # Tokenize Data (str): Path to tokenized dataset folder
-tokenized_dataset_path: "<YOUR_PATH_HERE>/data/tokenized_dataset/c4"
+tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/c4
 
-# Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
+# Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to.
 # If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
 CO2_outfile: ~ # Example: "CO2_grid_search.csv"
 
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
 # Device Type (str): Device to train on
-device: "cuda" # Options: "cpu", "cuda"
+device: cuda # Options: "cpu", "cuda"
 # Number of GPUs (int)
 num_devices: 1
 # Number of Nodes (int)
@@ -122,8 +122,6 @@ num_proc: 4
 # Num Workers (int): Number of workers for dataloaders. Recommended to set to
 # one less than number of CPU cores available
 num_workers: 0
-# Strategy (string): Distributed strategy for training. Likely no need to change
-strategy: "ddp" # Options: "ddp", "ddp_spawn"
 # Use Slurm (bool): Whether to use Slurm for training
 use_slurm: true
 
@@ -145,7 +143,7 @@ learning_rate: 0.001
 # Random Seed (int): Random seed for reproducibility
 rand_seed: 42
 # Precision (str): Precision for training; refer to Torch Lightning docs
-precision: fp16
+precision: 16
 # Save Top K (int): Number of best models to save; default saves the best single checkpoint. Set to -1 to save all
 save_top_k: 3
 # Every N hours (int or float): Checkpoint every n hours; overrides every_n_train_steps if not set to default (None or 0). 
@@ -172,13 +170,38 @@ heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
 # Model Type (str): Name of model architecture to train
-model_type: "retnet" # Choices: "retnet", "transformer", "longnet"
+model_type: retnet # Choices: "retnet", "transformer", "longnet", "performer"
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
 value_embed_dim: 1280
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
 vocab_size: 50000
+
+# ---------------------------- PERFORMER CONFIGURATION -----------------------------
+
+# Dimension Head (int): Dimension of each attention head, affecting the size of each head in the model's multi-head attention mechanism.
+dim_head: 64
+# Local Heads (int): Number of heads used for local attention, distinguishing from global attention.
+local_heads: 0
+# Causal (bool): Indicates whether the performer should use causal attention, ensuring that attention is only applied to past tokens.
+causal: true
+# Local Window Size (int): Size of the local attention window, defining the range of tokens each local attention head can attend to.
+local_window_size: 256
+# Number Features (int | null): Number of random features for kernel approximation, with null defaulting to a function of dim_head if not explicitly set.
+nb_features: null
+# Feature Redraw Interval (int): Interval for redrawing features to avoid unlucky projections on Q and K.
+feature_redraw_interval: 1000
+# Generalized Attention (bool): Whether to use a generalized attention mechanism, allowing for attention mechanisms beyond the standard softmax.
+generalized_attention: false
+# Kernel Function (string): Kernel function used in the generalized attention mechanism, defining the non-linearity applied to attention logits. Choices include 'relu' or 'gelu', with 'relu' used by default in performer.
+kernel_fn: relu
+# No Projection (bool): If true, disables linear projection in the attention mechanism, avoiding projecting Q/K/V in the attention layers.
+no_projection: false
+# QKV Bias (bool): Whether to use bias in QKV projections within the attention mechanism, adding bias terms to queries, keys, and values.
+qkv_bias: false
+# Attention Output Bias (bool): Determines if a bias term is added to the output of the attention layer.
+attn_out_bias: true
 
 # ---------------------------- LONGNET CONFIGURATION ----------------------------
 
