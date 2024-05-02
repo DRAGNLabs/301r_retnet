@@ -126,9 +126,12 @@ def train_model(config: Struct):
     print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    tboard_log_dir = Path(config.models_path) / "logs" / model_label
-    print(f"Saving TensorBoard logs in {tboard_log_dir}")
-    tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
+    log_dir = Path(config.models_path) / "logs" / model_label
+    print(f"Saving TensorBoard logs in {log_dir}")
+    tb_logger = pl_loggers.TensorBoardLogger(save_dir=log_dir, name='tb_logs')
+
+    # Create CSV logger
+    csv_logger = pl_loggers.CSVLogger(save_dir=log_dir, name='csv_logs')
 
     # Save all the variables in args as JSON inside folder
     json.dump(
@@ -173,7 +176,7 @@ def train_model(config: Struct):
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger,
+            logger=[tb_logger,csv_logger],
             precision=config.precision,
             gradient_clip_val=config.gradient_clip_val)
     else:
@@ -189,7 +192,7 @@ def train_model(config: Struct):
             sync_batchnorm=True,
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger,
+            logger=[tb_logger,csv_logger],
             precision=config.precision,
             gradient_clip_val=config.gradient_clip_val)
         
