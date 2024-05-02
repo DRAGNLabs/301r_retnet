@@ -68,7 +68,7 @@ def generate_specific_text(config: Struct):
     generated_strings = generate_text(
         model=model,
         tokenizer=tokenizer,
-        start_string_list=config.input_starting_strings,
+        generation_path=config.generation_path,
         device=device,
         seq_len=config.seq_len,
         generation_length=config.gen_len)

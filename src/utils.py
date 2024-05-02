@@ -8,7 +8,7 @@ from torch import nn
 def generate_text(
         model: nn.Module,
         tokenizer: Tokenizer,
-        start_string_list: list[str],
+        generation_path: str,
         device: torch.device,
         seq_len: int,
         generation_length: int=100) -> list[str]:
@@ -17,7 +17,7 @@ def generate_text(
         model (nn.Module): Model used to make predictions.
         tokenizer (Tokenizer): Tokenizer object to handle conversions with
             tokens and strings.
-        start_string_list (list[str]): List of strings that should be used as
+        generation_path (list[str]): List of strings that should be used as
             beginnings of generated strings (prompts to the model).
         device (torch.device): Device on which to run inference.
         seq_len (int): Context window/sequence length.
@@ -28,6 +28,10 @@ def generate_text(
     """
     # Keep track of fully generated token indices lists
     generated_token_idx_list = []
+
+    # Create list of strings from all lines in start_string_list path
+    with open(generation_path, "r") as f:
+        start_string_list = f.readlines()
 
     # Convert initial start strings into tokenized sequences
     tokenized_start_list = tokenizer(
