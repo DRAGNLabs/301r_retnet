@@ -23,8 +23,10 @@ class RetNetModel(LightningModule):
             config (Struct): A Struct object with all configuration fields.
         """
         super().__init__()
+        self.betas = config.betas
         self.learning_rate = config.learning_rate
         self.gamma = config.gamma
+        self.weight_decay = config.weight_decay
 
         # Create RetNet configuration for HuggingFace model
         hf_config = RetNetConfig(
@@ -154,7 +156,10 @@ class RetNetModel(LightningModule):
 
     def configure_optimizers(self):
         """ Configure optimizer and learning rate scheduler. """
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        optimizer = torch.optim.Adam(self.parameters(), 
+                                     lr=self.learning_rate,
+                                     betas=self.betas,
+                                     weight_decay=self.weight_decay)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.gamma)
         return [optimizer], [lr_scheduler]
 
@@ -178,8 +183,10 @@ class TransformerModel(LightningModule):
             config (Struct): A Struct object with all configuration fields.
         """
         super().__init__()
+        self.betas = config.betas
         self.learning_rate = config.learning_rate
         self.gamma = config.gamma
+        self.weight_decay = config.weight_decay
 
         # Create Transformer Decoder configuration for HuggingFace model
         config = DecoderConfig(
@@ -304,9 +311,10 @@ class TransformerModel(LightningModule):
 
     def configure_optimizers(self):
         """ Configure optimizer and learning rate scheduler. """
-        optimizer = torch.optim.Adam(
-            self.model_hf.decoder_stack.parameters(),
-            lr=self.learning_rate)
+        optimizer = torch.optim.Adam(self.parameters(),
+                                     lr=self.learning_rate,
+                                     betas=self.betas,
+                                     weight_decay=self.weight_decay)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.gamma)
         return [optimizer], [lr_scheduler]
 
@@ -330,8 +338,10 @@ class LongNetModel(LightningModule):
             config (Struct): A Struct object with all configuration fields.
         """
         super().__init__()
+        self.betas = config.betas
         self.learning_rate = config.learning_rate
         self.gamma = config.gamma
+        self.weight_decay = config.weight_decay
 
         # Create Transformer Decoder configuration for HuggingFace model
         # This will work for LongNet as well (which this is)
@@ -449,9 +459,10 @@ class LongNetModel(LightningModule):
 
     def configure_optimizers(self):
         """ Configure optimizer and learning rate scheduler. """
-        optimizer = torch.optim.Adam(
-            self.model_hf.decoder_stack.parameters(),
-            lr=self.learning_rate)
+        optimizer = torch.optim.Adam(self.parameters(),
+                                     lr=self.learning_rate,
+                                     betas=self.betas,
+                                     weight_decay=self.weight_decay)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.gamma)
         return [optimizer], [lr_scheduler]
 

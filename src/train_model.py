@@ -174,7 +174,8 @@ def train_model(config: Struct):
             sync_batchnorm=True,
             callbacks=[early_stopping, model_checkpoint],
             logger=tb_logger,
-            precision=config.precision)
+            precision=config.precision,
+            gradient_clip_val=config.gradient_clip_val)
     else:
         trainer = Trainer(
             default_root_dir=model_dir, # main directory for run
@@ -189,7 +190,8 @@ def train_model(config: Struct):
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
             logger=tb_logger,
-            precision=config.precision)
+            precision=config.precision,
+            gradient_clip_val=config.gradient_clip_val)
         
     ## Set up carbon emissions tracker
 
