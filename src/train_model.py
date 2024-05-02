@@ -21,7 +21,7 @@ from utils import Struct
 class CustomModelCheckpoint(ModelCheckpoint):
     def __init__(self, dirpath, monitor, save_top_k, mode, every_n_hours, every_n_train_steps):
         self.num_ckpts = 0
-        self.file_name = f"{self.num_ckpts}"+"_epoch_{epoch}_validation_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
+        self.file_name = "{step}_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         
         if every_n_hours is not None and every_n_train_steps is not None:
             if every_n_hours <= 0:
@@ -35,6 +35,7 @@ class CustomModelCheckpoint(ModelCheckpoint):
                       {every_n_train_steps} to 'None'.")
                 every_n_train_steps = None
 
+        if every_n_hours is not None:
             # Change every_n_hours to timedelta
             every_n_hours = timedelta(hours=every_n_hours)
 
@@ -69,9 +70,11 @@ def train_model(config: Struct):
         "Try changing the Embedding Dimension or number of heads."
     
     # Test that the value embedding dimension is divisible by number of heads
-    assert config.value_embed_dim % config.heads == 0, \
-        "Value Embed Dimension not divisible by number of heads " + \
-        f"({config.value_embed_dim} % {config.heads} != 0)!"
+    # Only assert if value_embed_dim is explicitely being defined
+    if config.value_embed_dim is not None:
+        assert config.value_embed_dim % config.heads == 0, \
+            "Value Embed Dimension not divisible by number of heads " + \
+            f"({config.value_embed_dim} % {config.heads} != 0)!"
 
     # Set random seeds for torch, numpy, random, etc. with transformers library
     if config.rand_seed is not None:
@@ -123,9 +126,12 @@ def train_model(config: Struct):
     print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    tboard_log_dir = Path(config.models_path) / "logs" / model_label
-    print(f"Saving TensorBoard logs in {tboard_log_dir}")
-    tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
+    log_dir = Path(config.models_path) / model_label / "logs"
+    print(f"Saving TensorBoard logs in {log_dir}")
+    tb_logger = pl_loggers.TensorBoardLogger(save_dir=log_dir, name='tb_logs')
+
+    # Create CSV logger
+    csv_logger = pl_loggers.CSVLogger(save_dir=log_dir, name='csv_logs')
 
     # Save all the variables in args as JSON inside folder
     json.dump(
@@ -170,8 +176,9 @@ def train_model(config: Struct):
             accumulate_grad_batches=config.accumulate_grad_batches,
             sync_batchnorm=True,
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger,
-            precision=config.precision)
+            logger=[tb_logger,csv_logger],
+            precision=config.precision,
+            gradient_clip_val=config.gradient_clip_val)
     else:
         trainer = Trainer(
             default_root_dir=model_dir, # main directory for run
@@ -185,8 +192,9 @@ def train_model(config: Struct):
             sync_batchnorm=True,
             plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
             callbacks=[early_stopping, model_checkpoint],
-            logger=tb_logger,
-            precision=config.precision)
+            logger=[tb_logger,csv_logger],
+            precision=config.precision,
+            gradient_clip_val=config.gradient_clip_val)
         
     ## Set up carbon emissions tracker
 
