@@ -21,7 +21,7 @@ from utils import Struct
 class CustomModelCheckpoint(ModelCheckpoint):
     def __init__(self, dirpath, monitor, save_top_k, mode, every_n_hours, every_n_train_steps):
         self.num_ckpts = 0
-        self.file_name = f"{self.num_ckpts}"+"_epoch_{epoch}_validation_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
+        self.file_name = "{step}_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         
         if every_n_hours is not None and every_n_train_steps is not None:
             if every_n_hours <= 0:
@@ -126,7 +126,7 @@ def train_model(config: Struct):
     print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    log_dir = Path(config.models_path) / "logs" / model_label
+    log_dir = Path(config.models_path) / model_label / "logs"
     print(f"Saving TensorBoard logs in {log_dir}")
     tb_logger = pl_loggers.TensorBoardLogger(save_dir=log_dir, name='tb_logs')
 
