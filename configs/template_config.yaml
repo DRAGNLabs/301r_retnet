@@ -154,10 +154,10 @@ learning_rate: 0.001
 # Random Seed (int): Random seed for reproducibility
 rand_seed: 42
 # Precision (str): Precision for training; refer to Torch Lightning docs
-precision: fp16
+precision: 16-mixed
 # Save Top K (int): Number of best models to save; default saves the best single checkpoint. Set to -1 to save all
 save_top_k: 3
-# Validation Check Interval (float): Validation frequency (fraction of an epoch)
+# Validation Check Interval (float): Validation frequency (fraction of an epoch) OR (int): steps until validation check
 val_check_interval: 0.5
 # Weight Decay (float): Weight decay for optimizer
 weight_decay: 0.01
