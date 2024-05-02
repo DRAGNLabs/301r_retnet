@@ -70,9 +70,11 @@ def train_model(config: Struct):
         "Try changing the Embedding Dimension or number of heads."
     
     # Test that the value embedding dimension is divisible by number of heads
-    assert config.value_embed_dim % config.heads == 0, \
-        "Value Embed Dimension not divisible by number of heads " + \
-        f"({config.value_embed_dim} % {config.heads} != 0)!"
+    # Only assert if value_embed_dim is explicitely being defined
+    if config.value_embed_dim is not None:
+        assert config.value_embed_dim % config.heads == 0, \
+            "Value Embed Dimension not divisible by number of heads " + \
+            f"({config.value_embed_dim} % {config.heads} != 0)!"
 
     # Set random seeds for torch, numpy, random, etc. with transformers library
     if config.rand_seed is not None:
