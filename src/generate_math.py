@@ -13,6 +13,7 @@ from torch import nn
 from transformers import PreTrainedTokenizerFast
 from typing import List
 from utils import Struct
+import pandas as pd
 
 def prepare_model_device(config: Struct):
     """
@@ -103,9 +104,10 @@ def generate_text(
     generated_token_idx_list = []
 
     # Create list of strings from all lines in start_string_list path
-    with open(generation_path, "r") as f:
-        prompts = f.read().split("\n")[:10000]
+    df = pd.read_csv(generation_path, names=["data"], nrows=10000)
 
+    prompts = df.data.tolist()
+    print('prompts:', prompts[0:10], flush=True)
     # Randomly pick n_prompts lines from prompts
     prompts = random.sample(prompts, n_prompts * n_shot)
 
