@@ -22,13 +22,10 @@
 # This is not considered in latency eval
 gen_len: 100
 
-# Input Starting Strings (List[str]): Starting strings for generation.py
-input_starting_strings:
-  - "Once upon a time, there was"
-  - "A long time ago, in a galaxy far, far"
-  - "It truly happened so suddenly! In one moment"
+# Generation Path (str): Path to csv containing strings for generation.py
+generation_path: ~
 
-# CSV Path (str): Path to CSV file to generate from; default None if not using
+# CSV Path (str): Path to CSV file to generate to; default None if not using
 csv_path: None
 
 # Model Path Directory (str): Path to model to run test harness on.
