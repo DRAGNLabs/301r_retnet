@@ -35,6 +35,7 @@ class CustomModelCheckpoint(ModelCheckpoint):
                       {every_n_train_steps} to 'None'.")
                 every_n_train_steps = None
 
+        if every_n_hours is not None:
             # Change every_n_hours to timedelta
             every_n_hours = timedelta(hours=every_n_hours)
 
