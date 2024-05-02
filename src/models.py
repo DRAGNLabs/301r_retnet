@@ -81,8 +81,7 @@ class RetNetModel(LightningModule):
             logger=True,
             on_step=True,
             on_epoch=True,
-            sync_dist=True,
-            add_dataloader_idx=True)
+            sync_dist=True)
 
         return loss
 
@@ -107,10 +106,9 @@ class RetNetModel(LightningModule):
             value=loss,
             prog_bar=True,
             logger=True,
-            on_step=True,
+            on_step=False,
             on_epoch=True,
-            sync_dist=True,
-            add_dataloader_idx=True)
+            sync_dist=True)
         
         self.log(
             name="val_perplexity", 
@@ -119,8 +117,7 @@ class RetNetModel(LightningModule):
             logger=True, 
             on_step=False, 
             on_epoch=True,
-            sync_dist=True,
-            add_dataloader_idx=True)
+            sync_dist=True)
 
         return loss
 
@@ -238,8 +235,7 @@ class TransformerModel(LightningModule):
             logger=True,
             on_step=True,
             on_epoch=True,
-            sync_dist=True,
-            add_dataloader_idx=True)
+            sync_dist=True)
 
         return loss
 
@@ -263,10 +259,9 @@ class TransformerModel(LightningModule):
             value=loss,
             prog_bar=True,
             logger=True,
-            on_step=True,
+            on_step=False,
             on_epoch=True,
-            sync_dist=True,
-            add_dataloader_idx=True)
+            sync_dist=True)
         
         self.log(
             name="val_perplexity", 
@@ -275,8 +270,7 @@ class TransformerModel(LightningModule):
             logger=True, 
             on_step=False, 
             on_epoch=True,
-            sync_dist=True,
-            add_dataloader_idx=True)
+            sync_dist=True,)
 
         return loss
 
@@ -300,8 +294,7 @@ class TransformerModel(LightningModule):
             logger=True,
             on_step=True,
             on_epoch=True,
-            sync_dist=True,
-            add_dataloader_idx=True)
+            sync_dist=True)
 
         return loss
 
