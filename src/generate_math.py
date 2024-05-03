@@ -135,6 +135,9 @@ def generate_text(
     # Move model to device
     model = model.to(device)
 
+    # TODO: make it use temperature
+    # add comparison for calculating accuracy
+
     # No gradients needed
     model.eval()
     with torch.inference_mode():
@@ -152,9 +155,11 @@ def generate_text(
             # Add batch dimension and move to device
             input_tensor = input_tensor.unsqueeze(0).to(device)
 
+            num_generated_tokens = 0
+
             # Keep generating until padding or reached generation length
             while generated_token_idxs[-1] != tokenizer.pad_token_id \
-                    and len(generated_token_idxs) < generation_length:
+                    and num_generated_tokens < generation_length:
                 # Make sure input_tensor isn't longer than sequence length
                 input_tensor = input_tensor[
                     :,
@@ -176,6 +181,9 @@ def generate_text(
 
                 # Store predicted token as part of generation
                 generated_token_idxs.append(predicted_id.item())
+                
+                # Increment number of generated tokens
+                num_generated_tokens += 1
 
             # Store fully generated sequence of token indices for start string
             generated_token_idx_list.append(generated_token_idxs)
