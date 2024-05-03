@@ -105,6 +105,12 @@ tokenizer_path: <YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer
 # Tokenize Data (str): Path to tokenized dataset folder
 tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/c4
 
+# Split Dataset (float): If you want to train your model on a smaller portion of your dataset, specify the float < 1.0
+split_dataset: 1.0
+ # Train Model on Portion of Data Path (str): Set to the name of your train directory in your tokenized dataset.
+ # If you want to use all of train directory, use path name, else use "portion_data"
+train_model_data_path: "train"
+
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
 # If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
 CO2_outfile: ~ # Example: "CO2_grid_search.csv"

@@ -1,6 +1,7 @@
 # General
 import json
 import os
+import shutil
 import signal
 import sys
 import torch
@@ -143,6 +144,54 @@ def train_model(config: Struct):
     print("\nEstimated Loss if guessing:")
     print(f"-log(1 / {config.vocab_size}) = " + \
         f"{-torch.log(torch.tensor(1 / config.vocab_size))}")
+
+    # Checks to see if you want to use a portion of the dataset for training
+    if (config.split_dataset != 1.0):
+        print(f"\nUsing {config.split_dataset * 100}% of the dataset for training")
+
+        # Define the source and target directories
+        source_dir = Path(config.tokenized_dataset_path + "/train")
+        target_dir = Path(config.tokenized_dataset_path + "/portion_data")
+
+        # Ensure the target directory exists
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        # Calculate the number of files to copy based on the percentage
+        total_files = len(list(source_dir.glob('*.parquet')))
+        files_to_copy = int((config.split_dataset) * total_files)
+
+        # Count the existing files in the target directory
+        existing_files_count = len(list(target_dir.glob('*.parquet')))
+        print(f"\nThere are {existing_files_count} .parquet files available, of which {files_to_copy} files 
+              are being copied which is actually {(files_to_copy / total_files)*100:.4f}% of the training data, 
+              instead of {config.split_dataset * 100}%")
+
+        # Check if the existing number of files matches the expected number of files
+        if existing_files_count == files_to_copy:
+            print(f"The specified portion of the dataset ({config.split_dataset * 100}%) is already present in {target_dir}. No changes made.")
+        else:
+            print(f"Preparing to copy {files_to_copy} files to {target_dir}.")
+
+            # Clear the target directory if the file counts do not match
+            for item in target_dir.iterdir():
+                try:
+                    if item.is_file():
+                        item.unlink()
+                    elif item.is_dir():
+                        shutil.rmtree(item)
+                except FileNotFoundError as e:
+                    print(f"Warning: Tried to delete {item}, but file was not found.")
+
+            # Proceed to copy the calculated number of .parquet files
+            for i in range(files_to_copy):
+                source_file = source_dir / f"part.{i}.parquet"
+                if source_file.exists():  # Check if the source file exists
+                    target_file = target_dir / f"part.{i}.parquet"
+                    shutil.copy2(source_file, target_file)
+                else:
+                    print(f"Warning: File {source_file} does not exist and will not be copied.")
+                    
+            print(f"Copied {files_to_copy} files to {target_dir}.")
 
     # Loads Tokenized data
     print(f"\nNow loading '{config.dataset_name}'")

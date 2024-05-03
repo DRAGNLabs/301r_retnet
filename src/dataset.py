@@ -32,6 +32,7 @@ class DataModule(LightningDataModule):
         # Instantiate tokenizer to get the pad/eos ids
         tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
         self.pad_token_id = tokenizer.pad_token_id
+        self.config = config
 
     def setup(self, stage: str):
         """ Setup for each stage -- called on every process on DDP.
@@ -40,7 +41,7 @@ class DataModule(LightningDataModule):
         """
         if stage == "fit":
             # Load datasets
-            self.train_dataset = DataSet(self.tokenized_dataset_path / "train",
+            self.train_dataset = DataSet(self.tokenized_dataset_path / self.config.train_model_data_path,
                                          self.seq_len,
                                          self.pad_token_id)
             
@@ -151,3 +152,4 @@ class DataSet(torch.utils.data.IterableDataset):
         y_true_padded = torch.tensor(y_true_padded)
 
         return x_padded, y_true_padded
+        
