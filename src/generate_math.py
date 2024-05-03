@@ -1,5 +1,3 @@
-print('hello world')
-
 import csv
 import sys
 import random
@@ -47,9 +45,7 @@ def generate(config: Struct):
         config (Struct): A Struct object with all configuration fields.
     """
     print('Preparing model devices...')
-    #model, device = prepare_model_device(config)
-    model=None
-    device=None
+    model, device = prepare_model_device(config)
 
     print("Loading tokenizer...")
     # Load pre-trained tokenizer
@@ -104,10 +100,9 @@ def generate_text(
     generated_token_idx_list = []
 
     # Create list of strings from all lines in start_string_list path
-    df = pd.read_csv(generation_path, names=["data"], nrows=10000)
+    df = pd.read_csv(generation_path, names=["data"], nrows=10)
 
     prompts = df.data.tolist()
-    print('prompts:', prompts[0:10], flush=True)
     # Randomly pick n_prompts lines from prompts
     prompts = random.sample(prompts, n_prompts * n_shot)
 
@@ -122,7 +117,7 @@ def generate_text(
         final_prompt = prompt_list[-1]
         final_prompt_source = final_prompt[:final_prompt.index("=")+1]
         # Join together into single string
-        full_prompt = prompts.append("\n".join(n_shots) + "\n" + final_prompt_source)
+        full_prompt = "\n".join(n_shots) + "\n" + final_prompt_source
         full_prompt_targets.append("\n".join(prompt_list))
         full_prompts.append(full_prompt)
 
@@ -169,7 +164,7 @@ def generate_text(
                 predictions = model(input_tensor)
 
                 # Apply softmax to predictions
-                predictions = torch.functional.softmax(predictions, dim=-1)
+                predictions = torch.nn.functional.softmax(predictions, dim=-1)
 
                 # Get the last predicted word
                 predicted_id = predictions.argmax(dim=-1)[0, -1]
