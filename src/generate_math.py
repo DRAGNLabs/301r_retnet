@@ -60,19 +60,14 @@ def generate(config: Struct):
         device=device,
         seq_len=config.seq_len,
         generation_length=config.gen_len,
-        n_shot=config.n_shot)
-    
-
-    print("Generated strings:")
-    for idx, string in enumerate(generated_strings):
-        print(f"{idx+1}: {string}\n")
+        n_shot=config.nshot)
 
     if config.csv_path is not None:
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        with open(config.csv_path, 'w', newline='') as outf:
+        filename = config.csv_path[:-4] + f"_{config.nshot}_shot.csv"
+        with open(file=filename, mode='w', newline='') as outf:
             writer = csv.writer(outf)
-            for pred in generated_strings:
-                y, y_hat = pred
+            for y, y_hat in generated_strings:
                 pred_result = True if y in y_hat else False  # See if the target is in the prediction
                 writer.writerow([current_time, config.model_type, y_hat, y, pred_result])
 
@@ -179,11 +174,9 @@ def generate_text(
                     [input_tensor, predicted_id[None, None]],
                     dim=-1)
                 
-                print(generated_token_idxs)
 
                 # Store predicted token as part of generation
                 generated_token_idxs.append(predicted_id.item())
-                print(generated_token_idxs)
 
             # Store fully generated sequence of token indices for start string
             generated_token_idx_list.append(generated_token_idxs)
