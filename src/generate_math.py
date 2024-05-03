@@ -59,7 +59,8 @@ def generate(config: Struct):
         generation_path=config.generation_path,
         device=device,
         seq_len=config.seq_len,
-        generation_length=config.gen_len)
+        generation_length=config.gen_len,
+        n_shot=config.n_shot)
     
 
     print("Generated strings:")
@@ -81,7 +82,8 @@ def generate_text(
         generation_path: str,
         device: torch.device,
         seq_len: int,
-        generation_length: int=100) -> list[str]:
+        generation_length: int=100,
+        n_shot: int=0) -> list[str]:
     """ Use model to generate text given beginning input
     Args:
         model (nn.Module): Model used to make predictions.
@@ -97,7 +99,6 @@ def generate_text(
         A list of all the fully generated strings by the model.
     """
     n_prompts = 100
-    n_shot = 6
 
     # Keep track of fully generated token indices lists
     generated_token_idx_list = []
