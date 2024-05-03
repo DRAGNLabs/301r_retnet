@@ -64,7 +64,7 @@ def generate(config: Struct):
 
     if config.csv_path is not None:
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        filename = config.csv_path[:-4] + f"_{config.nshot}_shot.csv"
+        filename = config.csv_path[:-4] + f"_{config.nshot}_shot_{config.model_type}.csv"
         with open(file=filename, mode='w', newline='') as outf:
             writer = csv.writer(outf)
             for y, y_hat in generated_strings:
@@ -99,7 +99,7 @@ def generate_text(
     generated_token_idx_list = []
 
     # Create list of strings from all lines in start_string_list path
-    df = pd.read_csv(generation_path, names=["data"], nrows=1000)
+    df = pd.read_csv(generation_path, names=["data"], nrows=2000)
 
     prompts = df.data.tolist()
     # Randomly pick n_prompts lines from prompts
