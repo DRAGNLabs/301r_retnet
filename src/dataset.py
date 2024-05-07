@@ -59,7 +59,7 @@ class DataModule(LightningDataModule):
         return DataLoader(
             dataset=self.train_dataset,
             batch_size=self.batch_size,
-            collate_fn=self.train_dataset.pad_to_longest, 
+            collate_fn=self.train_dataset.pad_sequences, 
             num_workers=self.num_workers)
 
     def val_dataloader(self):
@@ -67,7 +67,7 @@ class DataModule(LightningDataModule):
         return DataLoader(
             dataset=self.val_dataset,
             batch_size=self.batch_size,
-            collate_fn=self.val_dataset.pad_to_longest, 
+            collate_fn=self.val_dataset.pad_sequences, 
             num_workers=self.num_workers)
 
     def test_dataloader(self):
@@ -75,7 +75,7 @@ class DataModule(LightningDataModule):
         return DataLoader(
             dataset=self.test_dataset,
             batch_size=self.batch_size,
-            collate_fn=self.test_dataset.pad_to_longest,
+            collate_fn=self.test_dataset.pad_sequences,
             num_workers=self.num_workers)
     
 class DataSet(torch.utils.data.IterableDataset):
@@ -137,19 +137,15 @@ class DataSet(torch.utils.data.IterableDataset):
                     y_true = item[1:self.seq_len+1]
                 yield(x,y_true)
 
-    def pad_to_longest(self, batch):
+    def pad_sequences(self, batch):
         """
-        Collator function for padding sequences to longest in batch, during training
+        Collator function for padding sequences to the sequence length
         """
         x, y_true = zip(*batch)
 
-        x_lengths = [len(line) for line in x]
-        max_x_length = max(x_lengths)
-        x_padded = [line + [self.pad_token_id] * (max_x_length - len(line)) for line in x]
+        x_padded = [line + [self.pad_token_id] * (self.seq_len - len(line)) for line in x]
 
-        y_true_lengths = [len(line) for line in y_true]
-        max_y_true_lengths = max(y_true_lengths)
-        y_true_padded = [line + [self.pad_token_id] * (max_y_true_lengths - len(line)) for line in y_true]
+        y_true_padded = [line + [self.pad_token_id] * (self.seq_len - len(line)) for line in y_true]
 
         x_padded = torch.tensor(x_padded)
         y_true_padded = torch.tensor(y_true_padded)
