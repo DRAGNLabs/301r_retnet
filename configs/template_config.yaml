@@ -24,27 +24,31 @@ gen_len: 100
 
 # Input Starting Strings (List[str]): Starting strings for generation.py
 input_starting_strings:
-  - "Once upon a time, there was"
-  - "A long time ago, in a galaxy far, far"
-  - "It truly happened so suddenly! In one moment"
+  - Once upon a time, there was
+  - A long time ago, in a galaxy far, far
+  - It truly happened so suddenly! In one moment
 
 # CSV Path (str): Path to CSV file to generate from; default None if not using
 csv_path: None
 
 # Model Path Directory (str): Path to model to run test harness on.
-# Example: "/tmp/data/models/<MODEL_NAME>/checkpoints/hf_ckpt_<CHECKPOINT_NUM>"
+# Example: /tmp/data/models/<MODEL_NAME>/checkpoints/hf_ckpt_<CHECKPOINT_NUM>
 model_path_dir: ~
 
 # Model Label (str): Label to use for model run, all checkpoints and logs are saved
 # under this path. Good to use a unique name. If not specified, one is generated.
-# However, the generated one many not be unique. A unique name is critical for 
+# However, the generated one many not be unique. A unique name is critical for
 # Slurm requeuing. If there already exists a folder with the model name,
 # the checkpoints may be overwritten.
 # Example: 4-1-retnet-7B
 model_label: ~
 
+# Checkpoint Path (str): Path to checkpoint to load for generation/inference/latency tests.
+# Typically is the 'best_model_path' from training
+checkpoint_path: ~
+
 # Results Out Path (str): JSON file path where test harness results are stored.
-# Example: "<YOUR_PATH_HERE>/data/models/<MODEL_NAME>/eval_results.json"
+# Example: <YOUR_PATH_HERE>/data/models/<MODEL_NAME>/eval_results.json
 results_out_path: ~
 
 # Tasks (List[str]): A list of tests to apply in the evaluation test harness
@@ -71,10 +75,6 @@ test_sequence_lengths:
   - 1000
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
-
-# Checkpoint Path (str): Path to checkpoint to load for generation/inference.
-# Typically is the "best_model_path" from training
-checkpoint_path: ~
 
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: text
@@ -105,14 +105,14 @@ tokenizer_path: <YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer
 # Tokenize Data (str): Path to tokenized dataset folder
 tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/c4
 
-# Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to. 
-# If left empty, defaults to "emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
-CO2_outfile: ~ # Example: "CO2_grid_search.csv"
+# Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to.
+# If left empty, defaults to 'emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
+CO2_outfile: ~ # Example: CO2_grid_search.csv
 
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
 # Device Type (str): Device to train on
-device: cuda # Options: "cpu", "cuda"
+device: cuda # Options: 'cpu', 'cuda'
 # Number of GPUs (int)
 num_devices: 1
 # Number of Nodes (int)
@@ -123,7 +123,7 @@ num_proc: 4
 # one less than number of CPU cores available
 num_workers: 0
 # Strategy (string): Distributed strategy for training. Likely no need to change
-strategy: ddp # Options: "ddp", "ddp_spawn"
+strategy: ddp # Options: 'ddp', 'ddp_spawn'
 # Use Slurm (bool): Whether to use Slurm for training
 use_slurm: true
 
@@ -140,7 +140,7 @@ betas: [0.9, 0.98]
 early_stopping: 3
 # Epochs (int): Number of epochs to train for
 epochs: 1
-# Every N hours (int or float): Checkpoint every n hours; overrides every_n_train_steps if not set to default (None or 0). 
+# Every N hours (int or float): Checkpoint every n hours; overrides every_n_train_steps if not set to default (None or 0).
 every_n_hours: ~
 # Every N Train Steps (int): Checkpoint every n train steps; Overridden by every_n_hours if it's not set to 0 or None;
 # Note: PyTorch Lightning defines 'steps' as optimizer steps, not batch forward passes, distinct when accumulate_grad_batches > 1.
@@ -178,7 +178,7 @@ heads: 4
 # Layers (int): Number of stacked network layers
 layers: 2
 # Model Type (str): Name of model architecture to train
-model_type: retnet # Choices: "retnet", "transformer", "longnet"
+model_type: retnet # Choices: 'retnet', 'transformer', 'longnet'
 # Sequence Length (int): Context window size by number of tokens
 seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size

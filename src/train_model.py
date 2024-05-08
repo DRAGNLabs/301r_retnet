@@ -198,7 +198,7 @@ def train_model(config: Struct):
         
     ## Set up carbon emissions tracker
 
-    CO2_outfile = "emissions.txt" if not config.CO2_outfile else config.CO2_outfile
+    CO2_outfile = "emissions.csv" if not config.CO2_outfile else config.CO2_outfile
     emissions_tracker = OfflineEmissionsTracker(
                 output_dir=model_dir,
                 output_file=CO2_outfile,
