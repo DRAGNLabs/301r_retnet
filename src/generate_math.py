@@ -93,14 +93,16 @@ def generate_text(
     Returns:
         A list of all the fully generated strings by the model.
     """
-    n_prompts = 1
+    n_prompts = 1000
     n_shot = 6
+
+    T = .1
 
     # Keep track of fully generated token indices lists
     generated_token_idx_list = []
 
     # Create list of strings from all lines in start_string_list path
-    df = pd.read_csv(generation_path, names=["data"], nrows=10)
+    df = pd.read_csv(generation_path, names=["data"], nrows=10000)
 
     prompts = df.data.tolist()
     # Randomly pick n_prompts lines from prompts
@@ -121,8 +123,8 @@ def generate_text(
         full_prompt_targets.append("\n".join(prompt_list))
         full_prompts.append(full_prompt)
 
-    print('full_prompts:', full_prompts)
-    print('full_prompt_targets:', full_prompt_targets)
+    # print('full_prompts:', full_prompts)
+    # print('full_prompt_targets:', full_prompt_targets)
 
     # Convert initial start strings into tokenized sequences
     tokenized_start_list = tokenizer(
@@ -169,7 +171,7 @@ def generate_text(
                 predictions = model(input_tensor)
 
                 # Apply softmax to predictions
-                predictions = torch.nn.functional.softmax(predictions, dim=-1)
+                predictions = torch.nn.functional.softmax(predictions / T, dim=-1)
 
                 # Get the last predicted word
                 predicted_id = predictions.argmax(dim=-1)[0, -1]
