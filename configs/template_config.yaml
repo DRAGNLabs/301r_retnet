@@ -105,7 +105,7 @@ tokenizer_path: <YOUR_PATH_HERE>/data/tokenizers/c4_tokenizer
 # Tokenize Data (str): Path to tokenized dataset folder
 tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/c4
 
-# Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to.
+# Emissions Outfile (Optional) (str): Name of .csv file to write tracked emissions to.
 # If left empty, defaults to 'emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
 CO2_outfile: ~ # Example: CO2_grid_search.csv
 
@@ -122,7 +122,7 @@ num_proc: 4
 # Num Workers (int): Number of workers for dataloaders. Recommended to set to
 # one less than number of CPU cores available
 num_workers: 0
-# Strategy (string): Distributed strategy for training. Likely no need to change
+# Strategy (str): Distributed strategy for training. Likely no need to change
 strategy: ddp # Options: 'ddp', 'ddp_spawn'
 # Use Slurm (bool): Whether to use Slurm for training
 use_slurm: true
