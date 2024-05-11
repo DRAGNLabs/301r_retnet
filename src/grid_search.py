@@ -196,5 +196,5 @@ if __name__ == "__main__":
         config = yaml.safe_load(f)
 
     config = Struct(**config)
-        
+
     grid_search(config)
