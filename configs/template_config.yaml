@@ -149,7 +149,7 @@ every_n_train_steps: 10000
 gamma: 0.85
 # Gradient Clip Val (float): Value for gradient clipping
 gradient_clip_val: 2.0
-# Learning Rate (float): Learning rate of model to train
+# Learning Rate (float or str): Learning rate of model to train; put 'find' to use the learning rate finder feature (experimental).
 learning_rate: 0.001
 # Random Seed (int): Random seed for reproducibility
 rand_seed: 42
