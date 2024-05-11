@@ -206,6 +206,16 @@ def train_model(config: Struct):
                 cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
                 cloud_region="us-west3")
 
+    
+    if config.learning_rate.lower() == "find":  # Use lr_find() from PyTorch Lightning; defaults to testing 100 samples.
+        tuner = Tuner(trainer)
+        lr_finder = tuner.lr_find(model, datamodule=dm)
+        print(lr_finder.results)
+
+        fig = lr_finder.plot(suggest=True)
+        fig.savefig('lr_plot_transformer.png')
+
+            
     emissions_tracker.start()
     trainer.fit(model, datamodule=dm)
 
