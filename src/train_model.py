@@ -207,13 +207,19 @@ def train_model(config: Struct):
                 cloud_region="us-west3")
 
     
-    if config.learning_rate.lower() == "find":  # Use lr_find() from PyTorch Lightning; defaults to testing 100 samples.
-        tuner = Tuner(trainer)
-        lr_finder = tuner.lr_find(model, datamodule=dm)
-        print(lr_finder.results)
+    try:
+        config.learning_rate = config.learning_rate.lower()
+        if config.learning_rate == "find":
+            tuner = Tuner(trainer)
+            lr_finder = tuner.lr_find(model, datamodule=dm)
+            print(lr_finder.results)
 
-        fig = lr_finder.plot(suggest=True)
-        fig.savefig('lr_plot_transformer.png')
+            fig = lr_finder.plot(suggest=True)
+            fig.savefig('lr_plot_transformer.png')
+        else:
+            raise Exception("Invalid learning rate value.")
+    except AttributeError:
+        pass
 
             
     emissions_tracker.start()
