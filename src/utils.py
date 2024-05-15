@@ -175,9 +175,15 @@ class Struct():
     def __str__(self):
         s = "Struct: {"
         for key, value in self.config_dict.items():
-            s += f"{key}: {value},"
+            s += f" {key}: {value},"
         s = s[:-1] + "}"
         return s
 
     def get_config_dict(self):
         return self.config_dict
+    
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+        if name != "config_dict":
+            self.config_dict[name] = value
+        
