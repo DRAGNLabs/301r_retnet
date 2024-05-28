@@ -123,7 +123,7 @@ def train_model(config: Struct):
     print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
-    tboard_log_dir = Path(config.models_path) / "logs" / model_label
+    tboard_log_dir = Path(config.models_path, "logs", model_label)
     print(f"Saving TensorBoard logs in {tboard_log_dir}")
     tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
 
