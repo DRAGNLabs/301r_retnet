@@ -232,7 +232,7 @@ def train_model(config: Struct):
     trainer.test(model, datamodule=dm)
     emissions_tracker.stop()
 
-    print("Finished training!")
+    print("Finished testing!")
 
     # Retrieve info of the best checkpoint file
     best_model_path = model_checkpoint.best_model_path
