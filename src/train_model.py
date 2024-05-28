@@ -68,10 +68,10 @@ def train_model(config: Struct):
         f"{config.embed_dim / config.heads} -- not an even, whole number)! " + \
         "Try changing the Embedding Dimension or number of heads."
     
-    # Test that the value embedding dimension is divisible by number of heads
-    assert config.value_embed_dim % config.heads == 0, \
-        "Value Embed Dimension not divisible by number of heads " + \
-        f"({config.value_embed_dim} % {config.heads} != 0)!"
+    # # Test that the value embedding dimension is divisible by number of heads
+    # assert config.value_embed_dim % config.heads == 0, \
+    #     "Value Embed Dimension not divisible by number of heads " + \
+    #     f"({config.value_embed_dim} % {config.heads} != 0)!"
 
     # Set random seeds for torch, numpy, random, etc. with transformers library
     if config.rand_seed is not None:
@@ -134,8 +134,8 @@ def train_model(config: Struct):
         indent=4)
 
     # Print estimated loss if it hasn't learned anything
-    print("\nEstimated Loss if guessing:")
-    print(f"-log(1 / {config.vocab_size}) = " + \
+    print("\nEstimated loss if guessing:")
+    print(f"-ln(1 / {config.vocab_size}) = " + \
         f"{-torch.log(torch.tensor(1 / config.vocab_size))}")
 
     # Loads Tokenized data
