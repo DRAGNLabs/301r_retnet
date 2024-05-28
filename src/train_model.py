@@ -12,8 +12,9 @@ from datetime import datetime, timedelta
 from models import LongNetModel, RetNetModel, TransformerModel
 from pathlib import Path
 from pytorch_lightning import Trainer, loggers as pl_loggers
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
+from pytorch_lightning.callbacks import EarlyStopping, LearningRateFinder, ModelCheckpoint
 from pytorch_lightning.plugins.environments import SLURMEnvironment
+from pytorch_lightning.tuner import Tuner
 from tabulate import tabulate
 from transformers import set_seed
 from utils import Struct
@@ -111,6 +112,12 @@ def train_model(config: Struct):
         model_label = f"{config.model_type}_{total_params}" + \
             f"_LR{config.learning_rate}_ED{config.embed_dim}" + \
             f"_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}"
+    
+    try:
+        slurm_task = str(config.slurm_task)
+    except AttributeError:
+        print("\n\nATTRIBUTE ERROR HANDLED\n\n")
+        slurm_task = ""
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label / slurm_task
@@ -188,7 +195,7 @@ def train_model(config: Struct):
             logger=tb_logger,
             precision=config.precision)
         
-    ## Set up carbon emissions tracker
+    # Set up carbon emissions tracker
 
     CO2_outfile = "emissions.txt" if not config.CO2_outfile else config.CO2_outfile
     emissions_tracker = OfflineEmissionsTracker(
@@ -198,7 +205,25 @@ def train_model(config: Struct):
                 cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
                 cloud_region="us-west3")
 
-    emissions_tracker.start()
+     emissions_tracker.start()
+    
+    try:
+        config.learning_rate = config.learning_rate.lower()
+        if config.learning_rate == "find":
+            tuner = Tuner(trainer)
+            lr_finder = tuner.lr_find(model, datamodule=dm)
+            print(lr_finder.results)
+
+            fig = lr_finder.plot(suggest=True)
+            fig.savefig('lr_plot_transformer.png')
+        else:  # If type str but not == 'find'
+            raise Exception("Invalid learning rate value.")
+    except AttributeError:  # if not type str
+        pass
+    
+    torch.set_float32_matmul_precision('medium')
+
+    print("About to start training...")
     trainer.fit(model, datamodule=dm)
 
     print("\nDone training! Now testing model...")
