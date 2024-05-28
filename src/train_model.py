@@ -89,7 +89,7 @@ def train_model(config: Struct):
         raise ValueError(f"Model type '{config.model_type}' not supported!")
 
     # Print all arguments for recordkeeping
-    print("Arguments:")
+    print("\nArguments:")
     arg_table = []
     row = []
     for i, (key, value) in enumerate(config.get_config_dict().items()):
@@ -120,12 +120,12 @@ def train_model(config: Struct):
         slurm_task = ""
 
     # Initialize model directory for config files, weights, etc.
-    model_dir = Path(config.models_path) / model_label / slurm_task
+    model_dir = Path(config.models_path, model_label, slurm_task)
     model_dir.mkdir(parents=True, exist_ok=True)
     print(f"Saving model files in {model_dir}")
 
     # Initialize checkpoints directory
-    checkpoints_dir = model_dir / "checkpoints"
+    checkpoints_dir = Path(model_dir, "checkpoints")
     checkpoints_dir.mkdir(parents=False, exist_ok=True)
     print(f"Saving checkpoints in {checkpoints_dir}")
 
@@ -146,7 +146,7 @@ def train_model(config: Struct):
         f"{-torch.log(torch.tensor(1 / config.vocab_size))}")
 
     # Loads Tokenized data
-    print(f"\nNow loading '{config.dataset_name}'")
+    print(f"\nNow loading '{config.dataset_name}'...")
 
     dm = DataModule(config)
 
