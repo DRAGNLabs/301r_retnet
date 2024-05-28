@@ -113,7 +113,7 @@ def train_model(config: Struct):
             f"_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}"
 
     # Initialize model directory for config files, weights, etc.
-    model_dir = Path(config.models_path) / model_label
+    model_dir = Path(config.models_path) / model_label / slurm_task
     model_dir.mkdir(parents=True, exist_ok=True)
     print(f"Saving model files in {model_dir}")
 
