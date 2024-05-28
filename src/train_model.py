@@ -205,7 +205,7 @@ def train_model(config: Struct):
                 cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
                 cloud_region="us-west3")
 
-     emissions_tracker.start()
+    emissions_tracker.start()
     
     try:
         config.learning_rate = config.learning_rate.lower()
