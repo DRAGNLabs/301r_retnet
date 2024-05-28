@@ -221,7 +221,7 @@ def train_model(config: Struct):
     except AttributeError:  # if not type str
         pass
     
-    torch.set_float32_matmul_precision('medium')
+    # torch.set_float32_matmul_precision('medium')
 
     print("About to start training...")
     trainer.fit(model, datamodule=dm)
