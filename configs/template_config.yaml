@@ -74,6 +74,9 @@ test_sequence_lengths:
   - 100
   - 1000
 
+# Temperature (float): Temperature for generation; 1.0 is default, 0.0 is greedy, >1.0 is more random/creative.
+temperature: 1.0
+
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
