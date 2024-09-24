@@ -11,7 +11,8 @@ def generate_text(
         start_string_list: list[str],
         device: torch.device,
         seq_len: int,
-        generation_length: int=100) -> list[str]:
+        generation_length: int=100,
+        temperature: float=1.0) -> list[str]:
     """ Use model to generate text given beginning input
     Args:
         model (nn.Module): Model used to make predictions.
@@ -37,6 +38,7 @@ def generate_text(
         return_token_type_ids=False,
         return_attention_mask=False)["input_ids"]
 
+    k = 10000
     # Move model to device
     model = model.to(device)
 
@@ -69,10 +71,19 @@ def generate_text(
                 predictions = model(input_tensor)
 
                 # Apply softmax to predictions
-                predictions = F.softmax(predictions, dim=-1)
+                predictions = F.softmax(predictions/temperature, dim=-1)
+
 
                 # Get the last predicted word
-                predicted_id = predictions.argmax(dim=-1)[0, -1]
+                # predicted_id = predictions.argmax(dim=-1)[0, -1]
+                
+                top_k_values, top_k_indices = torch.topk(predictions[0, -1], k)
+
+                # Sample from the top-k indices using a categorical distribution
+                predicted_id = torch.multinomial(F.softmax(top_k_values, dim=-1), 1)
+
+                # Get the actual token corresponding to the predicted_id
+                predicted_id = top_k_indices[predicted_id]
 
                 # Add predicted word to input (used as next input sequence)
                 input_tensor = torch.cat(
@@ -93,7 +104,8 @@ def generate_text_from_tokens(
         tokens: list[int],
         device: torch.device,
         seq_len: int,
-        generation_length: int=100) -> list[str]:
+        generation_length: int=100,
+        temperature: float=1.0) -> list[str]:
     """ Use model to generate text given beginning input
     Args:
         model (nn.Module): Model used to make predictions.
@@ -144,7 +156,7 @@ def generate_text_from_tokens(
             times.append(end - start)
 
             # Apply softmax to predictions
-            predictions = F.softmax(predictions, dim=-1)
+            predictions = F.softmax(predictions/temperature, dim=-1)
 
             # Get the last predicted word
             predicted_id = predictions.argmax(dim=-1)[0, -1]

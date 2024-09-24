@@ -48,7 +48,8 @@ def generate_text_length_n(config: Struct, n: int, input_tokens: List[int]):
         tokens=input_tokens,
         device=device,
         seq_len=config.seq_len,
-        generation_length=n)
+        generation_length=n,
+        temperature=config.temperature)
 
     return generation_time
 
@@ -71,7 +72,8 @@ def generate_specific_text(config: Struct):
         start_string_list=config.input_starting_strings,
         device=device,
         seq_len=config.seq_len,
-        generation_length=config.gen_len)
+        generation_length=config.gen_len,
+        temperature=config.temperature)
 
     print("Generated strings:")
     for idx, string in enumerate(generated_strings):
