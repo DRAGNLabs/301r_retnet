@@ -1,9 +1,16 @@
+import json
 import time
 import torch
 import torch.nn.functional as F
 
 from tokenizers import Tokenizer
 from torch import nn
+
+def load_vocab_as_dict(vocab_json_path):
+    with open(vocab_json_path, 'r') as json_file:
+        data = json.load(json_file)
+    return data['model']['vocab']
+
 
 def generate_text(
         model: nn.Module,

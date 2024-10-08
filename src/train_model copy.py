@@ -89,7 +89,7 @@ def train_model(config: Struct):
         raise ValueError(f"Model type '{config.model_type}' not supported!")
 
     # Print all arguments for recordkeeping
-    print("\nArguments:")
+    print("Arguments:")
     arg_table = []
     row = []
     for i, (key, value) in enumerate(config.get_config_dict().items()):
@@ -118,21 +118,20 @@ def train_model(config: Struct):
     except AttributeError:
         print("\n\nATTRIBUTE ERROR HANDLED\n\n")
         slurm_task = ""
-    # from time import wait
-    # wait(2)
+
     # Initialize model directory for config files, weights, etc.
-    model_dir = Path(config.models_path, model_label, slurm_task)
+    model_dir = Path(config.models_path) / model_label / slurm_task
     model_dir.mkdir(parents=True, exist_ok=True)
-    print(f"Saving model files in {model_dir}", flush=True)
+    print(f"Saving model files in {model_dir}")
 
     # Initialize checkpoints directory
-    checkpoints_dir = Path(model_dir, "checkpoints")
+    checkpoints_dir = model_dir / "checkpoints"
     checkpoints_dir.mkdir(parents=False, exist_ok=True)
-    print(f"Saving checkpoints in {checkpoints_dir}", flush=True)
+    print(f"Saving checkpoints in {checkpoints_dir}")
 
     # Create SummaryWriter to record logs for TensorBoard
     tboard_log_dir = Path(config.models_path, "logs", model_label)
-    print(f"Saving TensorBoard logs in {tboard_log_dir}", flush=True)
+    print(f"Saving TensorBoard logs in {tboard_log_dir}")
     tb_logger = pl_loggers.TensorBoardLogger(save_dir=tboard_log_dir)
 
     # Save all the variables in args as JSON inside folder
@@ -142,12 +141,12 @@ def train_model(config: Struct):
         indent=4)
 
     # Print estimated loss if it hasn't learned anything
-    print("\nEstimated loss if guessing:", flush=True)
+    print("\nEstimated loss if guessing:")
     print(f"-ln(1 / {config.vocab_size}) = " + \
-        f"{-torch.log(torch.tensor(1 / config.vocab_size))}", flush=True)
+        f"{-torch.log(torch.tensor(1 / config.vocab_size))}")
 
     # Loads Tokenized data
-    print(f"\nNow loading '{config.dataset_name}'...")
+    print(f"\nNow loading '{config.dataset_name}'")
 
     dm = DataModule(config)
 
@@ -206,7 +205,7 @@ def train_model(config: Struct):
                 cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
                 cloud_region="us-west3")
 
-    emissions_tracker.start()
+    # emissions_tracker.start()
     
     try:
         config.learning_rate = config.learning_rate.lower()
@@ -222,7 +221,7 @@ def train_model(config: Struct):
     except AttributeError:  # if not type str
         pass
     
-    # torch.set_float32_matmul_precision('medium')
+    torch.set_float32_matmul_precision('medium')
 
     print("About to start training...")
     trainer.fit(model, datamodule=dm)
@@ -231,7 +230,7 @@ def train_model(config: Struct):
 
     # Automatically load best checkpoint and test with test dataloader
     trainer.test(model, datamodule=dm)
-    emissions_tracker.stop()
+    # emissions_tracker.stop()
 
     print("Finished testing!")
 

@@ -49,15 +49,16 @@ feature in conjunction with grid search."
         weight_decay))
 
     # Open a CSV file to write the results
-    with open(Path(config.root_data_path, "grid_search_results.csv"),
-            "w") as results_file:
+    with open(Path(config.root_data_path, "grid_search_results.csv"), "w") as results_file:
         # Write header to CSV file
         results_file.write(",".join([
             "Random Seed",
+            "Task ID"
             "Learning Rate",
             "Gradient Clipping",
             "Weight Decay",
             "LongNet Avg Loss",
+            "LongNet Model Path"
             # "RetNet Avg Loss",
             # "Transformer Avg Loss",
             # "Similarity Score Between RetNet and Transformer",
@@ -129,22 +130,23 @@ feature in conjunction with grid search."
         #     model2_loss=transformer_best_score)
 
         # Record results in CSV
-        with open(Path(config.root_data_path, "grid_search_results.csv"),
-                "a") as results_file:
+        with open(Path(config.root_data_path, "grid_search_results.csv"), "a") as results_file:
             results_file.write(",".join(map(str, [
                 config.rand_seed,
+                config.slurm_task,
                 lr,
                 gradient_clipping,
                 weight_decay,
                 longnet_best_score,
-                retnet_best_score,
-                transformer_best_score,
-                similarity_score_1,
-                similarity_score_2,
-                similarity_score_3,
-                longnet_training_time,
-                retnet_training_time,
-                transformer_training_time,
+                longnet_model_path,
+                # retnet_best_score,
+                # transformer_best_score,
+                # similarity_score_1,
+                # similarity_score_2,
+                # similarity_score_3,
+                # longnet_training_time,
+                # retnet_training_time,
+                # transformer_training_time,
                 total_time])) + "\n")
 
     # Store similarity score for comparison later
