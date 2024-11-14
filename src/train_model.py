@@ -20,8 +20,8 @@ from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
     def __init__(self, dirpath, monitor, save_top_k, mode, every_n_hours, every_n_train_steps):
-        self.num_ckpts = 0
-        self.file_name = "{step}_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
+        self.num_ckpts = 000
+        self.file_name = "{num_ckpt}_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         
         if every_n_hours is not None and every_n_train_steps is not None:
             if every_n_hours <= 0:
