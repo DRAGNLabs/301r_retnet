@@ -20,8 +20,8 @@ from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
     def __init__(self, dirpath, monitor, save_top_k, mode, every_n_hours, every_n_train_steps):
-        self.num_ckpts = 0
-        self.file_name = "{step}_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
+        self.num_ckpts = 000
+        self.file_name = f"{self.num_ckpts}" + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         
         if every_n_hours is not None and every_n_train_steps is not None:
             if every_n_hours <= 0:
@@ -50,13 +50,12 @@ class CustomModelCheckpoint(ModelCheckpoint):
 
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
-        super().on_save_checkpoint(
-            trainer=trainer,
-            pl_module=pl_module,
-            checkpoint=checkpoint)
-        pl_module.save_pretrained(
-            os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
+        super().on_save_checkpoint(trainer=trainer, pl_module=pl_module, checkpoint=checkpoint)
+
+        pl_module.save_pretrained(os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
         self.num_ckpts += 1
+        self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
+        trainer.checkpoint_callback.filename = self.file_name  # Update filename for next checkpoint
 
         # Print GPU memory usage
         print(torch.cuda.memory_summary())  # Prints per device
