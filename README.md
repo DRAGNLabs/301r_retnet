@@ -50,11 +50,6 @@ Once your environment has been prepared, install all required packages:
 pip install -r requirements.txt
 ```
 
-To install Flash Attention:
-```bash
-pip install flash-attn==2.5.6 --no-build-isolation
-```
-
 ### 2: YAML Configuration Files
 
 This project uses YAML configuration files to store all pipeline parameters and paths. The design choice of the YAML file is intended to eliminate repetition of commonly used parameters across code, as well as simplify future changes and refactors, allow developers to add new parameters, and make all settings visible to the user in one consolidated place.
