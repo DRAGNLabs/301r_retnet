@@ -186,8 +186,7 @@ def grid_search(config: Struct, compare_models=False):
         #         *most_diff_params_3,
         #         similarity_longnet_transformer[most_diff_params_3]])) + "\n")
         # #   Record results in CSV
-        with open(Path(config.root_data_path) / "grid_search_results.csv",
-                "a") as results_file:
+        with open(Path(config.models_path) / "grid_search_results.csv", "a") as results_file:
             results_file.write(",".join(map(str, [
                 config.rand_seed,
                 lr,
