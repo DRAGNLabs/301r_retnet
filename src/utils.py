@@ -168,6 +168,11 @@ class Struct():
         for key, value in entries.items():
             setattr(self, key, value)
 
+    def __setattr__(self, name: str, value) -> None:
+        if name != "config_dict":
+            self.config_dict[name] = value
+        super().__setattr__(name, value)
+
     def __str__(self):
         s = "Struct: {"
         for key, value in self.config_dict.items():
