@@ -202,17 +202,12 @@ def grid_search(config: Struct, compare_models=False):
 if __name__ == "__main__":
     args = sys.argv
     config_path = args[1]
+    slurm_id = args[2]  
 
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     config = Struct(**config)
-    
-    if config.use_slurm:
-        slurm_id = args[2]  
-        config.slurm_id = int(slurm_id)
-    else:
-        slurm_id = None  # Set to some type of int in iterating fashion 
-        config.slurm_id = int(slurm_id)  
+    config.slurm_id = int(slurm_id)
 
     grid_search(config)
