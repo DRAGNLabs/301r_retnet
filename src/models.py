@@ -338,7 +338,7 @@ class LongNetModel(LightningModule):
 
         # Create Transformer Decoder configuration for HuggingFace model
         # This will work for LongNet as well (which this is)
-        config = DecoderConfig(
+        config = LongNetConfig(
             decoder_embed_dim=config.embed_dim,
             decoder_value_embed_dim=config.value_embed_dim,
             decoder_attention_heads=config.heads,
