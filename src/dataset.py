@@ -47,6 +47,12 @@ class DataModule(LightningDataModule):
             self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
                                         self.seq_len,
                                         self.pad_token_id)
+                
+        if stage == "validate" or stage == "validation":
+            # Load dataset
+            self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
+                                        self.seq_len,
+                                        self.pad_token_id)
             
         if stage == "test":
             # Load dataset
