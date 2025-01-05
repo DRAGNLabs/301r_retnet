@@ -206,6 +206,7 @@ def train_model(config: Struct):
                 cloud_region="us-west3")
 
     emissions_tracker.start()
+    trainer.validate(model, datamodule=dm)
     trainer.fit(model, datamodule=dm)
 
     print("\nDone training! Now testing model...")

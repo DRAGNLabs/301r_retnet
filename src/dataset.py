@@ -47,6 +47,12 @@ class DataModule(LightningDataModule):
             self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
                                         self.seq_len,
                                         self.pad_token_id)
+                
+        if stage == "validate" or stage == "validation":
+            # Load dataset
+            self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
+                                        self.seq_len,
+                                        self.pad_token_id)
             
         if stage == "test":
             # Load dataset
@@ -92,8 +98,8 @@ class DataSet(torch.utils.data.IterableDataset):
         # Read data with Dask
         self.data = dd.read_parquet(path_to_data / "*.parquet")
 
-        # Get length of df
-        self.length = len(self.data)
+        # Get length of df (critical for the __len__ method)
+        self.length = self.data.index.size.compute()  # ~300x faster than `len(self.data)` for parquet data
 
         self.seq_len = seq_len
         self.pad_token_id = pad_token_id
