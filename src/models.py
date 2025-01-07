@@ -106,7 +106,7 @@ class RetNetModel(LightningModule):
             value=loss,
             prog_bar=True,
             logger=True,
-            on_step=False,
+            on_step=True,
             on_epoch=True,
             sync_dist=True)
         
@@ -115,7 +115,7 @@ class RetNetModel(LightningModule):
             value=perplexity, 
             prog_bar=True,
             logger=True, 
-            on_step=False, 
+            on_step=True, 
             on_epoch=True,
             sync_dist=True)
 
@@ -259,7 +259,7 @@ class TransformerModel(LightningModule):
             value=loss,
             prog_bar=True,
             logger=True,
-            on_step=False,
+            on_step=True,
             on_epoch=True,
             sync_dist=True)
         
@@ -268,7 +268,7 @@ class TransformerModel(LightningModule):
             value=perplexity, 
             prog_bar=True,
             logger=True, 
-            on_step=False, 
+            on_step=True, 
             on_epoch=True,
             sync_dist=True,)
 
