@@ -16,7 +16,11 @@ from torchscale.component.gate_linear_unit import GLU
 from torchscale.component.multiscale_retention import MultiScaleRetention
 from torchscale.component.xmoe.moe_layer import MOELayer
 from torchscale.component.xmoe.routing import Top1Gate, Top2Gate
-from torchscale.component.rms_norm import RMSNorm
+from torchscale.component.rms_norm import RMSNorm  # switched to 'LayerNorm' for consistency with other architectures
+try:
+    from apex.normalization import FusedLayerNorm as LayerNorm
+except ModuleNotFoundError:
+    from torch.nn import LayerNorm 
     
     
 class RetNetRelPos(nn.Module):
@@ -92,7 +96,7 @@ class DecoderLayer(nn.Module):
 
         self.normalize_before = args.decoder_normalize_before
 
-        self.retention_layer_norm = RMSNorm(self.embed_dim, eps=args.layernorm_eps)
+        self.retention_layer_norm = LayerNorm(self.embed_dim, eps=args.layernorm_eps)
 
         self.is_moe_layer = is_moe_layer
         self.ffn_dim = args.decoder_ffn_embed_dim
@@ -124,7 +128,7 @@ class DecoderLayer(nn.Module):
             experts = make_experts(args, self.embed_dim, self.ffn_dim)
             self.moe_layer = MOELayer(gate, experts, args)
 
-        self.final_layer_norm = RMSNorm(self.embed_dim, eps=args.layernorm_eps)
+        self.final_layer_norm = LayerNorm(self.embed_dim, eps=args.layernorm_eps)
 
         if args.deepnorm:
             self.alpha = math.pow(2.0 * args.decoder_layers, 0.25)
@@ -225,7 +229,7 @@ class RetNetDecoder(nn.Module):
             self.output_projection = output_projection
 
         if args.layernorm_embedding:
-            self.layernorm_embedding = RMSNorm(embed_dim, eps=args.layernorm_eps)
+            self.layernorm_embedding = LayerNorm(embed_dim, eps=args.layernorm_eps)
         else:
             self.layernorm_embedding = None
 
@@ -245,7 +249,7 @@ class RetNetDecoder(nn.Module):
         self.num_layers = len(self.layers)
 
         if args.decoder_normalize_before:
-            self.layer_norm = RMSNorm(embed_dim, eps=args.layernorm_eps)
+            self.layer_norm = LayerNorm(embed_dim, eps=args.layernorm_eps)
         else:
             self.layer_norm = None
 
