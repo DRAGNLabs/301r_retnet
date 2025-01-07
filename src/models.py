@@ -408,6 +408,7 @@ class LongNetModel(LightningModule):
 
         # Calculate loss
         loss = self.loss_fn(preds, targets)
+        perplexity = torch.exp(loss)
 
         self.log(
             name="val_loss",
@@ -416,8 +417,16 @@ class LongNetModel(LightningModule):
             logger=True,
             on_step=True,
             on_epoch=True,
-            sync_dist=True,
-            add_dataloader_idx=True)
+            sync_dist=True)
+
+        self.log(
+            name="val_perplexity", 
+            value=perplexity, 
+            prog_bar=True,
+            logger=True, 
+            on_step=True, 
+            on_epoch=True,
+            sync_dist=True)
 
         return loss
 
