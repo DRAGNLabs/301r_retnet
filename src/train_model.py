@@ -112,8 +112,7 @@ def train_model(config: Struct):
         model_label = config.model_label
     else:
         model_label = f"{config.model_type}_{total_params}" + \
-            f"_LR{config.learning_rate}_ED{config.embed_dim}" + \
-            f"_FFN{config.ffn_dim}_H{config.heads}_S{config.seq_len}"
+            f"_LR{config.learning_rate}_GC{config.gradient_clip_val}"
 
     # Initialize model directory for config files, weights, etc.
     model_dir = Path(config.models_path) / model_label
