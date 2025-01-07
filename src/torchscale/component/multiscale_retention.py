@@ -6,8 +6,11 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 from .rms_norm import RMSNorm
-
 from .multiway_network import MultiwayWrapper
+try:
+    from apex.normalization import FusedLayerNorm as LayerNorm
+except ModuleNotFoundError:
+    from torch.nn import LayerNorm
 
 def rotate_every_two(x):
     x1 = x[:, :, :, ::2]
@@ -63,7 +66,7 @@ class MultiScaleRetention(nn.Module):
         
         self.out_proj = MultiwayWrapper(args, nn.Linear(value_dim, embed_dim, bias=False))
 
-        self.group_norm = MultiwayWrapper(args, RMSNorm(self.head_dim, eps=args.layernorm_eps, elementwise_affine=False))
+        self.group_norm = MultiwayWrapper(args, LayerNorm(self.head_dim, eps=args.layernorm_eps, elementwise_affine=False))
         self.reset_parameters()
 
     def reset_parameters(self):
