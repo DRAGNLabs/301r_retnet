@@ -106,7 +106,7 @@ class RetNetModel(LightningModule):
             value=loss,
             prog_bar=True,
             logger=True,
-            on_step=False,
+            on_step=True,
             on_epoch=True,
             sync_dist=True)
         
@@ -115,7 +115,7 @@ class RetNetModel(LightningModule):
             value=perplexity, 
             prog_bar=True,
             logger=True, 
-            on_step=False, 
+            on_step=True, 
             on_epoch=True,
             sync_dist=True)
 
@@ -259,7 +259,7 @@ class TransformerModel(LightningModule):
             value=loss,
             prog_bar=True,
             logger=True,
-            on_step=False,
+            on_step=True,
             on_epoch=True,
             sync_dist=True)
         
@@ -268,7 +268,7 @@ class TransformerModel(LightningModule):
             value=perplexity, 
             prog_bar=True,
             logger=True, 
-            on_step=False, 
+            on_step=True, 
             on_epoch=True,
             sync_dist=True,)
 
@@ -338,7 +338,7 @@ class LongNetModel(LightningModule):
 
         # Create Transformer Decoder configuration for HuggingFace model
         # This will work for LongNet as well (which this is)
-        config = DecoderConfig(
+        config = LongNetConfig(
             decoder_embed_dim=config.embed_dim,
             decoder_value_embed_dim=config.value_embed_dim,
             decoder_attention_heads=config.heads,
@@ -408,6 +408,7 @@ class LongNetModel(LightningModule):
 
         # Calculate loss
         loss = self.loss_fn(preds, targets)
+        perplexity = torch.exp(loss)
 
         self.log(
             name="val_loss",
@@ -416,8 +417,16 @@ class LongNetModel(LightningModule):
             logger=True,
             on_step=True,
             on_epoch=True,
-            sync_dist=True,
-            add_dataloader_idx=True)
+            sync_dist=True)
+
+        self.log(
+            name="val_perplexity", 
+            value=perplexity, 
+            prog_bar=True,
+            logger=True, 
+            on_step=True, 
+            on_epoch=True,
+            sync_dist=True)
 
         return loss
 
