@@ -145,6 +145,8 @@ every_n_hours: ~
 # Every N Train Steps (int): Checkpoint every n train steps; Overridden by every_n_hours if it's not set to 0 or None;
 # Note: PyTorch Lightning defines 'steps' as optimizer steps, not batch forward passes, distinct when accumulate_grad_batches > 1.
 every_n_train_steps: 10000
+# Save Hugging Face (bool): Whether or not to save HuggingFace checkpoints alongside Torch Lightning ones. These are typically ~1/10th the size of PTL ckpts.
+save_hf_ckpts: False
 # Gamma (float): Learning rate scheduler gamma
 gamma: 0.85
 # Gradient Clip Val (float): Value for gradient clipping
