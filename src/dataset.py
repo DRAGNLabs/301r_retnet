@@ -85,6 +85,15 @@ class DataModule(LightningDataModule):
             batch_size=self.batch_size,
             collate_fn=self.test_dataset.pad_sequences,
             num_workers=self.num_workers)
+
+    def state_dict(self):
+        # track whatever you want here
+        state = {"batch_idx": self.batch_idx}
+        return state
+
+    def load_state_dict(self, state_dict):
+        # restore the state based on what you tracked in (def state_dict)
+        self.batch_idx = state_dict["batch_idx"]
     
 class DataSet(torch.utils.data.IterableDataset):
     """
