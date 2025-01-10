@@ -32,6 +32,7 @@ class DataModule(LightningDataModule):
         # Instantiate tokenizer to get the pad/eos ids
         tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
         self.pad_token_id = tokenizer.pad_token_id
+        self.batch_idx = config.restart_dataloader_from if config.restart_dataloader_from else 0
 
     def setup(self, stage: str):
         """ Setup for each stage -- called on every process on DDP.
@@ -42,7 +43,8 @@ class DataModule(LightningDataModule):
             # Load datasets
             self.train_dataset = DataSet(self.tokenized_dataset_path / "train",
                                          self.seq_len,
-                                         self.pad_token_id)
+                                         self.pad_token_id,
+                                         batch_idx = self.batch_idx*sample_idx
             
             self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
                                         self.seq_len,
@@ -93,10 +95,11 @@ class DataSet(torch.utils.data.IterableDataset):
         path_to_data (Path): Path to the tokenized dataset.
         seq_len (int): Sequence length during training.
     """
-    def __init__(self, path_to_data, seq_len, pad_token_id):
+    def __init__(self, path_to_data, seq_len, pad_token_id, sample_idx=0):
         assert path_to_data.exists(), f"Path '{path_to_data}' does not exist."
         # Read data with Dask
         self.data = dd.read_parquet(path_to_data / "*.parquet")
+        self.sample_idx = sample_idx
 
         # Get length of df (critical for the __len__ method)
         self.length = self.data.index.size.compute()  # ~300x faster than `len(self.data)` for parquet data
@@ -131,6 +134,8 @@ class DataSet(torch.utils.data.IterableDataset):
         iterator = self.data.iterrows()
 
         for index, item in enumerate(iterator):
+            if index < self.sample_idx:
+                continue
             if index % (num_workers * world_size) == (process_rank * num_workers + worker_id):
                 item = item[1].values[0].tolist()
                 if len(item) <= self.seq_len:
@@ -141,6 +146,7 @@ class DataSet(torch.utils.data.IterableDataset):
                 else:
                     x = item[:self.seq_len]
                     y_true = item[1:self.seq_len+1]
+                self.batch_idx += 1
                 yield(x,y_true)
 
     def pad_sequences(self, batch):
