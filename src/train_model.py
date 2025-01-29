@@ -19,10 +19,11 @@ from transformers import set_seed
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, monitor, save_top_k, save_last, mode, every_n_hours, every_n_train_steps, save_hf_ckpts):
+    def __init__(self, dirpath, monitor, save_top_k, save_last, mode, e_tracker, every_n_hours, every_n_train_steps, save_hf_ckpts):
         self.num_ckpts = 0
         self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         self.save_hf_ckpts = save_hf_ckpts
+        self.emissions_tracker = e_tracker
         
         if every_n_hours is not None and every_n_train_steps is not None:
             if every_n_hours <= 0:
@@ -55,6 +56,7 @@ class CustomModelCheckpoint(ModelCheckpoint):
         super().on_save_checkpoint(trainer=trainer, pl_module=pl_module, checkpoint=checkpoint)
         if self.save_hf_ckpts:
             pl_module.save_pretrained(os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
+        self.emissions_tracker.flush()
         self.num_ckpts += 1
         self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         trainer.checkpoint_callback.filename = self.file_name  # Update filename for next checkpoint
@@ -148,6 +150,15 @@ def train_model(config: Struct):
     print(f"\nNow loading '{config.dataset_name}'")
 
     dm = DataModule(config)
+    
+    # Set up carbon emissions tracker
+    CO2_outfile = "emissions.csv" if not config.CO2_outfile else config.CO2_outfile
+    emissions_tracker = OfflineEmissionsTracker(
+        output_dir=model_dir,
+        output_file=CO2_outfile,
+        country_iso_code="USA",
+        cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
+        cloud_region="us-west3")
 
     # Implement callbacks
     model_checkpoint = CustomModelCheckpoint(
@@ -156,6 +167,7 @@ def train_model(config: Struct):
         save_top_k=config.save_top_k,
         save_last=True,
         mode="min",
+        e_tracker=emissions_tracker,
         every_n_hours=config.every_n_hours,
         every_n_train_steps=config.every_n_train_steps,
         save_hf_ckpts=config.save_hf_ckpts)
@@ -196,15 +208,6 @@ def train_model(config: Struct):
             precision=config.precision,
             gradient_clip_val=config.gradient_clip_val)
         
-    ## Set up carbon emissions tracker
-
-    CO2_outfile = "emissions.csv" if not config.CO2_outfile else config.CO2_outfile
-    emissions_tracker = OfflineEmissionsTracker(
-                output_dir=model_dir,
-                output_file=CO2_outfile,
-                country_iso_code="USA",
-                cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
-                cloud_region="us-west3")
 
     emissions_tracker.start()
     trainer.validate(model, datamodule=dm)
