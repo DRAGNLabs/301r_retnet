@@ -109,6 +109,9 @@ tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/c4
 # If left empty, defaults to 'emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
 CO2_outfile: ~ # Example: CO2_grid_search.csv
 
+# Code Carbon Log Level (string): Log level for Code Carbon; Options: "info", "debug", "warning", "error", or "critical"; defualts to "info" if set to None
+cc_log_level: ~
+
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
 # Device Type (str): Device to train on
