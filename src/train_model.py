@@ -56,7 +56,7 @@ class CustomModelCheckpoint(ModelCheckpoint):
         super().on_save_checkpoint(trainer=trainer, pl_module=pl_module, checkpoint=checkpoint)
         if self.save_hf_ckpts:
             pl_module.save_pretrained(os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
-        self.emissions_tracker.flush()
+        self.emissions_tracker.flush()  # appends current readings to doc
         self.num_ckpts += 1
         self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         trainer.checkpoint_callback.filename = self.file_name  # Update filename for next checkpoint
