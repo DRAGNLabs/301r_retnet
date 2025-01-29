@@ -45,11 +45,12 @@ class DataModule(LightningDataModule):
                                          self.seq_len,
                                          self.pad_token_id,
                                          batch_idx = self.batch_idx*sample_idx
-            
-            self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
-                                        self.seq_len,
-                                        self.pad_token_id)
-                
+            if not hasattr(self, "val_dataset"):
+                self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
+                                           self.seq_len,
+                                           self.pad_token_id)
+
+        
         if stage == "validate" or stage == "validation":
             # Load dataset
             self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
