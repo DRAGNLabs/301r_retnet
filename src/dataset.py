@@ -32,7 +32,6 @@ class DataModule(LightningDataModule):
         # Instantiate tokenizer to get the pad/eos ids
         tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
         self.pad_token_id = tokenizer.pad_token_id
-        self.batch_idx = config.restart_dataloader_from if config.restart_dataloader_from else 0
 
     def setup(self, stage: str):
         """ Setup for each stage -- called on every process on DDP.
@@ -43,8 +42,8 @@ class DataModule(LightningDataModule):
             # Load datasets
             self.train_dataset = DataSet(self.tokenized_dataset_path / "train",
                                          self.seq_len,
-                                         self.pad_token_id,
-                                         batch_idx = self.batch_idx*sample_idx
+                                         self.pad_token_id)
+
             if not hasattr(self, "val_dataset"):
                 self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
                                            self.seq_len,
@@ -105,17 +104,17 @@ class DataSet(torch.utils.data.IterableDataset):
         path_to_data (Path): Path to the tokenized dataset.
         seq_len (int): Sequence length during training.
     """
-    def __init__(self, path_to_data, seq_len, pad_token_id, sample_idx=0):
+    def __init__(self, path_to_data, seq_len, pad_token_id):
         assert path_to_data.exists(), f"Path '{path_to_data}' does not exist."
         # Read data with Dask
         self.data = dd.read_parquet(path_to_data / "*.parquet")
-        self.sample_idx = sample_idx
-
+    
         # Get length of df (critical for the __len__ method)
         self.length = self.data.index.size.compute()  # ~300x faster than `len(self.data)` for parquet data
 
         self.seq_len = seq_len
         self.pad_token_id = pad_token_id
+        self.current_index = 0
 
     def __len__(self):
         """
@@ -141,13 +140,15 @@ class DataSet(torch.utils.data.IterableDataset):
         process_rank = get_rank()
 
         # Create iterator over rows
-        iterator = self.data.iterrows()
+        iterator = self.data.iterrows()  # holds order
 
         for index, item in enumerate(iterator):
-            if index < self.sample_idx:
+            if index < self.current_index:  # Skip to most recent index in case of restart
                 continue
             if index % (num_workers * world_size) == (process_rank * num_workers + worker_id):
+                self.current_index += 1
                 item = item[1].values[0].tolist()
+
                 if len(item) <= self.seq_len:
                     length = len(item)
                     item = item + [self.pad_token_id]
@@ -156,7 +157,6 @@ class DataSet(torch.utils.data.IterableDataset):
                 else:
                     x = item[:self.seq_len]
                     y_true = item[1:self.seq_len+1]
-                self.batch_idx += 1
                 yield(x,y_true)
 
     def pad_sequences(self, batch):
@@ -173,3 +173,11 @@ class DataSet(torch.utils.data.IterableDataset):
         y_true_padded = torch.tensor(y_true_padded)
 
         return x_padded, y_true_padded
+
+    def state_dict(self):
+        """ Save dataset state (current position) for checkpointing. """
+        return {'current_index': self.current_index}
+
+    def load_state_dict(self, state_dict):
+        """ Restore dataset state from checkpoint. """
+        self.current_index = state_dict.get('current_index', 0)
