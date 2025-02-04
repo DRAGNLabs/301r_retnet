@@ -98,9 +98,9 @@ class DataModule(LightningDataModule):
 
     def load_state_dict(self, state_dict):
         """ Restore dataloader state from checkpoint. """
-        if self.train_dataset and state_dict.get('train_dataset'):
+        if state_dict.get('train_dataset'):
             self.train_dataset.load_state_dict(state_dict['train_dataset'])
-        if self.val_dataset and state_dict.get('val_dataset'):
+        if state_dict.get('val_dataset'):
             self.val_dataset.load_state_dict(state_dict['val_dataset'])
     
 class DataSet(torch.utils.data.IterableDataset):
