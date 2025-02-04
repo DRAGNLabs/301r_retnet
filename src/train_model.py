@@ -216,7 +216,12 @@ def train_model(config: Struct):
 
     emissions_tracker.start()
     trainer.validate(model, datamodule=dm)
-    trainer.fit(model, datamodule=dm)
+
+    if config.restart_training_from_ckpt:
+        print(f"\nLoading model from checkpoint: {config.restart_training_from_ckpt}\n", flush=True)
+        trainer.fit(model, ckpt_path=config.restart_training_from_ckpt, datamodule=dm)
+    else:
+        trainer.fit(model, datamodule=dm)
 
     print("\nDone training! Now testing model...")
 
