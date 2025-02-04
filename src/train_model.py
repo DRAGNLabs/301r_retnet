@@ -63,7 +63,9 @@ class CustomModelCheckpoint(ModelCheckpoint):
         self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         trainer.checkpoint_callback.filename = self.file_name  # Update filename for next checkpoint
 
-
+    def on_load_checkpoint(self, callback_state):
+        self.datamodule.load_state_dict(callback_state['dm_state'])
+        super().on_load_checkpoint(callback_state)
 
 def train_model(config: Struct):
     # Test that the head dimension will be an even, whole number
