@@ -19,11 +19,12 @@ from transformers import set_seed
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, monitor, save_top_k, save_last, mode, e_tracker, every_n_hours, every_n_train_steps, save_hf_ckpts):
+    def __init__(self, datatmodule, dirpath, monitor, save_top_k, save_last, mode, e_tracker, every_n_hours, every_n_train_steps, save_hf_ckpts):
         self.num_ckpts = 0
         self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         self.save_hf_ckpts = save_hf_ckpts
         self.emissions_tracker = e_tracker
+        self.datamodule = datatmodule
         
         if every_n_hours is not None and every_n_train_steps is not None:
             if every_n_hours <= 0:
@@ -53,6 +54,7 @@ class CustomModelCheckpoint(ModelCheckpoint):
 
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
+        checkpoint['dm_state'] = self.datamodule.state_dict()  # Save datamodule state as {train_dataset: ..., val_dataset: ...}
         super().on_save_checkpoint(trainer=trainer, pl_module=pl_module, checkpoint=checkpoint)
         if self.save_hf_ckpts:
             pl_module.save_pretrained(os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
@@ -61,8 +63,7 @@ class CustomModelCheckpoint(ModelCheckpoint):
         self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         trainer.checkpoint_callback.filename = self.file_name  # Update filename for next checkpoint
 
-        # Print GPU memory usage
-        print(torch.cuda.memory_summary())  # Prints per device
+
 
 def train_model(config: Struct):
     # Test that the head dimension will be an even, whole number
@@ -164,6 +165,7 @@ def train_model(config: Struct):
     # Implement callbacks
     model_checkpoint = CustomModelCheckpoint(
         dirpath=checkpoints_dir,
+        datamodule=dm,
         monitor="val_loss",
         save_top_k=config.save_top_k,
         save_last=True,
