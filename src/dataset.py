@@ -33,6 +33,9 @@ class DataModule(LightningDataModule):
         tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
         self.pad_token_id = tokenizer.pad_token_id
 
+        self.train_dataset = None
+        self.val_dataset = None
+
     def setup(self, stage: str):
         """ Setup for each stage -- called on every process on DDP.
         Args:
@@ -87,13 +90,18 @@ class DataModule(LightningDataModule):
             num_workers=self.num_workers)
 
     def state_dict(self):
-        # track whatever you want here
-        state = {"batch_idx": self.batch_idx}
-        return state
+        """ Save dataloader state for checkpointing. """
+        return {
+            'train_dataset': self.train_dataset.state_dict() if self.train_dataset else None,
+            'val_dataset': self.val_dataset.state_dict() if self.val_dataset else None
+        }
 
     def load_state_dict(self, state_dict):
-        # restore the state based on what you tracked in (def state_dict)
-        self.batch_idx = state_dict["batch_idx"]
+        """ Restore dataloader state from checkpoint. """
+        if self.train_dataset and state_dict.get('train_dataset'):
+            self.train_dataset.load_state_dict(state_dict['train_dataset'])
+        if self.val_dataset and state_dict.get('val_dataset'):
+            self.val_dataset.load_state_dict(state_dict['val_dataset'])
     
 class DataSet(torch.utils.data.IterableDataset):
     """
