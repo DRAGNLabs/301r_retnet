@@ -76,12 +76,16 @@ test_sequence_lengths:
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
+
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: text
 # HuggingFace Dataset Name (str)
 dataset_name: c4
 # HuggingFace Dataset Subset (str)
 dataset_subset: c4-en
+
+# Restart Training from Checkpoint (str): A path to a checkpoint to restart training from; if 'None', training starts from scratch.
+restart_training_from_ckpt: ~
 
 # Train Model (str): Path to model folder
 models_path: <YOUR_PATH_HERE>/data/models
