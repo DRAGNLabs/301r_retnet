@@ -19,7 +19,7 @@ from transformers import set_seed
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, datatmodule, dirpath, monitor, save_top_k, save_last, mode, e_tracker, every_n_hours, every_n_train_steps, save_hf_ckpts):
+    def __init__(self, datamodule, dirpath, monitor, save_top_k, save_last, mode, e_tracker, every_n_hours, every_n_train_steps, save_hf_ckpts):
         self.num_ckpts = 0
         self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         self.save_hf_ckpts = save_hf_ckpts
