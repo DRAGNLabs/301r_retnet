@@ -154,8 +154,9 @@ class DataSet(torch.utils.data.IterableDataset):
             if index < self.current_index:  # Skip to most recent index in case of restart
                 continue
             if index % (num_workers * world_size) == (process_rank * num_workers + worker_id):
-                self.current_index += 1
+                self.current_index = index
                 item = item[1].values[0].tolist()
+                print(self.current_index)
 
                 if len(item) <= self.seq_len:
                     length = len(item)
