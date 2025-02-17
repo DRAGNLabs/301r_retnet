@@ -1,7 +1,8 @@
+import json
+import os
 import dask
 dask.config.set({"dataframe.query-planning": True})
 import dask.dataframe as dd
-import numpy as np
 import torch
 
 from pathlib import Path
@@ -11,6 +12,7 @@ from torch.distributed import get_rank, get_world_size
 from transformers import PreTrainedTokenizerFast
 from utils import Struct
 
+SAVE_INDEX_FREQUENCY = 32 * 1000
 
 class DataModule(LightningDataModule):
     """
@@ -28,6 +30,7 @@ class DataModule(LightningDataModule):
         self.num_workers = config.num_workers
         self.tokenized_dataset_path = Path(config.tokenized_dataset_path)
         self.seq_len = config.seq_len
+        self.models_path = config.models_path
 
         # Instantiate tokenizer to get the pad/eos ids
         tokenizer = PreTrainedTokenizerFast.from_pretrained(config.tokenizer_path)
@@ -45,7 +48,9 @@ class DataModule(LightningDataModule):
             # Load datasets
             self.train_dataset = DataSet(self.tokenized_dataset_path / "train",
                                          self.seq_len,
-                                         self.pad_token_id)
+                                         self.pad_token_id,
+                                         self.models_path
+                                        )
 
             if not hasattr(self, "val_dataset"):
                 self.val_dataset = DataSet(self.tokenized_dataset_path / "validation",
@@ -112,9 +117,10 @@ class DataSet(torch.utils.data.IterableDataset):
         path_to_data (Path): Path to the tokenized dataset.
         seq_len (int): Sequence length during training.
     """
-    def __init__(self, path_to_data, seq_len, pad_token_id):
+    def __init__(self, path_to_data, seq_len, pad_token_id, index_file: str | None = None):
         assert path_to_data.exists(), f"Path '{path_to_data}' does not exist."
         # Read data with Dask
+        self.path_to_data = path_to_data
         self.data = dd.read_parquet(path_to_data / "*.parquet")
     
         # Get length of df (critical for the __len__ method)
@@ -122,7 +128,9 @@ class DataSet(torch.utils.data.IterableDataset):
 
         self.seq_len = seq_len
         self.pad_token_id = pad_token_id
-        self.current_index = 0
+
+        self.current_index = 0  # Mutable list to store index
+        self.index_file = index_file
 
     def __len__(self):
         """
@@ -147,6 +155,8 @@ class DataSet(torch.utils.data.IterableDataset):
         world_size = get_world_size()
         process_rank = get_rank()
 
+        start_index = 0
+
         # Create iterator over rows
         iterator = self.data.iterrows()  # holds order
 
@@ -156,8 +166,9 @@ class DataSet(torch.utils.data.IterableDataset):
             if index % (num_workers * world_size) == (process_rank * num_workers + worker_id):
                 self.current_index = index
                 item = item[1].values[0].tolist()
-                print(self.current_index)
-
+                if (index > start_index + SAVE_INDEX_FREQUENCY) and self.index_file:
+                    start_index = index
+                    self.save_index_to_file() 
                 if len(item) <= self.seq_len:
                     length = len(item)
                     item = item + [self.pad_token_id]
@@ -168,6 +179,17 @@ class DataSet(torch.utils.data.IterableDataset):
                     y_true = item[1:self.seq_len+1]
                 yield(x,y_true)
 
+    def save_index_to_file(self):
+        """ Save current index to file at the specified path. Create if not present, update if exists. """
+        # Ensure the directory exists
+        index_file_path = os.path.join(self.index_file, "index.json")
+        
+        os.makedirs(os.path.dirname(index_file_path), exist_ok=True)
+
+        with open(index_file_path, "w") as f:
+        # Directly overwrite with the new current_index value
+            json.dump({"current_index": self.current_index}, f, indent=4)
+                
     def pad_sequences(self, batch):
         """
         Collator function for padding sequences to the sequence length
