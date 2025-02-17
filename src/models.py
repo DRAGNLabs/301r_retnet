@@ -23,7 +23,7 @@ class RetNetModel(LightningModule):
             config (Struct): A Struct object with all configuration fields.
         """
         super().__init__()
-        self.betas = float(config.betas)
+        self.betas = [float(beta) for beta in config.betas]
         self.learning_rate = float(config.learning_rate)
         self.gamma = float(config.gamma)
         self.weight_decay = float(config.weight_decay)
@@ -180,7 +180,7 @@ class TransformerModel(LightningModule):
             config (Struct): A Struct object with all configuration fields.
         """
         super().__init__()
-        self.betas = float(config.betas)
+        self.betas = [float(beta) for beta in config.betas]
         self.learning_rate = float(config.learning_rate)
         self.gamma = float(config.gamma)
         self.weight_decay = float(config.weight_decay)
@@ -331,7 +331,7 @@ class LongNetModel(LightningModule):
             config (Struct): A Struct object with all configuration fields.
         """
         super().__init__()
-        self.betas = float(config.betas)
+        self.betas = [float(beta) for beta in config.betas]
         self.learning_rate = float(config.learning_rate)
         self.gamma = float(config.gamma)
         self.weight_decay = float(config.weight_decay)
