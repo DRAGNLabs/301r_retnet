@@ -24,7 +24,7 @@ class CustomModelCheckpoint(ModelCheckpoint):
         self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         self.save_hf_ckpts = save_hf_ckpts
         self.emissions_tracker = e_tracker
-        self.datamodule = datatmodule
+        self.datamodule = datamodule
         
         if every_n_hours is not None and every_n_train_steps is not None:
             if every_n_hours <= 0:
