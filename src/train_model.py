@@ -19,9 +19,13 @@ from transformers import set_seed
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
-    def __init__(self, dirpath, monitor, save_top_k, save_last, mode, every_n_hours, every_n_train_steps):
+    def __init__(self, datamodule, dirpath, monitor, save_top_k, save_last, mode, e_tracker, every_n_hours, every_n_train_steps, save_hf_ckpts, models_path):
         self.num_ckpts = 0
         self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
+        self.save_hf_ckpts = save_hf_ckpts
+        self.emissions_tracker = e_tracker
+        self.datamodule = datamodule
+        self.models_path = models_path
         
         if every_n_hours is not None and every_n_train_steps is not None:
             if every_n_hours <= 0:
@@ -48,18 +52,34 @@ class CustomModelCheckpoint(ModelCheckpoint):
             mode=mode,
             train_time_interval=every_n_hours,
             every_n_train_steps=every_n_train_steps)
-
+        
+    def load_current_index(self):
+        index_file_path = os.path.join(self.models_path, "index.json")
+        if os.path.exists(index_file_path):
+            # Open the file in read mode
+            with open(index_file_path, "r") as f:
+                data = json.load(f)
+                return data["current_index"]
+        else:
+            print(f"File not found: {index_file_path}")
+            return None  # Return None if the file doesn't exist
 
     def on_save_checkpoint(self, trainer, pl_module, checkpoint):
+        checkpoint['dm_state'] = self.load_current_index()
+        print("PRINTING CURR INDEX", checkpoint['dm_state'])
         super().on_save_checkpoint(trainer=trainer, pl_module=pl_module, checkpoint=checkpoint)
-
-        pl_module.save_pretrained(os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
+        if self.save_hf_ckpts:
+            pl_module.save_pretrained(os.path.join(self.dirpath, f"hf_ckpt_{self.num_ckpts}"))
+        self.emissions_tracker.flush()  # appends current readings to doc
         self.num_ckpts += 1
         self.file_name = "ckpt_" + f"{self.num_ckpts}".zfill(3) + "_{epoch}_{val_loss:.2f}"  # TorchLightning knows how to write out to non-f-string
         trainer.checkpoint_callback.filename = self.file_name  # Update filename for next checkpoint
+      # Save datamodule state as {train_dataset: ..., val_dataset: ...}
+        
 
-        # Print GPU memory usage
-        print(torch.cuda.memory_summary())  # Prints per device
+    def load_state_dict(self, callback_state):
+        self.datamodule.load_state_dict(callback_state['dm_state'])
+        super().load_state_dict(callback_state)
 
 def train_model(config: Struct):
     # Test that the head dimension will be an even, whole number
@@ -147,16 +167,30 @@ def train_model(config: Struct):
     print(f"\nNow loading '{config.dataset_name}'")
 
     dm = DataModule(config)
+    
+    # Set up carbon emissions tracker
+    CO2_outfile = "emissions.csv" if not config.CO2_outfile else config.CO2_outfile
+    emissions_tracker = OfflineEmissionsTracker(
+        output_dir=model_dir,
+        output_file=CO2_outfile,
+        log_level=config.cc_log_level if config.cc_log_level else 'info',
+        country_iso_code="USA",
+        cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
+        cloud_region="us-west3")
 
     # Implement callbacks
     model_checkpoint = CustomModelCheckpoint(
         dirpath=checkpoints_dir,
+        datamodule=dm,
         monitor="val_loss",
         save_top_k=config.save_top_k,
         save_last=True,
         mode="min",
+        e_tracker=emissions_tracker,
         every_n_hours=config.every_n_hours,
-        every_n_train_steps=config.every_n_train_steps)
+        every_n_train_steps=config.every_n_train_steps,
+        save_hf_ckpts=config.save_hf_ckpts,
+        models_path=config.models_path)
 
     early_stopping = EarlyStopping(
         "val_loss",
@@ -194,19 +228,15 @@ def train_model(config: Struct):
             precision=config.precision,
             gradient_clip_val=config.gradient_clip_val)
         
-    ## Set up carbon emissions tracker
-
-    CO2_outfile = "emissions.csv" if not config.CO2_outfile else config.CO2_outfile
-    emissions_tracker = OfflineEmissionsTracker(
-                output_dir=model_dir,
-                output_file=CO2_outfile,
-                country_iso_code="USA",
-                cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
-                cloud_region="us-west3")
 
     emissions_tracker.start()
     trainer.validate(model, datamodule=dm)
-    trainer.fit(model, datamodule=dm)
+
+    if config.restart_training_from_ckpt:
+        print(f"\nLoading model from checkpoint: {config.restart_training_from_ckpt}\n", flush=True)
+        trainer.fit(model, ckpt_path=config.restart_training_from_ckpt, datamodule=dm)
+    else:
+        trainer.fit(model, datamodule=dm)
 
     print("\nDone training! Now testing model...")
 

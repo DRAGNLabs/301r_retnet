@@ -76,12 +76,16 @@ test_sequence_lengths:
 
 # ----------------------- DATASET AND PATH CONFIGURATION -----------------------
 
+
 # HuggingFace Dataset Feature (str): Column of the dataset to extract text from
 dataset_feature: text
 # HuggingFace Dataset Name (str)
 dataset_name: c4
 # HuggingFace Dataset Subset (str)
 dataset_subset: c4-en
+
+# Restart Training from Checkpoint (str): A path to a checkpoint to restart training from; if 'None', training starts from scratch.
+restart_training_from_ckpt: ~
 
 # Train Model (str): Path to model folder
 models_path: <YOUR_PATH_HERE>/data/models
@@ -108,6 +112,9 @@ tokenized_dataset_path: <YOUR_PATH_HERE>/data/tokenized_dataset/c4
 # Emissions Outfile (Optional) (string): Name of .csv file to write tracked emissions to.
 # If left empty, defaults to 'emissions.csv'; writes to <models_path+model_name>/<CO2_outfile>
 CO2_outfile: ~ # Example: CO2_grid_search.csv
+
+# Code Carbon Log Level (string): Log level for Code Carbon; Options: "info", "debug", "warning", "error", or "critical"; defualts to "info" if set to None
+cc_log_level: ~
 
 # ---------------------------- DEVICE CONFIGURATION ----------------------------
 
@@ -145,6 +152,8 @@ every_n_hours: ~
 # Every N Train Steps (int): Checkpoint every n train steps; Overridden by every_n_hours if it's not set to 0 or None;
 # Note: PyTorch Lightning defines 'steps' as optimizer steps, not batch forward passes, distinct when accumulate_grad_batches > 1.
 every_n_train_steps: 10000
+# Save Hugging Face (bool): Whether or not to save HuggingFace checkpoints alongside Torch Lightning ones. These are typically ~1/10th the size of PTL ckpts.
+save_hf_ckpts: False
 # Gamma (float): Learning rate scheduler gamma
 gamma: 0.85
 # Gradient Clip Val (float): Value for gradient clipping
@@ -159,8 +168,7 @@ precision: 16-mixed
 save_top_k: 3
 # Validation Check Interval (float): Validation frequency (fraction of an epoch) OR (int): steps until validation check
 val_check_interval: 0.5
-# Weight Decay (float): Weight decay for optimizer
-weight_decay: 0.01
+
 
 # ---------------------------- MODEL CONFIGURATION -----------------------------
 
@@ -183,6 +191,8 @@ model_type: retnet # Choices: 'retnet', 'transformer', 'longnet'
 seq_len: 128
 # Value Embedding Dimension (int): Value embed dimension size
 value_embed_dim: 1280
+# Weight Decay (float): Weight decay for optimizer
+weight_decay: 0.01
 # Vocabulary Size (int): Maximum vocabulary size (unique tokens in vocabulary)
 vocab_size: 50000
 

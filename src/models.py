@@ -23,10 +23,10 @@ class RetNetModel(LightningModule):
             config (Struct): A Struct object with all configuration fields.
         """
         super().__init__()
-        self.betas = config.betas
-        self.learning_rate = config.learning_rate
-        self.gamma = config.gamma
-        self.weight_decay = config.weight_decay
+        self.betas = [float(beta) for beta in config.betas]
+        self.learning_rate = float(config.learning_rate)
+        self.gamma = float(config.gamma)
+        self.weight_decay = float(config.weight_decay)
 
         # Create RetNet configuration for HuggingFace model
         hf_config = RetNetConfig(
@@ -39,7 +39,7 @@ class RetNetModel(LightningModule):
             activation_dropout=config.activation_dropout,
             vocab_size=config.vocab_size,
             max_seq_len=config.seq_len,
-            lr=config.learning_rate)
+            lr=self.learning_rate)
 
         self.model_hf = RetNetModelHF(hf_config)
 
@@ -180,10 +180,10 @@ class TransformerModel(LightningModule):
             config (Struct): A Struct object with all configuration fields.
         """
         super().__init__()
-        self.betas = config.betas
-        self.learning_rate = config.learning_rate
-        self.gamma = config.gamma
-        self.weight_decay = config.weight_decay
+        self.betas = [float(beta) for beta in config.betas]
+        self.learning_rate = float(config.learning_rate)
+        self.gamma = float(config.gamma)
+        self.weight_decay = float(config.weight_decay)
 
         # Create Transformer Decoder configuration for HuggingFace model
         config = DecoderConfig(
@@ -331,10 +331,10 @@ class LongNetModel(LightningModule):
             config (Struct): A Struct object with all configuration fields.
         """
         super().__init__()
-        self.betas = config.betas
-        self.learning_rate = config.learning_rate
-        self.gamma = config.gamma
-        self.weight_decay = config.weight_decay
+        self.betas = [float(beta) for beta in config.betas]
+        self.learning_rate = float(config.learning_rate)
+        self.gamma = float(config.gamma)
+        self.weight_decay = float(config.weight_decay)
 
         # Create Transformer Decoder configuration for HuggingFace model
         # This will work for LongNet as well (which this is)
