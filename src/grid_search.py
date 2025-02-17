@@ -31,6 +31,11 @@ def grid_search(config: Struct, compare_models=False):
     Args:
         config (Struct): A Struct object with all configuration fields.
     """
+
+    assert not isinstance(config.learning_rate, str), f"Error: 'config.learning_rate' \
+should not be a string (you put {config.learning_rate}).\nNote: You cannot use 'find' \
+feature in conjunction with grid search."
+
     # Hyperparameters ranges to test
     learning_rates = [0.01, 0.001]#, 0.0001]
     embed_dims = [768]#, 1024, 1280]

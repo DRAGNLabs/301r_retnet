@@ -204,6 +204,22 @@ def train_model(config: Struct):
                 cloud_provider="gcp",  # As of March 13, 2024, GCP us-west is the region with the most similar consumption profile to BYU.
                 cloud_region="us-west3")
 
+    
+    try:
+        config.learning_rate = config.learning_rate.lower()
+        if config.learning_rate == "find":
+            tuner = Tuner(trainer)
+            lr_finder = tuner.lr_find(model, datamodule=dm)
+            print(lr_finder.results)
+
+            fig = lr_finder.plot(suggest=True)
+            fig.savefig('lr_plot_transformer.png')
+        else:
+            raise Exception("Invalid learning rate value.")
+    except AttributeError:
+        pass
+
+            
     emissions_tracker.start()
     trainer.validate(model, datamodule=dm)
     trainer.fit(model, datamodule=dm)
