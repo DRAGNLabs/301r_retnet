@@ -12,7 +12,7 @@ from torch.distributed import get_rank, get_world_size
 from transformers import PreTrainedTokenizerFast
 from utils import Struct
 
-SAVE_INDEX_FREQUENCY = 32 * 1000
+SAVE_INDEX_FREQUENCY = 32 * 1000 * 8
 
 class DataModule(LightningDataModule):
     """

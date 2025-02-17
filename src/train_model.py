@@ -26,6 +26,7 @@ class CustomModelCheckpoint(ModelCheckpoint):
         self.emissions_tracker = e_tracker
         self.datamodule = datamodule
         self.models_path = models_path
+        
         if every_n_hours is not None and every_n_train_steps is not None:
             if every_n_hours <= 0:
                 print("Warning: You have set both 'every_n_hours' and 'every_n_train_steps' in your yaml.")
