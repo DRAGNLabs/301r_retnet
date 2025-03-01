@@ -128,7 +128,7 @@ You can train a model by running [train_model.py](./src/train_model.py) through 
 
 ### Grid Search
 
-The Grid Search feature is designed to systematically explore a range of hyperparameters and compare RetNet and Transformer models with corresponding parameters at each point. This evaluates both architectures with various combinations of learning rates, embedding dimensions, feed-forward dimensions, sequence lengths, and number of heads. The goal is to identify the configuration that results in the best model performance, measured in terms of loss and training efficiency.
+The Grid Search feature is designed to systematically explore a range of hyperparameters and compare RetNet and Transformer models with corresponding parameters at each point. This evaluates both architectures with various combinations of learning rates, embedding dimensions, and feed-forward dimensions, but can theoretically be expanded to _any_ parameter in the config. The goal is to identify the configuration that results in the best model performance, measured in terms of loss and training efficiency.
 
 **Code Overview:**
 
@@ -136,14 +136,21 @@ We implement the grid search process as follows:
 
 - **Hyperparameters Tested:** Learning rates (`0.001`, `0.0005`, `0.0001`), embedding dimensions (`768`, `1024`, `1280`), feed-forward dimensions (`1024`, `2048`), heads (`4`, `8`), and sequence lengths (`256`, `512`) for a total of 72 unique combinations per model architecture.
 - **Evaluation Metric:** The models are compared based on their test loss, with a custom function `evaluate_models` indicating which model performed better.
-- **Output:** Results are recorded in a CSV file, including each combination's average loss for both models, similarity scores, and training times.
+- **Output:** Results are recorded in a CSV file, including each combination's average loss for both models, similarity scores, and training times; we also generate tensorboard logs for each file.
 
 **Usage:**
 
-To run the grid search, ensure your configuration file is correctly set up, then execute the script with the path to your config file as an argument:
+To run the grid search, ensure your configuration file is set up correctly and in `gid_search.sh`, update the path to your config file as an argument and set the loop range to the number of models configurations you plan to search. E.g. to test 3 learning rates, 3 embedding dimensions and 2 feed-forward dimensions, we'd set our loop ceiling to `3*3*2=12`:
 
 ```bash
-python3 ../../src/grid_search.py configs/user_configs/<YOUR_CONFIG_HERE>.yaml
+#!/bin/bash
+for i in $(seq 0 11 1); do  # (seq <START> <STOP> <STEP_SIZE>) 
+  python3 ../../src/grid_search.py ../../configs/user_configs/<YOUR_CONFIG_HERE>.yaml i
+done
+```
+Setting the loop too high won't crash your script, so don't worry about that. Then execute the `grid_seach.sh` bash script:
+```bash
+sh grid_search.sh
 ```
 
 ### Hugging Face Integration
