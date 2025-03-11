@@ -188,9 +188,12 @@ def train_model(config: Struct):
         mode="min",
         e_tracker=emissions_tracker,
         every_n_hours=config.every_n_hours,
-        every_n_train_steps=config.every_n_train_steps,
+        every_n_train_steps=config.every_n_train_steps)
         save_hf_ckpts=config.save_hf_ckpts,
         models_path=config.models_path)
+        
+    if config.early_stopping == None or config.early_stopping == -1:
+        config.early_stopping = config.epochs * (1/config.val_check_interval)  # ensures epochs run out before early stopping kills the job
 
     early_stopping = EarlyStopping(
         "val_loss",
