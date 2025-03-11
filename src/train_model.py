@@ -188,7 +188,7 @@ def train_model(config: Struct):
         mode="min",
         e_tracker=emissions_tracker,
         every_n_hours=config.every_n_hours,
-        every_n_train_steps=config.every_n_train_steps)
+        every_n_train_steps=config.every_n_train_steps,
         save_hf_ckpts=config.save_hf_ckpts,
         models_path=config.models_path)
         
