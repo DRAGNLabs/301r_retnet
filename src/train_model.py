@@ -4,6 +4,7 @@ import os
 import signal
 import sys
 import torch
+import torch.distributed as dist
 import yaml
 
 from codecarbon import OfflineEmissionsTracker
@@ -16,6 +17,7 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from tabulate import tabulate
 from transformers import set_seed
+
 from utils import Struct
 
 class CustomModelCheckpoint(ModelCheckpoint):
@@ -135,9 +137,22 @@ def train_model(config: Struct):
             f"_LR{config.learning_rate}_GC{config.gradient_clip_val}"
 
     # Initialize model directory for config files, weights, etc.
-    model_dir = Path(config.models_path) / model_label
-    model_dir.mkdir(parents=True, exist_ok=True)
-    print(f"Saving model files in {model_dir}")
+    version = 1
+    model_dir = os.path.join(config.models_path, model_label)
+
+    while os.path.exists(model_dir):
+        print(f"The directory '{model_dir}' already exists.", flush=True)
+        model_dir = os.path.join(f"{config.models_path}_v{version}", model_label)
+        version += 1 
+    print(f"Changing save directory to {model_dir} and saving now.")
+    
+    if not dist.is_initialized() or dist.get_rank() == 0:
+        os.makedirs(model_dir, exist_ok=True)
+        model_dir = Path(model_dir)
+
+    # Synchronize all processes before proceeding
+    if dist.is_initialized():
+        dist.barrier()
 
     # Initialize checkpoints directory
     checkpoints_dir = model_dir / "checkpoints"
@@ -201,6 +216,8 @@ def train_model(config: Struct):
         mode="min",
         verbose=True)
 
+    print("Setting up Trainer object...", flush=True)
+
     # Setup Trainer based on if using Slurm or not
     if not config.use_slurm:
         trainer = Trainer(
@@ -233,12 +250,14 @@ def train_model(config: Struct):
         
 
     emissions_tracker.start()
+    print("Validating model now...", flush=True)
     trainer.validate(model, datamodule=dm)
 
     if config.restart_training_from_ckpt:
         print(f"\nLoading model from checkpoint: {config.restart_training_from_ckpt}\n", flush=True)
         trainer.fit(model, ckpt_path=config.restart_training_from_ckpt, datamodule=dm)
     else:
+        print("Starting training now", flush=True)
         trainer.fit(model, datamodule=dm)
 
     print("\nDone training! Now testing model...")
